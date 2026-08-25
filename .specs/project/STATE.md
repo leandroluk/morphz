@@ -149,6 +149,16 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `mock-fixtures` (v2 batch) complete. `.mock()`/
+  `.mockMany()` on every `Struct`-produced class. Synthesis priority:
+  overrides → examples → default → `Embed`/`Ref` recursive → `List` via
+  itemDescriptor → primitive introspection (canonical format values,
+  `randexp` for regex-only fields, min/max-bounded numbers). New
+  dependency: `randexp` (packages/core). Cycle guard for circular `Ref`
+  chains: `Optional` resolves to `undefined`, required throws a clear
+  error — confirmed via a real mutual-reference test, no stack overflow.
+  `immutable` fields synthesize normally (mock = creation). Gate: 121/121
+  pass (cumulative), `tsc`/`lint` clean.
 - [2026-08-25] `data-masking` (v2 batch) complete. `meta.mask` on
   `FieldDescriptor`, `toMaskedJSON()` (mirrors `to-json.ts`'s traversal,
   applies `mask` before `encode`, recurses via child's own

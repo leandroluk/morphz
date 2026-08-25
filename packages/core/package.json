@@ -9,6 +9,19 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leandroluk/morphz.git"
+  },
+  "keywords": [
+    "schema",
+    "validation",
+    "types",
+    "zod",
+    "domain-driven-design"
+  ],
+  "author": "Leandro Luk",
+  "license": "MIT",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -28,7 +41,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "jiti": "^2.4.0"
+    "jiti": "^2.4.0",
+    "randexp": "^0.5.3"
   },
   "devDependencies": {
     "@types/node": "26.3.0",

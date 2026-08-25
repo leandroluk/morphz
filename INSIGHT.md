@@ -963,4 +963,106 @@ permissions: SetOf(Text(), {
 }),
 ```
 
+---
+
+## 16. Interceptores de Propriedade (`get`/`set`) em Meta-Tipos
+
+O Zod possui `z.preprocess()`, mas com uma limitação fundamental: ele executa **apenas uma vez** durante o `.parse()` e gera um objeto plano estático. Se o desenvolvedor mutar a propriedade posteriormente (`user.id = "..."`), o Zod não intercepta mais nada e o objeto perde qualquer comportamento de encapsulamento.
+
+Como o `morphz` instancia **classes reais**, os meta-tipos criados com `Define` suportam acessores `get` e `set` dinâmicos (aplicados via `Object.defineProperty` no construtor do `Struct`).
+
+### Separação entre Wire-Format e Objeto de Domínio
+
+- **Wire-Format (Schema de Validação):** A API e o OpenAPI enxergam tipos 100% serializáveis (ex: `Text` com regex de 24 hex chars).
+- **Domain Object (Runtime em Memória):** O desenvolvedor manipula instâncias ricas da biblioteca de domínio (ex: `ObjectId` do MongoDB, `Decimal`, ou classes próprias).
+
+### Exemplo de Implementação com MongoDB `ObjectId`
+
+```ts
+import { ObjectId } from "mongodb";
+import { Define, Text, Struct } from "morphz";
+
+// Meta-tipo com acessores encapsulados
+export const MongoId = Define(Text({ regex: /^[0-9a-fA-F]{24}$/ }), {
+  description: "MongoDB ObjectId identifier for #entityName",
+  // get: Converte o valor bruto em instância rica de domínio
+  get: (accessor) => new ObjectId(accessor.value),
+  // set: Aceita tanto instâncias de ObjectId quanto strings e normaliza o valor interno
+  set: (val: string | ObjectId, accessor) => {
+    accessor.value = typeof val === "string" ? val : val.toHexString();
+  },
+});
+
+export class User extends Struct({
+  id: MongoId,
+  name: Text({ min: 2 }),
+}) {}
+```
+
+### Ciclo de Vida e Uso
+
+```ts
+// 1. Parsing com validação e instanciação:
+const user = User.parse({
+  id: "507f1f77bcf86cd799439011",
+  name: "John Doe",
+});
+
+// 2. Leitura (get): Retorna a instância autêntica de ObjectId
+console.log(user.id instanceof ObjectId); // true
+console.log(user.id.getTimestamp());      // 2012-10-15T00:14:47.000Z
+
+// 3. Mutação controlada (set): Aceita ObjectId ou string compatível
+user.id = new ObjectId();
+user.id = "507f191e810c19729de860ea";
+
+// 4. Serialização (toJSON): Retorna a string pura compatível com JSON Schema
+console.log(user.toJSON());
+// -> { id: "507f191e810c19729de860ea", name: "John Doe" }
+```
+
+---
+
+## 17. Diagnóstico e Observabilidade com Namespaces (`DEBUG=morphz:*`)
+
+Por padrão, a biblioteca é **completamente silenciosa** em tempo de execução e não polui o `console.log` da aplicação.
+
+Para depuração de fluxos internos, compilação de schemas e resolução de mensagens de validação, o `morphz` adota o padrão de depuração por namespaces via variável de ambiente `DEBUG` (comum no ecossistema Node.js / Express / Prisma).
+
+### Namespaces Disponíveis
+
+| Namespace          | Finalidade do Log                                                               |
+| :----------------- | :------------------------------------------------------------------------------ |
+| `morphz:struct`    | Registro e compilação de entidades, herança e resolução de labels/templates     |
+| `morphz:parse`     | Ciclo de parsing, validação de inputs e transformações de entrada               |
+| `morphz:codec`     | Codificação/decodificação bidirecional (ex: datas ISO $\leftrightarrow$ `Date`) |
+| `morphz:i18n`      | Resolução de mensagens de erro, locales ativos e fallbacks acionados            |
+| `morphz:lifecycle` | Criação de instâncias, execução de hooks `pre`/`post` e tempo de execução       |
+
+### Ativação no Backend
+
+#### 1. Via Terminal ao Iniciar o Servidor:
+```bash
+# Ativa todos os logs de todos os submódulos do morphz
+DEBUG=morphz:* npm run dev
+
+# Ativa apenas logs de parsing e i18n
+DEBUG=morphz:parse,morphz:i18n npm run dev
+
+# Ativa todos os logs exceto os de performance/cache
+DEBUG=morphz:*,-morphz:cache npm run dev
+```
+
+#### 2. Via Arquivo `.env`:
+```env
+DEBUG=morphz:*
+```
+
+### Comportamento e Performance (Zero Overhead)
+
+- **Em Produção:** Quando `DEBUG` não está definido ou não coincide com `morphz:*`, as funções de log retornam um *no-op* (`() => {}`), permitindo que a engine V8 do Node.js/Bun elimine completamente o custo de formatação de strings e I/O de console.
+- **Saída Formatada:** Quando ativo, emite logs com timestamps, identificador do namespace colorido e métricas de execução para diagnóstico em desenvolvimento.
+
+
+
 

@@ -1,5 +1,20 @@
 # Spec: Mock/Fixture Generation (`.mock()` / `.mockMany()`)
 
+**Status: DONE (2026-08-25).** Implemented + tested (121/121 cumulative
+pass, 15 tests for this feature). Value synthesis priority: overrides →
+`examples[0]` → `default` → `Embed`/`Ref` recursive `.mock()` → `List` via
+`itemDescriptor` → primitive introspection (`_zod.def`: canonical value
+per format, `randexp` for regex-only `Text`, min/max-bounded for `Number`,
+enum/literal/union handled, plain string fallback). Cycle guard (in-
+-progress class `Set` + `MAX_MOCK_DEPTH = 5`): an `Optional` circular
+`Ref` resolves to `undefined` once the cycle is detected; a REQUIRED
+(non-`Optional`) circular `Ref` throws a clear error instead of
+stack-overflowing or looping — confirmed via a real mutual-reference test
+(`A.b: Ref(() => B)` / `B.a: Ref(() => A)`, no `Optional`). `immutable`
+fields are synthesized normally (mocking always represents creation).
+Every mock round-trips through the real `.parse()` validation path
+(confirmed via an explicit test, not just "looks valid").
+
 ## Summary
 
 Per `INSIGHT.md` §12: every `Struct`-produced class gets static
@@ -52,20 +67,20 @@ the real validating constructor). Lives in `packages/core`.
   across mocked entities) — `.mockMany()` only produces in-memory
   instances; wiring them into a real seed script is the consumer's job.
 
-## Open Questions
+## Resolved
+- Regex-driven synthesis: uses `randexp` (new dependency in `packages/
+  core`) when a `Text`-based field has a `regex` but no `examples`/
+  `default` — REQ-002's priority order gets a step (e): `randexp(regex)
+  .gen()`. Only reached when (a)-(d) all miss. A field with neither
+  `examples` nor a synthesizable regex/format (e.g. a bare `refine`-only
+  custom validator with no `regex`) still fails loud — `randexp` covers
+  the regex case specifically, not every possible custom validation.
+- `Ref(() => Target)` mocking: always generates a FULL recursive
+  `Target.mock()` instance (matches `Embed`'s existing recursive
+  treatment, REQ-004's first half) — no scalar-stand-in mode. Recursion
+  depth risk (cycles via mutually-referencing `Ref`s) needs a cycle guard
+  in Design (e.g. a max-depth or in-progress-set check), since INSIGHT.md
+  doesn't address self-referencing entities in a mock context at all.
 
-- Regex-driven synthesis for a `Text`-based `Define` with a `regex` but no
-  `examples` (e.g. `Cep` has an `examples: ['01001-000']` so REQ-002(b)
-  covers it — but a hypothetical custom `Define(Text, { regex: /.../ })`
-  with NEITHER `examples` NOR an obvious canonical value) — needs either a
-  regex-to-string generator dependency (real, non-trivial engineering:
-  `randexp` or similar) or a hard requirement that mockable fields SHOULD
-  declare `examples` (falling back to a generation ERROR/warning rather
-  than guessing, if no `examples` and no synthesizable primitive shape
-  exists). Recommend the latter (fail loud, don't guess) unless the user
-  wants randexp-style generation — flagging for confirmation.
-- `Ref(() => Target)` mocking: synthesize a full nested `Target.mock()`
-  instance, or just a scalar matching `Target`'s primary key's shape
-  (avoiding potentially-recursive/expensive full-entity generation for
-  every relationship touched by a mock chain)? INSIGHT.md doesn't cover
-  this case at all — needs a decision before Execute.
+## Open Questions
+None blocking — both resolved above.

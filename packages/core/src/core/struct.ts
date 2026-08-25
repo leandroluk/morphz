@@ -9,6 +9,7 @@ import { toJSON } from "./to-json.js";
 import { toMaskedJSON } from "./to-masked-json.js";
 import { attachExtend } from "./extend.js";
 import { attachDeriveVariant } from "./derive-variant.js";
+import { attachMock } from "./mock.js";
 import { getConfig } from "./config.js";
 
 export interface StructOptions {
@@ -166,6 +167,7 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
 function attachDerivationMethods(klass: StructConstructor): StructConstructor {
   attachExtend(klass);
   attachDeriveVariant(klass);
+  attachMock(klass);
   return klass;
 }
 
@@ -202,4 +204,6 @@ export interface StructConstructor {
   omit(...names: string[] | [string[]]): StructConstructor;
   pick(...names: string[] | [string[]]): StructConstructor;
   partial(): StructConstructor;
+  mock(overrides?: Record<string, unknown>): unknown;
+  mockMany(count: number, factory?: (index: number) => Record<string, unknown>): unknown[];
 }
