@@ -1,6 +1,7 @@
 # Spec: Property Interceptors (`get`/`set` on `Define`, §16)
 
 ## Summary
+
 Per `INSIGHT.md` §16: `Define(BaseType, { get, set })` registers dynamic
 `get`/`set` accessors (applied via `Object.defineProperty` in the
 constructed instance) so a field's WIRE format (what validates/serializes)
@@ -10,16 +11,17 @@ across mutation (`user.id = new ObjectId()`), unlike Zod's one-shot
 `z.preprocess()`.
 
 ## Requirements
+
 - REQ-001: `Define(BaseType, { get, set })` — `get: (accessor: {value:
-  WireT}) => DomainT` reads the internally-stored WIRE value and returns
+WireT}) => DomainT` reads the internally-stored WIRE value and returns
   the rich domain object; `set: (val: DomainT | WireT, accessor: {value:
-  WireT}) => void` accepts either the domain type OR a raw wire-compatible
+WireT}) => void` accepts either the domain type OR a raw wire-compatible
   value, normalizes, and writes back to `accessor.value` (the internal
   wire-format storage).
 - REQ-002: Constructor-time application: for every field descriptor with
   `get`/`set` in its `meta`, `buildStructClass()`'s constructor uses
   `Object.defineProperty(this, fieldName, { get, set, enumerable: true,
-  configurable: true })` INSTEAD OF a plain `Object.assign`-style value
+configurable: true })` INSTEAD OF a plain `Object.assign`-style value
   property — the internal wire value lives in a non-enumerable backing
   slot (e.g. a `Symbol`-keyed or `#private`-prefixed internal store) that
   `get`/`set` close over.
@@ -56,6 +58,7 @@ across mutation (`user.id = new ObjectId()`), unlike Zod's one-shot
   confirm current behavior, `Object.assign` doesn't freeze anything)?
 
 ## Affected Components
+
 Cross-cuts `struct-entities` (constructor/`buildStructClass`),
 `lifecycle-serialization` (`to-json.ts`/`to-masked-json.ts` must read the
 wire slot, not the accessor), `define-metatypes` (`FieldDescriptorMeta`
@@ -64,6 +67,7 @@ does `.mock()` synthesize the WIRE value and let `set` normalize it, or
 bypass entirely? Needs confirming, not assumed).
 
 ## Out of Scope
+
 - Any change to how `.parse()`/`.safeParse()` validate — REQ-003 already
   states validation stays wire-format-only, unaffected by this feature.
 - A generic "computed property" mechanism beyond wire/domain translation
@@ -74,6 +78,7 @@ bypass entirely? Needs confirming, not assumed).
   lifecycle; this feature doesn't change that boundary).
 
 ## Resolved
+
 - REQ-005: `set` DOES throw for `immutable` fields after the first
   assignment (construction) — a write-once field with `get`/`set` must
   stay write-once through direct mutation too, not just through
@@ -84,6 +89,7 @@ bypass entirely? Needs confirming, not assumed).
   first assignment); a second `set` call on an immutable field throws.
 
 ## Open Questions
+
 - Does `Embed`/nested-`Struct` field access through a `get`/`set` field
   interact correctly with the EXISTING `Embed`/`Ref` machinery (which
   itself expects to read/write plain values, not go through a custom

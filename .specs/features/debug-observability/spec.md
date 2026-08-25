@@ -1,12 +1,14 @@
 # Spec: Debug/Observability Namespaces (`DEBUG=morphz:*`, §17)
 
 ## Summary
+
 Per `INSIGHT.md` §17: opt-in, zero-overhead-when-off debug logging via the
 Node.js-ecosystem-standard `DEBUG` environment variable convention (the
 `debug` npm package), with 5 documented namespaces
 (`morphz:struct`/`parse`/`codec`/`i18n`/`lifecycle`).
 
 ## Requirements
+
 - REQ-001: Uses the `debug` npm package (the de facto standard this
   convention comes from — Express/Prisma/etc. all use it; INSIGHT.md's
   own wording explicitly invokes this ecosystem convention, not a custom
@@ -17,7 +19,7 @@ Node.js-ecosystem-standard `DEBUG` environment variable convention (the
   (constructor/`.parse()`/`.safeParse()` — `lifecycle-serialization`),
   `morphz:codec` (`DateTime`/`BigInt`/`Decimal` encode/decode —
   `datetime-codec` + any codec-based primitive from `additional-
-  primitives`), `morphz:i18n` (`resolveIssueMessages`/`resolveLocale` —
+primitives`), `morphz:i18n` (`resolveIssueMessages`/`resolveLocale` —
   `i18n-error-messages`), `morphz:lifecycle` (`pre`/`post` hook execution,
   instance creation timing — `struct-entities`/`lifecycle-serialization`).
 - REQ-003: Each namespace's logger is a MODULE-LEVEL singleton
@@ -35,6 +37,7 @@ Node.js-ecosystem-standard `DEBUG` environment variable convention (the
   function, let IT decide whether to format).
 
 ## Affected Components
+
 Touches: `struct.ts`/`template.ts` (`struct-entities`), the constructor/
 `static parse`/`safeParse` (`lifecycle-serialization`), `resolve-issues.ts`/
 `resolve-locale.ts` (`i18n-error-messages`), `date-time.ts` + any future
@@ -46,6 +49,7 @@ was found) — flagged explicitly since it changes the usual "one feature =
 mostly new files" pattern.
 
 ## Out of Scope
+
 - Log AGGREGATION/shipping to external tools (Sentry, Datadog, etc.) —
   `DEBUG`-style logging is local/console-only by convention; anything
   beyond that is the consumer's own observability stack's job.
@@ -57,6 +61,7 @@ mostly new files" pattern.
   caching mechanism exists anywhere in `morphz` today to log about).
 
 ## Open Questions
+
 - INSIGHT.md's example references `morphz:cache` but the documented table
   only lists 5 namespaces (no `cache`) — flagging the inconsistency
   rather than silently picking one interpretation. Recommend treating it

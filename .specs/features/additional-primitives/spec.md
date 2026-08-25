@@ -1,6 +1,7 @@
 # Spec: Additional Primitives (§15)
 
 ## Summary
+
 Per `INSIGHT.md` §15: 15 new core primitives across 5 groups, all following
 the established `FieldDescriptorFactory` pattern (`define-metatypes`) —
 mechanical in shape, but several need a new runtime dependency (arbitrary-
@@ -10,6 +11,7 @@ precision decimal, ULID/CUID2 generators) or careful Zod-schema choices
 ## Requirements
 
 ### A. Fundamental scalars
+
 - REQ-001: `Boolean(options?)` — `z.coerce.boolean()`-style coercion from
   querystring/payload strings (`"true"`/`"0"` etc.) — confirm exact Zod
   v4 coercion API in Design (`z.coerce.boolean()` vs. manual preprocess).
@@ -25,6 +27,7 @@ precision decimal, ULID/CUID2 generators) or careful Zod-schema choices
   one in Design.
 
 ### B. Specialized dates/times (zero timezone drift)
+
 - REQ-004: `DateOnly(options?)` — `"YYYY-MM-DD"`, domain value TBD (plain
   string vs. a lightweight date-only wrapper type — deciding whether to
   introduce a `PlainDate`-like domain type or keep the string as both
@@ -38,6 +41,7 @@ precision decimal, ULID/CUID2 generators) or careful Zod-schema choices
   8601 duration parsing alone doesn't cover `"30d"`-style shorthand.
 
 ### C. Modern high-performance identifiers
+
 - REQ-007: `Ulid(options?)` — needs a `ulid` generator dependency.
 - REQ-008: `Nanoid(options?: {length?})` — `nanoid` already used as a
   documented pattern in `define-metatypes`'s recipes (INSIGHT.md §1's
@@ -47,6 +51,7 @@ precision decimal, ULID/CUID2 generators) or careful Zod-schema choices
   equivalent) dependency.
 
 ### D. Web/connectivity
+
 - REQ-010: `Url(options?: {protocols?})` — promotes the `define-metatypes`
   §1 `Url` RECIPE (currently `Define(Text, {refine: ...})`-based, hand-
   rolled `URL` parsing) to a first-class core primitive using Zod's own
@@ -55,6 +60,7 @@ precision decimal, ULID/CUID2 generators) or careful Zod-schema choices
   `refine`-based `URL` parsing now that a first-class primitive exists.
 
 ### E. Flexible structures/binary
+
 - REQ-011: `Json<T>(options?)` — generic-typed, accepts arbitrary
   objects/arrays, `z.record`/`z.unknown`-based per the actual shape
   needed — confirm whether `T` flows through to real TS inference (ties
@@ -79,6 +85,7 @@ precision decimal, ULID/CUID2 generators) or careful Zod-schema choices
   fallback, domain value is a real `Set<T>`.
 
 ## Affected Components
+
 All live in `packages/core/src/primitives/`, following the exact pattern
 already established by `define-metatypes`'s primitives and
 `datetime-codec`'s `DateTime`. `BigInt`/`Decimal` specifically need the
@@ -86,6 +93,7 @@ SAME codec treatment `DateTime` pioneered (wire string ↔ domain rich
 value) — direct reuse of an established pattern, not new architecture.
 
 ## Out of Scope
+
 - Retrofit of existing recipes (`define-metatypes`'s documented `Url`
   recipe) into using the new first-class primitives internally — REQ-010
   covers promoting `Url` to core; whether OTHER existing recipes get
@@ -99,6 +107,7 @@ value) — direct reuse of an established pattern, not new architecture.
   Execute, not assumed silently.
 
 ## Resolved
+
 - `Decimal` uses `decimal.js` — most configurable precision ceiling and
   most robust rounding-mode support of the common arbitrary-precision
   options (`big.js`/`bignumber.js` are lighter but less feature-complete);
@@ -116,6 +125,7 @@ value) — direct reuse of an established pattern, not new architecture.
   full calendar-math library.
 
 ## Open Questions
+
 - `Duration`'s friendly-notation parser — reuse an existing library (`ms`,
   `parse-duration`) vs. hand-roll — needs a choice in Design.
 - Should `Json<T>`'s generic type parameter be implemented now (inert

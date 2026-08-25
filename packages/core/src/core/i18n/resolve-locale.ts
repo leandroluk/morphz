@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getConfig } from "../config.js";
+import { logI18n } from "../debug.js";
 
 export interface LocaleContext {
   locale: string;
@@ -31,10 +32,17 @@ const HARD_FALLBACK_LOCALE = "en-US";
  */
 export function resolveLocale(): string {
   const fromContext = localeStorage.getStore()?.locale;
-  if (fromContext) return fromContext;
+  if (fromContext) {
+    logI18n("resolved locale %s from AsyncLocalStorage context", fromContext);
+    return fromContext;
+  }
 
   const fromConfig = configLocaleReader?.();
-  if (fromConfig) return fromConfig;
+  if (fromConfig) {
+    logI18n("resolved locale %s from config", fromConfig);
+    return fromConfig;
+  }
 
+  logI18n("resolved locale %s from hard fallback", HARD_FALLBACK_LOCALE);
   return HARD_FALLBACK_LOCALE;
 }

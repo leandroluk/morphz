@@ -1,3 +1,5 @@
+import { logStruct } from "./debug.js";
+
 /**
  * Resolves `#placeholder` tokens in a string against a labels record.
  * An unresolved placeholder (no matching label) is left untouched — never
@@ -12,7 +14,11 @@ export function resolveTemplateString(
   const escaped = delimiter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`${escaped}([a-zA-Z_][a-zA-Z0-9_]*)`, "g");
   return input.replace(pattern, (match, key: string) => {
-    return Object.prototype.hasOwnProperty.call(labels, key) ? (labels[key] as string) : match;
+    if (Object.prototype.hasOwnProperty.call(labels, key)) {
+      return labels[key] as string;
+    }
+    logStruct("unresolved template placeholder %s%s in %o", delimiter, key, input);
+    return match;
   });
 }
 

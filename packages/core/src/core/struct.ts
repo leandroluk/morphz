@@ -11,6 +11,7 @@ import { attachExtend } from "./extend.js";
 import { attachDeriveVariant } from "./derive-variant.js";
 import { attachMock } from "./mock.js";
 import { getConfig } from "./config.js";
+import { logLifecycle, logParse, logStruct } from "./debug.js";
 
 export interface StructOptions {
   labels?: Record<string, string>;
@@ -86,14 +87,26 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
   const { rawObjectSchema, hooks, fields, labels, description, extendsClass } = params;
 
   let schema: z.ZodType = hooks.post
-    ? rawObjectSchema.superRefine((val, ctx) => hooks.post!(val, ctx))
+    ? rawObjectSchema.superRefine((val, ctx) => {
+        logLifecycle("running post hook");
+        hooks.post!(val, ctx);
+      })
     : rawObjectSchema;
 
   if (hooks.pre) {
-    schema = z.preprocess(hooks.pre, schema);
+    schema = z.preprocess((val) => {
+      logLifecycle("running pre hook");
+      return hooks.pre!(val);
+    }, schema);
   }
 
   const meta: StructMeta = { fields, labels, description, schema, rawObjectSchema, hooks };
+  logStruct(
+    "compiled Struct with %d field(s), pre=%s post=%s",
+    Object.keys(fields).length,
+    Boolean(hooks.pre),
+    Boolean(hooks.post),
+  );
 
   if (extendsClass) {
     // Real JS subclassing: constructor, static parse/safeParse, and
@@ -110,16 +123,19 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
   class GeneratedStruct {
     constructor(input: unknown) {
       const target = (new.target ?? GeneratedStruct) as StructConstructor;
+      logParse("parsing input for %s", target.name);
       let data: Record<string, unknown>;
       try {
         data = target[STRUCT_META].schema.parse(input) as Record<string, unknown>;
       } catch (err) {
         if (err instanceof z.ZodError) {
+          logParse("parse failed for %s with %d issue(s)", target.name, err.issues.length);
           throw new ValidationError(err, target);
         }
         throw err;
       }
       Object.assign(this, data);
+      logLifecycle("created instance of %s", target.name);
     }
 
     static [STRUCT_META] = meta;
@@ -142,6 +158,7 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
       | { success: false; errors: ReturnType<typeof resolveIssueMessages> } {
       const result = this[STRUCT_META].schema.safeParse(input);
       if (!result.success) {
+        logParse("safeParse failed for %s with %d issue(s)", this.name, result.error.issues.length);
         return {
           success: false,
           errors: resolveIssueMessages(result.error, this, resolveLocale()),
@@ -149,6 +166,8 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
       }
       const instance = Object.create(this.prototype) as Record<string, unknown>;
       Object.assign(instance, result.data as Record<string, unknown>);
+      logParse("safeParse succeeded for %s", this.name);
+      logLifecycle("created instance of %s", this.name);
       return { success: true, data: instance };
     }
 

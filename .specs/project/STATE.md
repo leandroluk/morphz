@@ -149,6 +149,15 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `debug-observability` (v3 batch) complete. `debug.ts` (5
+  loggers: `logStruct`/`logParse`/`logCodec`/`logI18n`/`logLifecycle`)
+  wired into `struct.ts`, `template.ts`, `resolve-locale.ts`,
+  `resolve-issues.ts`, `date-time.ts`. First feature to modify several
+  already-shipped files as its PRIMARY deliverable (not just new files).
+  Confirmed zero-overhead when `DEBUG` unset via both a real manual smoke
+  test (built package) and automated enable/disable tests. New deps:
+  `debug`, `@types/debug`. Gate: 142/142 pass (cumulative), `tsc`/`lint`
+  clean. Next in recommended order: `additional-primitives`.
 - [2026-08-25] `INSIGHT.md` grew further while v2 was in progress — §15-17
   (v3 batch): `additional-primitives`, `property-interceptors`,
   `debug-observability` specified. Resolved with user: `Decimal` uses
