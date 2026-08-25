@@ -1,5 +1,17 @@
 # Tasks: Monorepo Architecture
 
+**Status: DONE (2026-08-25).** T-001..T-003 executed. `git mv`-based
+history-preserving move to `packages/core/`; `packages/ts-plugin/` (typed
+stub against `tsserverlibrary`) and `packages/vscode/` (manifest
+placeholder) scaffolded; `pnpm-workspace.yaml` + `turbo.json` (`tasks`
+schema, turbo 2.10.11) + thin root `package.json`; npm→pnpm switch clean
+(`onlyBuiltDependencies` handles esbuild's postinstall). **Gate personally
+re-verified by coordinator** (not just trusted from DEV's report): 99/99
+tests (`packages/core`, direct `vitest run`), typecheck clean across all 3
+packages via `turbo run typecheck`, `oxlint` clean from root (reaches
+`packages/*/src`), build clean (known `import.meta`-in-CJS warning,
+harmless, already documented in v1's STATE.md).
+
 ## T-001: Move `core` into `packages/core/`, scaffold `ts-plugin`/`vscode`
 
 - **REQ**: REQ-001..REQ-004

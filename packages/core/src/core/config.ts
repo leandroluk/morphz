@@ -26,6 +26,12 @@ export interface MorphzConfig {
   labels?: MorphzLabelsConfig;
   template?: MorphzTemplateConfig;
   locale?: MorphzLocaleConfig;
+  /**
+   * Enables the build-time JSDoc generation step (`jsdoc-generation`
+   * feature) — propagates field metadata into the emitted `.d.ts`.
+   * Opt-in, defaults to `false`.
+   */
+  jsdoc?: boolean;
 }
 
 const CONFIG_FILENAMES = [

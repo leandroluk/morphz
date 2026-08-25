@@ -10,4 +10,9 @@ describe("defineConfig", () => {
   it("passes through an empty object", () => {
     expect(defineConfig({})).toEqual({});
   });
+
+  it("accepts the jsdoc flag, typed and passed through unchanged", () => {
+    const options = { jsdoc: true };
+    expect(defineConfig(options)).toBe(options);
+  });
 });

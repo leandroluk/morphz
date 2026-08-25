@@ -149,6 +149,14 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `monorepo-architecture` (v2 batch, T-001..T-003) complete —
+  repo restructured into pnpm+Turborepo. `packages/core` (history
+  preserved via `git mv`), `packages/ts-plugin` (typed stub scaffold),
+  `packages/vscode` (manifest placeholder). npm→pnpm switch clean. Gate
+  personally re-verified by coordinator (not just trusted from the DEV
+  fork's report): 99/99 tests, typecheck clean across all 3 packages,
+  root `oxlint` clean, build clean. 1 commit
+  (`feat: restructure into pnpm+Turborepo monorepo (INSIGHT.md §14)`).
 - [2026-08-25] Post-completion fix: `discoverConfig()`'s
   `createJiti(import.meta.url)` broke the CJS build (esbuild empties
   `import.meta.url` for that output format — a real bug, not cosmetic,
