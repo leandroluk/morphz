@@ -32,6 +32,8 @@ export interface FieldDescriptorMeta<T = unknown> {
   message?: MessageMap;
   /** Set concretely by DateTime/Timestamp (datetime-codec) for .toJSON(). */
   encode?: (val: T) => unknown;
+  /** Redaction applied by .toMaskedJSON() before any `encode` (data-masking). */
+  mask?: (val: T) => T;
 }
 
 export interface FieldDescriptor<T = unknown> {

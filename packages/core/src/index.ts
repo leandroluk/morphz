@@ -40,6 +40,7 @@ export { descendPath } from "./core/i18n/descend-path.js";
 
 export { ValidationError } from "./core/validation-error.js";
 export { toJSON } from "./core/to-json.js";
+export { toMaskedJSON } from "./core/to-masked-json.js";
 
 export { defineConfig } from "./core/define-config.js";
 export { getConfig, discoverConfig } from "./core/config.js";

@@ -6,6 +6,7 @@ import { ValidationError } from "./validation-error.js";
 import { resolveIssueMessages } from "./i18n/resolve-issues.js";
 import { resolveLocale } from "./i18n/resolve-locale.js";
 import { toJSON } from "./to-json.js";
+import { toMaskedJSON } from "./to-masked-json.js";
 import { attachExtend } from "./extend.js";
 import { attachDeriveVariant } from "./derive-variant.js";
 import { getConfig } from "./config.js";
@@ -152,6 +153,10 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
 
     toJSON(): Record<string, unknown> {
       return toJSON(this as unknown as Record<string, unknown>, STRUCT_META);
+    }
+
+    toMaskedJSON(): Record<string, unknown> {
+      return toMaskedJSON(this as unknown as Record<string, unknown>, STRUCT_META);
     }
   }
 

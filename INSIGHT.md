@@ -850,6 +850,13 @@ snowflakeId: BigInt({ min: 0n, description: "Identificador Snowflake único" }),
 balanceInAtomicUnits: BigInt({ min: 0n }),
 ```
 
+#### 3. `Decimal`
+Precisão numérica e financeira exata (evita erros de ponto flutuante do IEEE 754 e mapeia nativamente para colunas `DECIMAL` / `NUMERIC` de bancos de dados):
+```ts
+price: Decimal({ precision: 10, scale: 2, min: "0.00", description: "Preço unitário em reais" }), // "150.50"
+interestRate: Decimal({ scale: 4, min: "0.0000", max: "1.0000" }), // "0.0525"
+```
+
 ---
 
 ### B. Datas e Horários Especializados (Zero Timezone Drift)
@@ -885,6 +892,18 @@ retryInterval: Duration({ default: "5m" }),
 Identificadores únicos lexicograficamente ordenáveis por tempo (128-bit codificado em Crockford Base32), ideais para índices de bancos de dados:
 ```ts
 id: Ulid({ default: () => ulid(), description: "Identificador ULID ordenável de #entityName" }),
+```
+
+#### 2. `Nanoid`
+Identificadores curtos, seguros para URL e com alfabeto/tamanho configurável:
+```ts
+shareCode: Nanoid({ length: 10, description: "Código de compartilhamento rápido" }),
+```
+
+#### 3. `Cuid2`
+Identificadores seguros, horizontais e não sequenciais de próxima geração:
+```ts
+publicToken: Cuid2({ description: "Token público seguro de #entityName" }),
 ```
 
 ---
@@ -926,4 +945,22 @@ Buffers de dados binários (`Uint8Array` ou `Buffer`) ou strings Base64 com vali
 avatarFile: Binary({ maxBytes: 5 * 1024 * 1024, description: "Imagem de perfil (máx 5MB)" }),
 signatureHash: Binary({ exactBytes: 32 }),
 ```
+
+#### 4. `Tuple`
+Tuplas posicionais com tipos heterogêneos fixos (evita a necessidade de recorrer ao Zod cru):
+```ts
+coordinates: Tuple([Number({ min: -90, max: 90 }), Number({ min: -180, max: 180 })], {
+  description: "Coordenadas geográficas [latitude, longitude]",
+}),
+```
+
+#### 5. `SetOf`
+Coleção com unicidade garantida (sem elementos duplicados, desserializada como `Set<T>`):
+```ts
+permissions: SetOf(Text(), {
+  minSize: 1,
+  description: "Conjunto único de permissões do usuário",
+}),
+```
+
 

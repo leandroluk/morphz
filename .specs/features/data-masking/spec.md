@@ -1,5 +1,14 @@
 # Spec: Data Masking / LGPD (`mask` / `.toMaskedJSON()`)
 
+**Status: DONE (2026-08-25).** Implemented + tested (106/106 cumulative
+pass). `mask` fell into `mergeDescriptor`'s existing shallow-overwrite path
+unchanged (no special merge logic needed, unlike `message`). Confirmed:
+`mask` runs before `encode`; `Embed`/`Ref` recurse via the child's own
+`.toMaskedJSON()`; `List` masks item-by-item via `itemDescriptor`;
+`writeOnly` fields never reach masking (omitted same as `.toJSON()`);
+`.toJSON()` itself is completely unaffected by `mask` (only
+`.toMaskedJSON()` applies it).
+
 ## Summary
 
 Per `INSIGHT.md` §13: `Define`/field-level `mask` option registers a

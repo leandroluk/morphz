@@ -149,6 +149,12 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `data-masking` (v2 batch) complete. `meta.mask` on
+  `FieldDescriptor`, `toMaskedJSON()` (mirrors `to-json.ts`'s traversal,
+  applies `mask` before `encode`, recurses via child's own
+  `.toMaskedJSON()` for `Embed`/`Ref`, masks `List` items individually,
+  `writeOnly` still omitted, `.toJSON()` unaffected). Gate: 106/106 pass
+  (cumulative), `tsc`/`lint` clean.
 - [2026-08-25] `monorepo-architecture` (v2 batch, T-001..T-003) complete —
   repo restructured into pnpm+Turborepo. `packages/core` (history
   preserved via `git mv`), `packages/ts-plugin` (typed stub scaffold),
