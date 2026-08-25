@@ -2,6 +2,18 @@
 
 _(PO breakdown, from spec.md + design.md)_
 
+**Status: DONE (2026-08-25) — last of 8 features.** T-001..T-003
+implemented + tested (99/99 cumulative pass). `discoverConfig()`
+(cosmiconfig-style sync search + `jiti`'s sync `createJiti(...)` require
+path), `getConfig()` (module singleton), `defineConfig()` (inert identity),
+`morphz/register` (eager `primeConfig()`) all implemented. `i18n-error-
+messages`'s `configLocaleReader` hook already defaulted to `() =>
+getConfig().locale?.default` when that feature was built (importing
+`config.js` directly) — confirmed this IS the wiring the design called
+for; no further connection needed (an attempt to additionally call
+`setConfigLocaleReader()` from `config.ts` was tried and reverted — it
+created a real circular import between `config.ts` and `resolve-
+locale.ts` that broke module init order under Vitest).
 ## T-001: `defineConfig()`
 
 - **REQ**: REQ-001

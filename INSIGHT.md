@@ -501,20 +501,20 @@ Dessa forma, o schema se torna a única fonte de verdade tanto para validação 
 
 ### Mapeamento De $\rightarrow$ Para (Zod / JSON Schema $\rightarrow$ JSDoc)
 
-| Campo Zod / JSON Schema | Tag JSDoc Gerada | Exemplo / Formato |
-| :--- | :--- | :--- |
-| `description` | *(Corpo principal do bloco)* | `Texto descritivo plano` |
-| `default` | `@default` | `@default "uuid-v4"` ou `@default 0` |
-| `examples` / `example` | `@example` | `@example "John Doe"` *(com escape)* |
-| `readOnly` / `immutable: true` | `@readonly` | `@readonly` |
-| `writeOnly: true` | `@writeOnly` | `@writeOnly` |
-| `deprecated: true` | `@deprecated` | `@deprecated [motivo opcional]` |
-| `minLength` / `min` *(Text)* | `@minLength` | `@minLength 2` |
-| `maxLength` / `max` *(Text)* | `@maxLength` | `@maxLength 50` |
-| `minimum` / `min` *(Number)* | `@minimum` | `@minimum 0` |
-| `maximum` / `max` *(Number)* | `@maximum` | `@maximum 100` |
-| `pattern` / `regex` | `@pattern` | `@pattern ^[a-z0-9-]+$` |
-| `format` *(Email, Uuid, etc.)* | `@format` | `@format email`, `@format uuid` |
+| Campo Zod / JSON Schema        | Tag JSDoc Gerada             | Exemplo / Formato                    |
+| :----------------------------- | :--------------------------- | :----------------------------------- |
+| `description`                  | *(Corpo principal do bloco)* | `Texto descritivo plano`             |
+| `default`                      | `@default`                   | `@default "uuid-v4"` ou `@default 0` |
+| `examples` / `example`         | `@example`                   | `@example "John Doe"` *(com escape)* |
+| `readOnly` / `immutable: true` | `@readonly`                  | `@readonly`                          |
+| `writeOnly: true`              | `@writeOnly`                 | `@writeOnly`                         |
+| `deprecated: true`             | `@deprecated`                | `@deprecated [motivo opcional]`      |
+| `minLength` / `min` *(Text)*   | `@minLength`                 | `@minLength 2`                       |
+| `maxLength` / `max` *(Text)*   | `@maxLength`                 | `@maxLength 50`                      |
+| `minimum` / `min` *(Number)*   | `@minimum`                   | `@minimum 0`                         |
+| `maximum` / `max` *(Number)*   | `@maximum`                   | `@maximum 100`                       |
+| `pattern` / `regex`            | `@pattern`                   | `@pattern ^[a-z0-9-]+$`              |
+| `format` *(Email, Uuid, etc.)* | `@format`                    | `@format email`, `@format uuid`      |
 
 ---
 
@@ -667,4 +667,164 @@ O plugin e os geradores de JSDoc adotam **`en-US` como padrão universal de cód
    - **1. Configuração do Projeto (`morphz.config.ts`):** `locale: { default: 'en-US' }`
    - **2. Detecção Automática da IDE/OS:** Caso não configurado explicitamente, o plugin lê o locale ativo da IDE (`vscode.env.language` ou locale do sistema via `Intl.DateTimeFormat().resolvedOptions().locale`).
    - **3. Fallback Seguro:** Se a chave no idioma local não existir, recorre ao `en-US`.
+
+---
+
+## 12. Geração Automática de Mocks e Fixtures para Testes (`User.mock()`)
+
+Como cada campo declarado em um `Struct` já possui metadados semânticos completos (`format`, `regex`, `min`, `max`, `examples`, `default`), o `morphz` disponibiliza um gerador nativo de fixtures para testes unitários, testes E2E e seeding de banco de dados, eliminando a necessidade de factories manuais com bibliotecas externas.
+
+### Funcionamento e Capacidades
+
+- **Resolução Semântica de Valores:**
+  - Campos com `examples` utilizam um dos exemplos declarados.
+  - Campos com `default` utilizam o gerador padrão.
+  - Campos com restrições (`min`, `max`, `regex`) têm seus valores sintetizados respeitando os limites da validação.
+- **Overrides Tipados com Autocomplete:** Permite sobrescrever apenas as propriedades relevantes para o cenário do teste.
+- **Instância Real Retornada:** O retorno de `.mock()` é uma instância autêntica da classe da entidade (passando na checagem `instanceof` e com todos os métodos de domínio disponíveis).
+
+### Exemplo de Uso em Testes
+
+```ts
+import { User, UserRole } from "./user.entity";
+
+describe("User Domain Services", () => {
+  it("should calculate permissions for admin user", () => {
+    // Gera uma instância válida com todos os campos preenchidos conforme o schema
+    const admin = User.mock({
+      role: UserRole.ADMIN,
+      email: "admin@example.com",
+    });
+
+    expect(admin).toBeInstanceOf(User);
+    expect(admin.isAdmin()).toBe(true);
+    expect(typeof admin.id).toBe("string");
+    expect(admin.createdAt).toBeInstanceOf(Date);
+  });
+
+  it("should support generating batch fixtures for seeding", () => {
+    // Gera lista de 10 usuários válidos
+    const batch = User.mockMany(10, (index) => ({
+      email: `user-${index}@example.com`,
+    }));
+
+    expect(batch).toHaveLength(10);
+  });
+});
+```
+
+---
+
+## 13. Mascaramento e Redação de Dados Sensíveis / LGPD (`mask` / `.toMaskedJSON()`)
+
+Em sistemas corporativos, dados pessoais identificáveis (PII) precisam ser protegidos contra vazamentos em logs de observabilidade (Sentry, CloudWatch, Datadog) e respostas de endpoints públicos.
+
+O `morphz` adiciona o modificador `mask` no nível de `Define` e `Struct`, além do método de serialização segura `.toMaskedJSON()`.
+
+### Declaração de Máscaras Reutilizáveis
+
+```ts
+export const Email = Define(Text, {
+  format: "email",
+  mask: (email: string) => {
+    const [user, domain] = email.split("@");
+    return `${user.slice(0, 2)}***@${domain}`;
+  },
+});
+
+export const DocumentCpf = Define(Text, {
+  regex: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
+  mask: (cpf: string) => cpf.replace(/^(\d{3})\.\d{3}\.\d{3}-(\d{2})$/, "$1.***.***-$2"),
+});
+```
+
+### Serialização Controlada em Logs e APIs
+
+```ts
+const user = User.parse({
+  name: "John Doe",
+  email: "john.doe@example.com",
+  password: "super_secret_hash",
+});
+
+// A. Serialização padrão: oculta campos `writeOnly: true` (como password)
+console.log(user.toJSON());
+// -> { id: "...", name: "John Doe", email: "john.doe@example.com" }
+
+// B. Serialização mascarada: aplica as funções de `mask` registradas
+console.log(user.toMaskedJSON());
+// -> { id: "...", name: "John Doe", email: "jo***@example.com" }
+
+// C. Uso direto em logs de observabilidade:
+logger.info("User session initialized", { user: user.toMaskedJSON() });
+```
+
+---
+
+## 14. Arquitetura do Repositório (Monorepo) e Distribuição de Pacotes
+
+Para garantir que a biblioteca (`morphz`), o plugin do compilador TypeScript (`ts-plugin`) e eventuais extensões de editor evoluam em perfeita sincronia, o projeto adota uma arquitetura de **Monorepo** gerenciada via **pnpm workspaces** e **Turborepo**.
+
+### Vantagens do Monorepo Unificado
+
+1. **Versionamento e Commits Atômicos:** Qualquer mudança na API da lib (novos modificadores, mudanças em `Define` ou templates) atualiza instantaneamente a lógica do plugin de IDE no mesmo Pull Request, eliminando defasagens de versão.
+2. **Compartilhamento de Código Sem Overhead:** O `ts-plugin` importa tipos, AST helpers e analisadores de templates diretamente do `core` como workspace package (`workspace:*`), sem duplicação de lógica ou publicação de pacotes intermediários.
+3. **Pipeline de Testes Integrada:** Executa testes de runtime de entidades e validações de hover/diagnósticos do TypeScript em um único comando (`pnpm test`).
+
+### Estrutura de Pastas
+
+```text
+morphz/
+├── packages/
+│   ├── core/             # Lib principal publicada no npm como "morphz"
+│   │   ├── src/
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   ├── ts-plugin/        # Plugin para o tsserver ("@morphz/ts-plugin" / "morphz/ts-plugin")
+│   │   ├── src/
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   └── vscode/           # (Opcional) Extensão VSCode marketplace para empacotamento
+│       ├── src/
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── pnpm-workspace.yaml
+├── turbo.json
+└── package.json
+```
+
+### Estratégia de Distribuição e Consumo
+
+O plugin pode ser distribuído tanto como pacote separado (`@morphz/ts-plugin`) quanto empacotado via subpath export no pacote principal `morphz`:
+
+```json
+// package.json do morphz (core)
+{
+  "name": "morphz",
+  "exports": {
+    ".": "./dist/index.js",
+    "./ts-plugin": "./dist/ts-plugin/index.js"
+  }
+}
+```
+
+Dessa forma, o consumidor do `morphz` tem setup **zero-friction**: ao instalar `morphz`, basta ativar o plugin no seu `tsconfig.json`:
+
+```json
+// tsconfig.json (Projeto do Consumidor)
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "morphz/ts-plugin"
+      }
+    ]
+  }
+}
+```
+
+
 

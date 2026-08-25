@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { getConfig } from "../config.js";
 
 export interface LocaleContext {
   locale: string;
@@ -12,15 +13,14 @@ export interface LocaleContext {
 export const localeStorage: AsyncLocalStorage<LocaleContext> = new AsyncLocalStorage();
 
 /**
- * `project-config` (a later feature) owns the actual config singleton.
- * Until it exists, this stays an injectable hook — `setConfigLocaleReader`
- * lets that feature wire itself in later without this module depending on
- * one that doesn't exist yet. Never throws if unset.
+ * Defaults to reading `project-config`'s singleton directly. Kept
+ * injectable (`setConfigLocaleReader`) for tests, or for a future scoped-
+ * config need — overriding never throws, `undefined` restores the default.
  */
-let configLocaleReader: (() => string | undefined) | undefined;
+let configLocaleReader: (() => string | undefined) | undefined = () => getConfig().locale?.default;
 
 export function setConfigLocaleReader(reader: (() => string | undefined) | undefined): void {
-  configLocaleReader = reader;
+  configLocaleReader = reader ?? (() => getConfig().locale?.default);
 }
 
 const HARD_FALLBACK_LOCALE = "en-US";

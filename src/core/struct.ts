@@ -8,6 +8,7 @@ import { resolveLocale } from "./i18n/resolve-locale.js";
 import { toJSON } from "./to-json.js";
 import { attachExtend } from "./extend.js";
 import { attachDeriveVariant } from "./derive-variant.js";
+import { getConfig } from "./config.js";
 
 export interface StructOptions {
   labels?: Record<string, string>;
@@ -174,7 +175,7 @@ export function Struct(
   options: StructOptions = {},
 ): StructConstructor {
   const labels = options.labels ?? {};
-  const delimiter = options.templateDelimiter ?? "#";
+  const delimiter = options.templateDelimiter ?? getConfig().template?.delimiter ?? "#";
   const { rawObjectSchema, resolvedFields } = buildRawObjectSchema(fields, labels, delimiter);
   const hooks: StructHooks = { pre: options.pre, post: options.post };
 

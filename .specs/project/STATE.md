@@ -133,6 +133,17 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `project-config` T-001..T-003 complete — **the last of the
+  8 features.** `discoverConfig()`/`getConfig()`/`defineConfig()`/
+  `morphz/register` all implemented. `i18n-error-messages`'s locale reader
+  already defaulted to reading `getConfig()` directly (import, not the
+  injectable hook) when that feature was built — confirmed sufficient,
+  no further wiring needed. (A follow-up attempt to ALSO call
+  `setConfigLocaleReader()` from `config.ts` was tried and reverted — real
+  circular import between `config.ts`/`resolve-locale.ts`, broke module
+  init under Vitest; the existing direct-import wiring was already
+  correct.) Gate: 99/99 pass (cumulative), `tsc`/`lint` clean.
+  **All 8 features of morphz now implemented, tested, and committed.**
 - [2026-08-25] `class-extensibility` T-001..T-003 complete. `struct.ts`
   refactored: `buildStructClass()` extracted as the shared internal
   builder (optional `extendsClass`), `Struct()` now a thin wrapper over it.
