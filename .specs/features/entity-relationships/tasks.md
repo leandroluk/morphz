@@ -2,6 +2,17 @@
 
 _(PO breakdown, from spec.md + design.md)_
 
+**Status: DONE (2026-08-25).** T-001..T-004 implemented + tested (57/57
+cumulative pass). **Design refinement**: `Union`'s discriminator detection
+uses `member.targetStruct?.()[STRUCT_META].rawObjectSchema` (not the raw
+`zodSchema`, which for `Embed`/`Ref` members is a `.transform()`-wrapped
+pipe, not a plain `ZodObject`) to find the shared key — but the FINAL
+`z.discriminatedUnion()` call still uses the original `zodSchema`s
+(transform included), confirmed working via the real zod v4 (`$ZodPipe`
+propagates `propValues` from its `in` side) — real `Struct` instances still
+come out of a discriminated `Union` of `Embed`/`Ref` members, not just
+plain objects.
+
 ## T-001: `Literal()`
 
 - **REQ**: REQ-006

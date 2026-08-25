@@ -133,6 +133,19 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `entity-relationships` T-001..T-004 complete. `Literal`,
+  `Ref` (`z.lazy` + self-reference confirmed), `FieldOf` (clones full
+  descriptor minus `default`/`immutable`, throws sync on bad field name),
+  `Union` all implemented + tested. **Refinement over design.md**: `Union`'s
+  discriminator detection reads `member.targetStruct?.()[STRUCT_META]
+  .rawObjectSchema` for `Embed`/`Ref` members (their `zodSchema` is a
+  `.transform()`-wrapped pipe, not a plain `ZodObject`) — but still builds
+  the final `z.discriminatedUnion()` from the ORIGINAL `zodSchema`s
+  (transform included), confirmed via real zod v4 internals (`$ZodPipe`
+  propagates `propValues` from its `in` side). Real `Struct` instances
+  come out of a discriminated `Union` of `Embed`/`Ref` members. Gate:
+  57/57 pass (cumulative), `tsc`/`lint` clean. Tooling added (oxlint/oxfmt)
+  and whole repo formatted in the same window.
 - [2026-08-25] `struct-entities` T-001..T-004 complete. `STRUCT_META`,
   template resolver, `Struct()` (pipeline `pre→z.object→post`, no baked
   transform, `new.target`-based constructor, `meta.default` applied via
