@@ -149,9 +149,29 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `struct-type-inference` COMPLETE (both passes) — **CRITICAL
+  FINDING fully resolved.** Pass 2's coverage suite found 3 MORE real
+  pre-existing type bugs (not introduced by Pass 1): `FieldOf<T>`'s `T`
+  was a free/disconnected parameter (`FieldOf(User, 'id')` typed as
+  `unknown`) — fixed to properly index `S[K]`. `Union<T>` had the same
+  issue, plus fixing it surfaced a genuine TS variance subtlety
+  (`FieldDescriptor<T>`'s contravariant `T` via `meta.encode`/`meta.set`
+  collapsed distinct literal members to `never` when inferred against
+  the raw union) — fixed via mapped-type per-index extraction; confirmed
+  `Union([Literal('DRAFT'), Literal('PUBLISHED')])` now infers the real
+  literal union, not widened `string`. `Nullable`/`Optional`/`List`/
+  `SetOf` broke for any wrapped factory with non-`unknown` `Opts` (e.g.
+  `Nullable(DateTime)` — literally INSIGHT.md §1's `DeletedAt` recipe) —
+  fixed to the same `BaseTypeArg<T>` pattern `Define` already used. Gate:
+  254/254 pass (cumulative), full type-level verification (`tsconfig
+  .tests.json`) clean, `oxlint` clean. This closes the CRITICAL FINDING
+  entirely — `morphz` consumers now get real field-level TS inference
+  throughout: `Struct`, `Embed`, `Ref`, `FieldOf`, `Union`, `.extend()`/
+  `.omit()`/`.pick()`/`.partial()`/`.mock()`/`.mockMany()`, all verified
+  with actual `expectTypeOf` assertions (never just "compiles").
 - [2026-08-25] `struct-type-inference` Pass 1 (T-001/T-002) complete —
   **resolves the CRITICAL FINDING's core**: `Struct<Fields>(fields,
-  options): StructConstructor<InferShape<Fields>>`, polymorphic-`this`
+options): StructConstructor<InferShape<Fields>>`, polymorphic-`this`
   `parse`/`safeParse`/`mock`/`.extend()`, real `expectTypeOf` verification
   (not just "compiles") confirms `user.name` is genuinely typed `string`,
   subclass `.parse()` types as the subclass, `Embed`/`Ref` nested fields

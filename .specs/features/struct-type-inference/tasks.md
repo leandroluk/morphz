@@ -1,5 +1,30 @@
 # Tasks: Static Field Type Inference
 
+**Status: DONE (2026-08-25) — both passes complete.** Pass 1 delivered
+T-003's derivation-method generics ahead of schedule (all of `.extend()`/
+`.omit()`/`.pick()`/`.partial()`/`.mock()`/`.mockMany()` shipped generic
+in the same commit). Pass 2 (T-004, coverage) found **3 MORE real
+pre-existing type bugs** (none introduced by Pass 1 — `T` was always a
+free/disconnected generic parameter in each, never actually inferred):
+1. `FieldOf<T>`: `T` wasn't derived from `Source`/`fieldName` at all —
+   `FieldOf(User, 'id')` typed as `unknown`. Fixed to
+   `FieldOf<S, K extends keyof S & string>(...): FieldDescriptor<S[K]>`.
+2. `Union<T>`: same free-`T` problem — fixing it surfaced a subtler TS
+   variance issue (`FieldDescriptor<T>`'s `T` appears contravariantly via
+   `meta.encode`/`meta.set`, so inferring against the raw member union
+   collapsed distinct literals to `never`). Fixed via mapped-type
+   per-index extraction (`{[K in keyof Members]: ...}[number]`) instead
+   of matching the union directly — confirmed `Union([Literal('DRAFT'),
+   Literal('PUBLISHED')])` now infers the real literal union
+   (`"DRAFT" | "PUBLISHED"`), not a widened `string`.
+3. `Nullable`/`Optional`/`List`/`SetOf` accepted
+   `FieldDescriptorFactory<T>` (implying a specific `Opts`), but are
+   always called with zero args at runtime — broke for any factory with a
+   non-`unknown` `Opts` (e.g. `Nullable(DateTime)`, literally
+   `INSIGHT.md` §1's `DeletedAt` recipe). Fixed to the same
+   `(() => FieldDescriptor<T>) | FieldDescriptor<T>` pattern `Define`'s
+   `BaseTypeArg<T>` already used.
+
 **Pass 1 status: DONE (2026-08-25).** T-001/T-002 implemented + verified
 (248/248 cumulative pass, 9 new `expectTypeOf`-based type-level tests —
 NOT just "compiles", actual inferred-type assertions). Zero runtime

@@ -10,11 +10,11 @@ import { STRUCT_META, type StructConstructorLike } from "./struct-meta.js";
  * source Struct must already be fully declared (STRUCT_META populated) at
  * call time — throws synchronously, immediately, if the field is missing.
  */
-export function FieldOf<T>(
-  Source: StructConstructorLike,
-  fieldName: string,
-  options?: Partial<FieldDescriptorMeta<T>>,
-): FieldDescriptor<T> {
+export function FieldOf<S, K extends keyof S & string>(
+  Source: StructConstructorLike<S>,
+  fieldName: K,
+  options?: Partial<FieldDescriptorMeta<S[K]>>,
+): FieldDescriptor<S[K]> {
   const sourceMeta = Source[STRUCT_META];
   const sourceField = sourceMeta.fields[fieldName];
 
@@ -29,9 +29,9 @@ export function FieldOf<T>(
 
   const { default: _default, immutable: _immutable, ...restMeta } = sourceField.meta;
 
-  const cloned: FieldDescriptor<T> = {
-    zodSchema: sourceField.zodSchema as FieldDescriptor<T>["zodSchema"],
-    meta: { ...restMeta } as FieldDescriptorMeta<T>,
+  const cloned: FieldDescriptor<S[K]> = {
+    zodSchema: sourceField.zodSchema as FieldDescriptor<S[K]>["zodSchema"],
+    meta: { ...restMeta } as FieldDescriptorMeta<S[K]>,
     itemDescriptor: sourceField.itemDescriptor,
     targetStruct: sourceField.targetStruct,
   };

@@ -1,17 +1,14 @@
 import { z } from "zod";
-import type {
-  FieldDescriptor,
-  FieldDescriptorFactory,
-  FieldDescriptorMeta,
-} from "../core/field-descriptor.js";
+import type { FieldDescriptor, FieldDescriptorMeta } from "../core/field-descriptor.js";
 
 export interface ListOptions<T> extends Partial<FieldDescriptorMeta<T[]>> {
   min?: number;
   max?: number;
 }
 
+/** Same zero-arg-factory convention as `Nullable`/`Optional`/`Define`'s `BaseTypeArg<T>`. */
 export function List<T>(
-  itemType: FieldDescriptorFactory<T> | FieldDescriptor<T>,
+  itemType: (() => FieldDescriptor<T>) | FieldDescriptor<T>,
   options: ListOptions<T> = {},
 ): FieldDescriptor<T[]> {
   const itemDescriptor = typeof itemType === "function" ? itemType() : itemType;

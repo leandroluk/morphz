@@ -1,9 +1,5 @@
 import { z } from "zod";
-import type {
-  FieldDescriptor,
-  FieldDescriptorFactory,
-  FieldDescriptorMeta,
-} from "../core/field-descriptor.js";
+import type { FieldDescriptor, FieldDescriptorMeta } from "../core/field-descriptor.js";
 import { logCodec } from "../core/debug.js";
 
 export interface SetOfOptions<T> extends Partial<FieldDescriptorMeta<Set<T>>> {
@@ -20,8 +16,9 @@ export interface SetOfOptions<T> extends Partial<FieldDescriptorMeta<Set<T>>> {
  * `List()`) so `.mock()`'s existing item-synthesis path supplies a valid
  * WIRE array without any extra plumbing.
  */
+/** Same zero-arg-factory convention as `List`/`Nullable`/`Define`'s `BaseTypeArg<T>`. */
 export function SetOf<T>(
-  itemType: FieldDescriptorFactory<T> | FieldDescriptor<T>,
+  itemType: (() => FieldDescriptor<T>) | FieldDescriptor<T>,
   overrides: SetOfOptions<T> = {},
 ): FieldDescriptor<Set<T>> {
   const itemDescriptor = typeof itemType === "function" ? itemType() : itemType;

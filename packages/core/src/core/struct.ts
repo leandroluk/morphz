@@ -306,7 +306,10 @@ export function Struct<Fields extends Record<string, FieldDescriptor<any>>>(
 export interface StructConstructor<Shape = unknown> {
   new (input: unknown): Shape;
   [STRUCT_META]: StructMeta;
-  parse<T extends abstract new (input: unknown) => unknown>(this: T, input: unknown): InstanceType<T>;
+  parse<T extends abstract new (input: unknown) => unknown>(
+    this: T,
+    input: unknown,
+  ): InstanceType<T>;
   safeParse<T extends abstract new (input: unknown) => unknown>(
     this: T,
     input: unknown,
@@ -320,7 +323,10 @@ export interface StructConstructor<Shape = unknown> {
    * real JS subclassing (this method's runtime behavior) inherits them but
    * `Shape` only ever tracked the field portion.
    */
-  extend<T extends abstract new (input: unknown) => unknown, NewFields extends Record<string, FieldDescriptor<any>>>(
+  extend<
+    T extends abstract new (input: unknown) => unknown,
+    NewFields extends Record<string, FieldDescriptor<any>>,
+  >(
     this: T,
     newFields: NewFields,
   ): StructConstructor<Omit<InstanceType<T>, keyof NewFields> & InferShape<NewFields>>;

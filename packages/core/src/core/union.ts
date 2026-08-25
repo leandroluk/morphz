@@ -90,10 +90,26 @@ function detectDiscriminatorKey(objectShapes: z.ZodObject[]): string | null {
  * structurally qualify (a bare Literal, a missing/non-distinct key) ->
  * plain z.union, same call Zod itself would make with the same member set.
  */
-export function Union<T = unknown>(
-  members: FieldDescriptor[],
+/**
+ * Per-index extraction (not `Members[number] extends FieldDescriptor<infer
+ * T>` against the whole union at once) — `FieldDescriptor<T>` has `T` in
+ * CONTRAVARIANT positions too (`meta.encode`/`meta.set`), so inferring `T`
+ * from a union of members forces TS to intersect each member's `T` (to
+ * stay safe for the contravariant positions) — for distinct string-literal
+ * members that intersection is always `never`. Extracting from
+ * `zodSchema`'s covariant-only `ZodType<T>` shape, per tuple INDEX via a
+ * mapped type, then unioning the (already-scalar) results at the end
+ * sidesteps the variance collision entirely.
+ */
+type MemberZodType<M> = M extends { zodSchema: z.ZodType<infer T> } ? T : never;
+export type UnionMemberType<Members extends readonly FieldDescriptor<any>[]> = {
+  [K in keyof Members]: MemberZodType<Members[K]>;
+}[number];
+
+export function Union<Members extends readonly FieldDescriptor<any>[]>(
+  members: [...Members],
   _options?: unknown,
-): FieldDescriptor<T> {
+): FieldDescriptor<UnionMemberType<Members>> {
   const schemas = members.map((m) => m.zodSchema);
   const rawShapes = members.map(rawObjectShapeOf);
   const objectShapes = rawShapes.filter(isZodObject);
@@ -109,7 +125,7 @@ export function Union<T = unknown>(
     : z.union(schemas as [z.ZodType, z.ZodType, ...z.ZodType[]]);
 
   return {
-    zodSchema: zodSchema as unknown as FieldDescriptor<T>["zodSchema"],
+    zodSchema: zodSchema as unknown as FieldDescriptor<UnionMemberType<Members>>["zodSchema"],
     meta: {},
   };
 }
