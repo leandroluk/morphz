@@ -18,9 +18,18 @@
     "validation",
     "types",
     "zod",
-    "domain-driven-design"
+    "domain-driven-design",
+    "jsdocs",
+    "typescript",
+    "plugin",
+    "vscode",
+    "ide"
   ],
-  "author": "Leandro Luk",
+  "author": {
+    "name": "Leandro Santiago Gomes",
+    "email": "leandroluk@gmail.com",
+    "url": "https://linkedin.com/in/leandroluk"
+  },
   "license": "MIT",
   "exports": {
     ".": {
@@ -42,7 +51,8 @@
   },
   "dependencies": {
     "jiti": "^2.4.0",
-    "randexp": "^0.5.3"
+    "randexp": "^0.5.3",
+    "ts-morph": "^28.0.0"
   },
   "devDependencies": {
     "@types/node": "26.3.0",

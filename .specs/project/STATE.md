@@ -149,6 +149,27 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `jsdoc-generation` (v2 batch) complete. `extractFieldConstraints`
+  (`_zod.def` introspection, unwraps `optional`/`nullable`/`pipe`/
+  `default`/`prefault`), `sanitizeExample`, `buildFieldTags`, `applyJsDoc`
+  (gated on `getConfig().jsdoc`, dynamic-imports the built JS, patches
+  `.d.ts` via `ts-morph`). Fixed 2 Windows `file://` URL bugs. Gate:
+  137/137 pass (cumulative), `tsc`/`lint` clean.
+
+  **CRITICAL FINDING — flagged to user, NOT fixed yet**: `Struct()`'s
+  return type (`StructConstructor`) is not generic over `fields` —
+  constructor is `new (input: unknown): object`. NO field-level TS type
+  inference reaches any `morphz` consumer today (`user.name` isn't a
+  recognized property on `class User extends Struct({name: Text()}, ...)
+  {}`). Undermines the "type-safe classes" core value prop. Never caught
+  because `tsconfig.json` only includes `src/` (tests untypechecked) and
+  every test so far only asserts runtime behavior. This is a large,
+  cross-cutting retrofit (`Struct`/`Define`/every primitive need proper
+  generics + mapped-type field inference, similar to Zod's own
+  `z.object()`) — needs its own dedicated feature, scope/priority to be
+  decided by the user, not assumed. `jsdoc-generation`'s own integration
+  test worked around it with a hand-written `.d.ts` fixture (still
+  correctly validates `applyJsDoc`'s own mechanism).
 - [2026-08-25] `mock-fixtures` (v2 batch) complete. `.mock()`/
   `.mockMany()` on every `Struct`-produced class. Synthesis priority:
   overrides → examples → default → `Embed`/`Ref` recursive → `List` via

@@ -3,9 +3,11 @@ packages:
 
 allowBuilds:
   esbuild: true
+  lefthook: true
 
 minimumReleaseAgeExclude:
   - '@types/node@26.3.0'
 
 onlyBuiltDependencies:
   - esbuild
+  - lefthook

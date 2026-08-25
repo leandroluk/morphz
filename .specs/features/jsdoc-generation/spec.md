@@ -1,5 +1,35 @@
 # Spec: JSDoc Generation (`jsdoc: true`)
 
+**Status: DONE (2026-08-25).** Implemented + tested (137/137 cumulative
+pass, 16 tests for this feature). `extractFieldConstraints` (`_zod.def`
+introspection, unwraps `optional`/`nullable`/`pipe`/`default`/`prefault`
+before reading checks), `sanitizeExample`, `buildFieldTags`, `applyJsDoc`
+(gated on `getConfig().jsdoc`, dynamic-imports the built JS, patches the
+matching `.d.ts` via `ts-morph`). 3 real bugs fixed along the way:
+`StructConstructor`'s construct signature returned `unknown` (blocked
+`tsc` entirely for any consumer subclass — see the CRITICAL finding
+below), and two Windows `file://` URL construction bugs in
+`apply-jsdoc.ts`'s path handling.
+
+**CRITICAL FINDING (separate, unscoped issue — flagged to user, not
+silently fixed here):** `Struct()`'s declared return type,
+`StructConstructor`, is NOT generic over `fields` — the constructor is
+`new (input: unknown): object`, every method returns `unknown`. This
+means NO consumer of `morphz` gets ANY field-level type inference from
+TypeScript today (`user.name` isn't a recognized property on a `class
+User extends Struct({ name: Text() }, {...}) {}`). This undermines
+`morphz`'s core "type-safe classes for JS and TS" value proposition and
+was never caught because `tsconfig.json` only includes `src/` (tests
+aren't typechecked) and every existing test asserts runtime behavior only,
+never actual TS inference from a consumer's perspective. This feature's
+own integration test worked around it with a hand-written `.d.ts`
+fixture (documented in `tasks.md`/`STATE.md`) — the underlying gap is
+NOT fixed and needs its own dedicated feature (`Struct`/`Define`/every
+primitive need to become properly generic, inferring field shapes via
+mapped types, closer to how Zod's own `z.object()` infers). Flagged for
+the user to decide scope/priority — this is a large, cross-cutting
+retrofit, not a small fix.
+
 ## Summary
 
 Per `INSIGHT.md` §9-10: `morphz.config.ts`'s `jsdoc: true` flag makes the
@@ -52,14 +82,23 @@ extension, `jiti`-loaded config read at build time), `monorepo-architecture`
   writing to `.d.ts`). This feature only produces the static `.d.ts`
   JSDoc; the plugin is a separate, richer, interactive layer.
 
-## Open Questions
-
-- Exact mechanism for rewriting `.d.ts`: parse-and-patch the emitted file
-  (regex/AST over the `.d.ts` output) vs. a custom `ts-morph`-based
-  post-processor vs. a `tsup`/`rollup` plugin hook. Needs a concrete choice
-  in Design — this is real engineering, not a detail.
-- How does the generator find EVERY `Struct`-produced class in the
-  package to process? Needs either an explicit manifest/barrel (`export *
-from` in `index.ts`, walked via the TS `Program`) or a full-project AST
-  scan. Affects whether classes NOT re-exported from `index.ts` get
+## Resolved (design phase)
+- Mechanism: `ts-morph` post-processor, confirmed via Context7
+  (`ClassDeclaration`/`PropertyDeclaration.addJsDoc()` +
+  `sourceFile.saveSync()`), run strictly AFTER the consumer's own
+  build already emitted `.js`+`.d.ts`.
+- Class discovery: runtime-metadata-driven, NOT static-AST-driven —
+  `import()`s the just-built `.js`, walks its exports for anything
+  carrying a `STRUCT_META` symbol. Only classes reachable from the built
+  entry point's exports get documented (consistent: a class never
+  re-exported isn't importable by a consumer either, so there's nothing
+  to document). See `design.md` for the full rationale (this choice
+  deliberately avoids duplicating `ts-language-service-plugin`'s much
+  harder static-analysis problem).
+- **New finding**: `min`/`max`/`regex`/`format` are NOT in
+  `FieldDescriptorMeta` (`define-metatypes` never stored them there —
+  they're baked directly into `zodSchema`). REQ-002's constraint tags
+  must be extracted via `zodSchema._zod.def.checks` introspection (same
+  internal-API pattern `union.ts`/`mock.ts` already use), not read off
+  `meta`.
   documented.

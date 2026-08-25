@@ -4,6 +4,7 @@
   "private": true,
   "description": "morphz monorepo — packages/core (the morphz library), packages/ts-plugin, packages/vscode.",
   "scripts": {
+    "prepare": "lefthook install",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
@@ -12,6 +13,10 @@
     "format:check": "oxfmt --check"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@commitlint/types": "^21.2.0",
+    "lefthook": "^2.1.10",
     "oxfmt": "0.65.0",
     "oxlint": "1.80.0",
     "turbo": "^2.10.11",

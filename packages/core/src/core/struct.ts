@@ -196,7 +196,14 @@ export function Struct(
 }
 
 export interface StructConstructor {
-  new (input: unknown): unknown;
+  // NOTE: return type is `object`, not a per-field-inferred shape — real
+  // per-field type inference (mapping `Record<string, FieldDescriptor<T>>`
+  // to a concrete instance type) is a substantial, separate TS-generics
+  // problem, out of scope for the jsdoc-generation fix that widened this
+  // from `unknown` (which made `class X extends Struct(...) {}` fail to
+  // typecheck for EVERY consumer with TS2509 — `tests/` was never covered
+  // by `tsc --noEmit`'s `include: ["src"]`, so this was never caught).
+  new (input: unknown): object;
   [STRUCT_META]: StructMeta;
   parse(input: unknown): unknown;
   safeParse(input: unknown): { success: true; data: unknown } | { success: false; errors: unknown };

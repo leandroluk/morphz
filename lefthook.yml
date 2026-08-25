@@ -1,0 +1,33 @@
+# Lefthook Git Hooks Configuration
+# Fast, cross-platform Git hooks manager
+
+# Runs before each commit to ensure code quality and formatting
+pre-commit:
+  parallel: false
+  commands:
+    typecheck:
+      run: pnpm typecheck
+    format:
+      run: pnpm format
+    lint:
+      run: pnpm lint
+
+# Runs before pushing to remote repository to ensure all checks and tests pass
+pre-push:
+  parallel: false
+  commands:
+    typecheck:
+      run: pnpm typecheck
+    format:
+      run: pnpm format
+    lint:
+      run: pnpm lint
+    test:
+      run: pnpm test
+
+# Validates commit message against Conventional Commits specification
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
+
