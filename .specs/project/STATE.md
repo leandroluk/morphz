@@ -149,6 +149,20 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `property-interceptors` (v3 batch) complete — **last
+  feature of the v3 batch.** `get`/`set` on `Define`, per-field-name
+  `Symbol` backing slot, `assignFields()`/`readWireValue()` shared
+  helpers wired into `struct.ts` (constructor + `safeParse`),
+  `to-json.ts`, `to-masked-json.ts`. Immutable-post-construction guard
+  via per-instance closure state. Zero regression on the most invasive
+  change to date (edits 3 already-shipped core files). QA confirmed all
+  interactions with zero source bugs: `.mock()`, `.toMaskedJSON()`
+  masking the wire value, `Embed` recursion, `safeParse` parity with the
+  constructor, unlimited non-immutable reassignment. Gate: 219/219 pass
+  (cumulative), `tsc`/`lint` clean.
+
+  **v3 batch (INSIGHT.md §15-17) now 100% complete**:
+  `additional-primitives`, `debug-observability`, `property-interceptors`.
 - [2026-08-25] `additional-primitives` Pass 2 (v3 batch) complete: Url,
   Json, Record, Binary, Tuple, SetOf. All 15 primitives from §15 now
   shipped. Real finding: `z.url()`'s `protocol` regex matches the scheme

@@ -10,6 +10,7 @@ import { toMaskedJSON } from "./to-masked-json.js";
 import { attachExtend } from "./extend.js";
 import { attachDeriveVariant } from "./derive-variant.js";
 import { attachMock } from "./mock.js";
+import { assignFields } from "./property-interceptor.js";
 import { getConfig } from "./config.js";
 import { logLifecycle, logParse, logStruct } from "./debug.js";
 
@@ -134,7 +135,7 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
         }
         throw err;
       }
-      Object.assign(this, data);
+      assignFields(this, data, target[STRUCT_META]);
       logLifecycle("created instance of %s", target.name);
     }
 
@@ -165,7 +166,7 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
         };
       }
       const instance = Object.create(this.prototype) as Record<string, unknown>;
-      Object.assign(instance, result.data as Record<string, unknown>);
+      assignFields(instance, result.data as Record<string, unknown>, this[STRUCT_META]);
       logParse("safeParse succeeded for %s", this.name);
       logLifecycle("created instance of %s", this.name);
       return { success: true, data: instance };

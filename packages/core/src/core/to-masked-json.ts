@@ -1,4 +1,5 @@
 import type { FieldDescriptor } from "./field-descriptor.js";
+import { readWireValue } from "./property-interceptor.js";
 import { STRUCT_META, type StructClass } from "./struct-meta.js";
 
 function maskFieldValue(value: unknown, descriptor: FieldDescriptor): unknown {
@@ -39,7 +40,7 @@ export function toMaskedJSON(
 
   for (const [key, descriptor] of Object.entries(meta.fields)) {
     if (descriptor.meta.writeOnly) continue;
-    out[key] = maskFieldValue(instance[key], descriptor);
+    out[key] = maskFieldValue(readWireValue(instance, key, descriptor), descriptor);
   }
 
   return out;

@@ -34,6 +34,17 @@ export interface FieldDescriptorMeta<T = unknown> {
   encode?: (val: T) => unknown;
   /** Redaction applied by .toMaskedJSON() before any `encode` (data-masking). */
   mask?: (val: T) => T;
+  /**
+   * Wire (WT) -> domain (T) read accessor (property-interceptors). Reads
+   * the internally-stored wire value, returns a rich domain object.
+   */
+  get?: (accessor: { value: unknown }) => T;
+  /**
+   * Domain (T) or wire (WT) -> wire write accessor (property-interceptors).
+   * Normalizes either a domain value or a raw wire-compatible value,
+   * writes the wire form back to `accessor.value`.
+   */
+  set?: (val: T | unknown, accessor: { value: unknown }) => void;
 }
 
 export interface FieldDescriptor<T = unknown> {
