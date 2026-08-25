@@ -2,6 +2,14 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { createJiti } from "jiti";
 
+// `import.meta.url` is empty in the CJS build (esbuild can't resolve it
+// for that output format) — `__filename` is CJS's equivalent, provided by
+// esbuild's own CJS shim at runtime. Declared locally (not globally typed
+// in an ESM-mode tsconfig) since it only exists in the CJS bundle.
+declare const __filename: string | undefined;
+const jitiBaseUrl: string =
+  typeof __filename !== "undefined" ? __filename : import.meta.url;
+
 export interface MorphzLabelsConfig {
   entityName?: (ctx: { className: string }) => string;
 }
@@ -41,7 +49,7 @@ export function discoverConfig(): MorphzConfig | undefined {
     for (const filename of CONFIG_FILENAMES) {
       const candidate = join(dir, filename);
       if (existsSync(candidate)) {
-        const jiti = createJiti(import.meta.url);
+        const jiti = createJiti(jitiBaseUrl);
         // `Jiti` extends `NodeRequire` — calling it directly is the
         // synchronous, require-like load path (vs. the async `.import()`).
         const mod = jiti(candidate) as { default?: MorphzConfig } | MorphzConfig;
