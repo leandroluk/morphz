@@ -499,18 +499,61 @@ Com a opção `jsdoc: true` ativada em `morphz.config.ts`, a biblioteca (via plu
 
 Dessa forma, o schema se torna a única fonte de verdade tanto para validação em runtime quanto para o Intellisense/hover no IDE.
 
+### Mapeamento De $\rightarrow$ Para (Zod / JSON Schema $\rightarrow$ JSDoc)
+
+| Campo Zod / JSON Schema | Tag JSDoc Gerada | Exemplo / Formato |
+| :--- | :--- | :--- |
+| `description` | *(Corpo principal do bloco)* | `Texto descritivo plano` |
+| `default` | `@default` | `@default "uuid-v4"` ou `@default 0` |
+| `examples` / `example` | `@example` | `@example "John Doe"` *(com escape)* |
+| `readOnly` / `immutable: true` | `@readonly` | `@readonly` |
+| `writeOnly: true` | `@writeOnly` | `@writeOnly` |
+| `deprecated: true` | `@deprecated` | `@deprecated [motivo opcional]` |
+| `minLength` / `min` *(Text)* | `@minLength` | `@minLength 2` |
+| `maxLength` / `max` *(Text)* | `@maxLength` | `@maxLength 50` |
+| `minimum` / `min` *(Number)* | `@minimum` | `@minimum 0` |
+| `maximum` / `max` *(Number)* | `@maximum` | `@maximum 100` |
+| `pattern` / `regex` | `@pattern` | `@pattern ^[a-z0-9-]+$` |
+| `format` *(Email, Uuid, etc.)* | `@format` | `@format email`, `@format uuid` |
+
+---
+
+### Tratamento Especial para `@example` e Decorators (Hover Truncation Fix)
+
+Um problema clássico do parser JSDoc do TypeScript (`tsserver`) no VSCode ocorre quando um `@example` contém código com decorators ou propriedades iniciadas por `@` (ex: `@ApiProperty()`, `@Transform()`, ou chaves como `"@context"`):
+- O compilador do TypeScript interpreta qualquer `@` interno como o **início de uma nova tag JSDoc**, quebrando o bloco de exemplo e corrompendo a visualização de hover.
+
+**Solução implementada pelo `morphz`:**
+1. **Encapsulamento em Fenced Markdown:** Exemplos de objetos ou snippets de código são envolvidos automaticamente em blocos ` ```ts ` ou ` ```json `.
+2. **Escape Seguro de `@` Internos:** Caso o exemplo contenha decorators ou símbolos `@` no corpo, o gerador sanitiza utilizando o caractere de escape HTML `&#64;` ou literal seguro, impedindo que o `tsserver` interprete o caractere como uma anotação JSDoc de topo.
+
+```ts
+// Exemplo gerado no .d.ts / JSDoc para um campo com exemplo estruturado:
+/**
+ * User account metadata
+ * @example
+ * ```ts
+ * // &#64;Transform decorator seguro sem quebrar o hover
+ * { role: "ADMIN", active: true }
+ * ```
+ */
+metadata: Record<string, any>;
+```
+
+---
+
 ### Exemplo de Declaração vs Hover no IDE
 
 ```ts
 export class User extends Struct(
   {
     id: PrimaryKey(),
-    name: Text({ min: 2, max: 50, description: "Nome completo", examples: ["João Silva"] }),
-    email: Email({ description: "Email corporativo" }),
+    name: Text({ min: 2, max: 50, description: "Full name", examples: ["John Doe"] }),
+    email: Email({ description: "Work email" }),
   },
   {
-    labels: { entityName: "Usuário" },
-  }
+    labels: { entityName: "User" },
+  },
 ) {}
 ```
 
@@ -521,25 +564,107 @@ const user = User.parse(data);
 
 // Hover em `user.id`:
 /**
- * Identificador único de Usuário
+ * Unique identifier for User
  * @readonly
+ * @default crypto.randomUUID()
  */
 user.id;
 
 // Hover em `user.name`:
 /**
- * Nome completo
+ * Full name
  * @minLength 2
  * @maxLength 50
- * @example "João Silva"
+ * @example "John Doe"
  */
 user.name;
 
 // Hover em `user.email`:
 /**
- * Email corporativo
+ * Work email
  * @format email
  */
 user.email;
 ```
+
+
+---
+
+## 11. TypeScript Language Service Plugin (Tooling & DX Ultra-Leve)
+
+Para oferecer uma experiência de desenvolvimento completa (estilo _Tailwind CSS IntelliSense_), a melhor arquitetura técnica é um **TypeScript Language Service Plugin (`tsserver` plugin)**, integrado diretamente ao motor de tipos que o editor já executa.
+
+### Vantagens Arquiteturais
+
+1. **Ultra-leve (Zero Daemons Extras):** Não sobe novos processos Node.js ou servidores LSP em segundo plano. O plugin executa dentro do próprio processo do `tsserver` mantido pelo VSCode, Cursor, Neovim ou WebStorm.
+2. **Reaproveitamento de Memória e AST:** Lê a Árvore Sintática Abstrata (AST) e a checagem de tipos que o TypeScript já calculou e mantém em cache na memória.
+3. **Instalação via NPM:** Ativado diretamente pelo arquivo `tsconfig.json` do projeto, sem forçar o desenvolvedor a instalar extensões proprietárias na loja do editor.
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "morphz/ts-plugin"
+      }
+    ]
+  }
+}
+```
+
+### Recursos Implementados pelo Plugin
+
+#### A. Hover Dinâmico e Resolvido (`getQuickInfoAtPosition`)
+
+Ao passar o mouse sobre a chamada de um `Define`, `Struct` ou propriedade declarada, o plugin intercepta a chamada e renderiza um popup em Markdown com as variáveis de template já interpoladas (`#entityName` $\rightarrow$ `"User"`) e as regras ativas:
+
+```ts
+// Código no editor:
+export class User extends Struct({
+  username: Slug(),
+}) {}
+
+// Popup exibido no Hover de `username`:
+┌─────────────────────────────────────────────────────────────┐
+│ (property) username: string                                 │
+│                                                             │
+│ 📝 Friendly textual identifier (slug) for User             │
+│ ⚙️ Regex: /^[a-z0-9-]+$/                                    │
+│ 🏷️ Origin: Define(Text) -> Slug                             │
+│ 📌 Interpolated label: #entityName => "User"                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### B. Autocomplete Contextual de Templates e Campos (`getCompletionsAtPosition`)
+
+- **Sugestão de Labels:** Ao digitar descrições ou strings dentro de um `Define({ description: "..." })`, digitar o delimitador (ex: `#`) aciona a lista de labels disponíveis no escopo (`#entityName`, `#module`, etc.).
+- **Intellisense em `FieldOf`:** Ao usar `FieldOf(User, "...")`, o plugin sugere apenas as chaves reais de campos definidos em `User`, garantindo tipagem forte instantânea.
+
+#### C. Diagnósticos e Linter Semântico em Tempo Real (`getSemanticDiagnostics`)
+
+- **Aviso de Template Quebrado:** Destaca com _warning_ ou _error_ visual sublinhado caso um template faça referência a um label não definido nas opções do `Struct` ou `morphz.config.ts`.
+- **Validação de Hooks:** Avisa caso o `path` configurado em `ctx.addIssue({ path: ['invalid'] })` dentro de um hook `post` aponte para um campo que não existe na entidade.
+
+---
+
+### D. Internacionalização (i18n) do Tooling e do Hover
+
+O plugin e os geradores de JSDoc adotam **`en-US` como padrão universal de código e documentação técnica**, mas suportam resolução contextual de idiomas:
+
+1. **Definições Multilíngues no Código:** Campos e `Define` podem fornecer descrições em múltiplos idiomas:
+   ```ts
+   export const Slug = Define(Text, {
+     description: {
+       "en-US": "Friendly textual identifier (slug) for #entityName",
+       "pt-BR": "Identificador textual amigável (slug) de #entityName",
+     },
+     regex: /^[a-z0-9-]+$/,
+   });
+   ```
+
+2. **Cascata de Resolução do Idioma no Editor:**
+   - **1. Configuração do Projeto (`morphz.config.ts`):** `locale: { default: 'en-US' }`
+   - **2. Detecção Automática da IDE/OS:** Caso não configurado explicitamente, o plugin lê o locale ativo da IDE (`vscode.env.language` ou locale do sistema via `Intl.DateTimeFormat().resolvedOptions().locale`).
+   - **3. Fallback Seguro:** Se a chave no idioma local não existir, recorre ao `en-US`.
 

@@ -20,7 +20,8 @@ export function lookupMessage(
   const codeEntry = descriptor.meta.message?.[issue.code as keyof typeof descriptor.meta.message];
   if (codeEntry === undefined) return undefined;
 
-  const format = issue.code === "invalid_format" ? (issue as { format?: string }).format : undefined;
+  const format =
+    issue.code === "invalid_format" ? (issue as { format?: string }).format : undefined;
 
   let localeMap: MessageValue | undefined;
   if (format && typeof codeEntry === "object" && codeEntry !== null && format in codeEntry) {

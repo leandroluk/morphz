@@ -6,6 +6,8 @@ import { ValidationError } from "./validation-error.js";
 import { resolveIssueMessages } from "./i18n/resolve-issues.js";
 import { resolveLocale } from "./i18n/resolve-locale.js";
 import { toJSON } from "./to-json.js";
+import { attachExtend } from "./extend.js";
+import { attachDeriveVariant } from "./derive-variant.js";
 
 export interface StructOptions {
   labels?: Record<string, string>;
@@ -53,38 +55,54 @@ function buildRawObjectSchema(
   return { rawObjectSchema: z.object(shape), resolvedFields };
 }
 
-/**
- * Assembles pre -> object -> post (validation only, no instantiation
- * transform — see struct-entities/design.md's correction) and returns a
- * real class carrying STRUCT_META. The constructor uses `new.target` so
- * subclasses (class-extensibility's `.extend()`) instantiate correctly.
- */
-export function Struct(
-  fields: Record<string, FieldDescriptor>,
-  options: StructOptions = {},
-): StructConstructor {
-  const labels = options.labels ?? {};
-  const delimiter = options.templateDelimiter ?? "#";
-  const { rawObjectSchema, resolvedFields } = buildRawObjectSchema(fields, labels, delimiter);
+export interface BuildStructClassParams {
+  rawObjectSchema: z.ZodObject;
+  hooks: StructHooks;
+  fields: Record<string, FieldDescriptor>;
+  labels: Record<string, string>;
+  description?: string;
+  /**
+   * When set, the result is a REAL `class extends extendsClass` (superset
+   * derivation — `.extend()`) so `instanceof` holds transitively through
+   * the whole chain, standard JS semantics, no extra constructor/statics
+   * needed (all inherited). When absent, a fully self-contained,
+   * INDEPENDENT class is built (base `Struct()`, and `.omit()`/`.pick()`/
+   * `.partial()`'s subset/reshape derivations) — `instanceof` the source
+   * deliberately does NOT hold for that branch.
+   */
+  extendsClass?: StructConstructor;
+}
 
-  let schema: z.ZodType = options.post
-    ? rawObjectSchema.superRefine((val, ctx) => options.post!(val, ctx))
+/**
+ * Shared class-building core. `Struct()` is a thin wrapper calling this
+ * with `extendsClass` absent. `.extend()` calls it WITH `extendsClass` set
+ * (real subclassing). `.omit()`/`.pick()`/`.partial()` call it without,
+ * same as `Struct()` itself (independent class, no instanceof source).
+ */
+export function buildStructClass(params: BuildStructClassParams): StructConstructor {
+  const { rawObjectSchema, hooks, fields, labels, description, extendsClass } = params;
+
+  let schema: z.ZodType = hooks.post
+    ? rawObjectSchema.superRefine((val, ctx) => hooks.post!(val, ctx))
     : rawObjectSchema;
 
-  if (options.pre) {
-    schema = z.preprocess(options.pre, schema);
+  if (hooks.pre) {
+    schema = z.preprocess(hooks.pre, schema);
   }
 
-  const hooks: StructHooks = { pre: options.pre, post: options.post };
+  const meta: StructMeta = { fields, labels, description, schema, rawObjectSchema, hooks };
 
-  const meta: StructMeta = {
-    fields: resolvedFields,
-    labels,
-    description: options.description,
-    schema,
-    rawObjectSchema,
-    hooks,
-  };
+  if (extendsClass) {
+    // Real JS subclassing: constructor, static parse/safeParse, and
+    // .toJSON() are all inherited unchanged from extendsClass's prototype
+    // chain — `new.target`/`this` inside them still resolve to WHICHEVER
+    // class was actually instantiated/called on, so polymorphism keeps
+    // working with zero extra code here. Only STRUCT_META differs per class.
+    class GeneratedSubStruct extends (extendsClass as unknown as new (input: unknown) => object) {
+      static [STRUCT_META] = meta;
+    }
+    return attachDerivationMethods(GeneratedSubStruct as unknown as StructConstructor);
+  }
 
   class GeneratedStruct {
     constructor(input: unknown) {
@@ -116,7 +134,9 @@ export function Struct(
     static safeParse(
       this: StructConstructor,
       input: unknown,
-    ): { success: true; data: unknown } | { success: false; errors: ReturnType<typeof resolveIssueMessages> } {
+    ):
+      | { success: true; data: unknown }
+      | { success: false; errors: ReturnType<typeof resolveIssueMessages> } {
       const result = this[STRUCT_META].schema.safeParse(input);
       if (!result.success) {
         return {
@@ -134,14 +154,46 @@ export function Struct(
     }
   }
 
-  return GeneratedStruct as unknown as StructConstructor;
+  return attachDerivationMethods(GeneratedStruct as unknown as StructConstructor);
+}
+
+function attachDerivationMethods(klass: StructConstructor): StructConstructor {
+  attachExtend(klass);
+  attachDeriveVariant(klass);
+  return klass;
+}
+
+/**
+ * Assembles pre -> object -> post (validation only, no instantiation
+ * transform — see struct-entities/design.md's correction) and returns a
+ * real class carrying STRUCT_META. The constructor uses `new.target` so
+ * subclasses (class-extensibility's `.extend()`) instantiate correctly.
+ */
+export function Struct(
+  fields: Record<string, FieldDescriptor>,
+  options: StructOptions = {},
+): StructConstructor {
+  const labels = options.labels ?? {};
+  const delimiter = options.templateDelimiter ?? "#";
+  const { rawObjectSchema, resolvedFields } = buildRawObjectSchema(fields, labels, delimiter);
+  const hooks: StructHooks = { pre: options.pre, post: options.post };
+
+  return buildStructClass({
+    rawObjectSchema,
+    hooks,
+    fields: resolvedFields,
+    labels,
+    description: options.description,
+  });
 }
 
 export interface StructConstructor {
   new (input: unknown): unknown;
   [STRUCT_META]: StructMeta;
   parse(input: unknown): unknown;
-  safeParse(
-    input: unknown,
-  ): { success: true; data: unknown } | { success: false; errors: unknown };
+  safeParse(input: unknown): { success: true; data: unknown } | { success: false; errors: unknown };
+  extend(newFields: Record<string, FieldDescriptor>): StructConstructor;
+  omit(...names: string[] | [string[]]): StructConstructor;
+  pick(...names: string[] | [string[]]): StructConstructor;
+  partial(): StructConstructor;
 }

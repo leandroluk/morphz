@@ -26,10 +26,7 @@ describe("resolveIssueMessages", () => {
   });
 
   it("substitutes the custom message for a field with a registered override", () => {
-    class User extends Struct(
-      { email: CustomEmail() },
-      { labels: { entityName: "Usuário" } },
-    ) {}
+    class User extends Struct({ email: CustomEmail() }, { labels: { entityName: "Usuário" } }) {}
 
     const err = parseAndCatch(User, { email: "not-an-email" });
     const resolved = resolveIssueMessages(err, User as any, "pt-BR");
@@ -51,15 +48,9 @@ describe("resolveIssueMessages", () => {
   });
 
   it("recurses into Embed targets — a nested field's own message override applies", () => {
-    class Child extends Struct(
-      { email: CustomEmail() },
-      { labels: { entityName: "Filho" } },
-    ) {}
+    class Child extends Struct({ email: CustomEmail() }, { labels: { entityName: "Filho" } }) {}
 
-    class Parent extends Struct(
-      { child: Embed(Child) },
-      { labels: { entityName: "Pai" } },
-    ) {}
+    class Parent extends Struct({ child: Embed(Child) }, { labels: { entityName: "Pai" } }) {}
 
     const err = parseAndCatch(Parent, { child: { email: "nope" } });
     const resolved = resolveIssueMessages(err, Parent as any, "pt-BR");

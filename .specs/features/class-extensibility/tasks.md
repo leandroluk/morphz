@@ -2,6 +2,18 @@
 
 _(PO breakdown, from spec.md + design.md)_
 
+**Status: DONE (2026-08-25).** T-001..T-003 implemented + tested (90/90
+cumulative pass). `struct.ts` refactored: `buildStructClass()` extracted
+(shared, optional `extendsClass`), `Struct()` is now a thin wrapper.
+`.extend()` = real `class extends` (constructor/`parse`/`safeParse`/
+`toJSON` all inherited, stay polymorphic for free via `new.target`/`this`
+already used internally — zero extra code needed). `.omit()`/`.pick()`/
+`.partial()` = independent class via the same `buildStructClass()` with no
+`extendsClass`. All four attached as static methods on every generated
+class (`attachDerivationMethods`), so they're available and chainable
+anywhere in a class family. QA found and fixed a real bug: `.extend()`
+wasn't applying `meta.default` to new fields (unlike `Struct()`'s own
+assembly) — fixed to match.
 ## T-001: `stripImmutable()`
 
 - **REQ**: REQ-006

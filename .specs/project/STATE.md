@@ -133,6 +133,17 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `class-extensibility` T-001..T-003 complete. `struct.ts`
+  refactored: `buildStructClass()` extracted as the shared internal
+  builder (optional `extendsClass`), `Struct()` now a thin wrapper over it.
+  `.extend()` = real `class extends` — constructor/`parse`/`safeParse`/
+  `toJSON` all inherited and stay polymorphic for free (already used
+  `new.target`/`this` internally, no extra code needed for this to work).
+  `.omit()`/`.pick()`/`.partial()` = independent class via the same
+  builder with no `extendsClass`. All four methods attached to every
+  generated class, chainable across the whole family. QA found and fixed a
+  real bug: `.extend()` wasn't applying `meta.default` to new fields.
+  Gate: 90/90 pass (cumulative), `tsc`/`lint` clean.
 - [2026-08-25] `lifecycle-serialization` T-001..T-003 complete.
   `ValidationError`, constructor (now catches `z.ZodError` and re-throws
   `ValidationError` with i18n-resolved `.issues`), `static parse`/
@@ -160,7 +171,7 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   descriptor minus `default`/`immutable`, throws sync on bad field name),
   `Union` all implemented + tested. **Refinement over design.md**: `Union`'s
   discriminator detection reads `member.targetStruct?.()[STRUCT_META]
-  .rawObjectSchema` for `Embed`/`Ref` members (their `zodSchema` is a
+.rawObjectSchema` for `Embed`/`Ref` members (their `zodSchema` is a
   `.transform()`-wrapped pipe, not a plain `ZodObject`) — but still builds
   the final `z.discriminatedUnion()` from the ORIGINAL `zodSchema`s
   (transform included), confirmed via real zod v4 internals (`$ZodPipe`

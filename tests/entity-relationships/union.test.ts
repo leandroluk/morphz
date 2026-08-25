@@ -14,10 +14,7 @@ describe("Union", () => {
   });
 
   it("resolves as a discriminated union between Struct members embedded via Embed()", () => {
-    class Draft extends Struct(
-      { kind: Literal("draft"), title: Text() },
-      {},
-    ) {}
+    class Draft extends Struct({ kind: Literal("draft"), title: Text() }, {}) {}
     class Published extends Struct(
       { kind: Literal("published"), title: Text(), publishedAt: Text() },
       {},

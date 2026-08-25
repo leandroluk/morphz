@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { localeStorage, resolveLocale, setConfigLocaleReader } from "../../src/core/i18n/resolve-locale.js";
+import {
+  localeStorage,
+  resolveLocale,
+  setConfigLocaleReader,
+} from "../../src/core/i18n/resolve-locale.js";
 
 describe("resolveLocale", () => {
   it("falls back to 'en-US' with no AsyncLocalStorage context and no config reader", () => {
