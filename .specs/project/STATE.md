@@ -133,6 +133,16 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] Post-completion fix: `discoverConfig()`'s
+  `createJiti(import.meta.url)` broke the CJS build (esbuild empties
+  `import.meta.url` for that output format — a real bug, not cosmetic,
+  since `require('morphz')` consumers would get broken config discovery).
+  Fixed with a `typeof __filename !== "undefined"` guard, falling back to
+  `import.meta.url` for ESM. Verified with a REAL `dist/index.cjs`
+  `require()` + a real `morphz.config.cjs` fixture (discovery works), and
+  the ESM + `.ts` config path too. `npm run build` still emits a static
+  esbuild warning (it can't prove the CJS branch is dead code) — harmless,
+  confirmed at runtime.
 - [2026-08-25] `project-config` T-001..T-003 complete — **the last of the
   8 features.** `discoverConfig()`/`getConfig()`/`defineConfig()`/
   `morphz/register` all implemented. `i18n-error-messages`'s locale reader
@@ -219,15 +229,18 @@ enum,version,nullable,optional,list}.ts` + `src/index.ts`. QA wrote
 
 ## Todos
 
-- [ ] `datetime-codec` DEV+QA (T-001, T-002 in its tasks.md) — next in
-      build order, depends on `define-metatypes` (now done)
-- [ ] `struct-entities` DEV+QA — depends on `define-metatypes` (done) +
-      `datetime-codec` (for `CreatedAt`/`UpdatedAt`/`DeletedAt` examples,
-      not hard-blocking)
-- [ ] `entity-relationships`, `i18n-error-messages`, `lifecycle-serialization`,
-      `class-extensibility`, `project-config` DEV+QA — in ROADMAP order,
-      each depends on `struct-entities` being done first
-- [ ] Remaining low-priority open questions per spec.md (description
+- [ ] `npm run build` still shows a harmless static esbuild warning about
+      `import.meta` in the CJS output for `config.ts` — confirmed correct
+      at runtime (see Progress entry above), not worth further chasing.
+- [ ] Remaining low-priority open question per spec.md (description
       precedence between field-level/entity-level/Define-template on
-      `struct-entities`, config file discovery edge cases) — resolve
-      inline when that feature's DEV pass reaches them
+      `struct-entities`) — never surfaced as a real issue during
+      implementation, safe to leave as a documentation-only gap.
+- [ ] Not yet done: npm publish (package name `morphz` availability
+      unconfirmed), README, CHANGELOG, CI config — v1 is code-complete
+      (8/8 features, 99 tests, build/lint/typecheck all clean) but not yet
+      packaged for release.
+- [ ] `.specs/graph/` was never built (greenfield → code now exists) —
+      consider running `graph-spec-design .` to build the graph now that
+      there's a real codebase, so future sessions' Rule #1 has something
+      to use instead of Degraded Mode.
