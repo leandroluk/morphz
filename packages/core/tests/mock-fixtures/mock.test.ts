@@ -129,10 +129,11 @@ describe(".mock()", () => {
   });
 
   it("throws a clear error for a genuinely unsynthesizable field (opaque FromZodType, no examples)", () => {
-    class Weird extends Struct(
-      { coordinates: FromZodType(z.tuple([z.number(), z.number()])) },
-      {},
-    ) {}
+    // z.tuple()/z.record() are now synthesizable (mock.ts gained cases for
+    // both when additional-primitives shipped Tuple/Record/Json) -- use a
+    // schema shape mock.ts genuinely has no case for instead, e.g. a
+    // z.instanceof() check, which stays opaque by construction.
+    class Weird extends Struct({ id: FromZodType(z.instanceof(URL)) }, {}) {}
     expect(() => (Weird as unknown as { mock: () => unknown }).mock()).toThrow(/cannot synthesize/);
   });
 });

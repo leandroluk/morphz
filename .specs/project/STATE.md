@@ -149,6 +149,18 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `additional-primitives` Pass 2 (v3 batch) complete: Url,
+  Json, Record, Binary, Tuple, SetOf. All 15 primitives from §15 now
+  shipped. Real finding: `z.url()`'s `protocol` regex matches the scheme
+  WITHOUT its trailing colon. `SetOf` deliberately avoids Zod's native
+  `z.set()` (its input side is itself a JS `Set`, not JSON-representable)
+  in favor of a wire=array/domain=`Set<T>` codec, reusing `itemDescriptor`
+  so `.mock()` needed zero changes for it. `mock.ts` gained `tuple`/
+  `record`/`unknown` synthesis cases — this invalidated a pre-existing
+  `mock-fixtures` test's premise (used `z.tuple()` as an "unsynthesizable"
+  example); updated to `z.instanceof(URL)` instead. Gate: 208/208 pass
+  (cumulative), `tsc`/`lint` clean. **`additional-primitives` (§15) fully
+  complete** — only `property-interceptors` (§16) remains in the v3 batch.
 - [2026-08-25] `additional-primitives` Pass 1 QA (integration coverage)
   complete: `.mock()`/`.toJSON()`/round-trip tested against a real
   multi-primitive `Struct`. **4 more real bugs found in shared `mock.ts`**

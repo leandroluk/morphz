@@ -22,6 +22,9 @@ interface ZodDef {
   values?: unknown[];
   options?: unknown[];
   checks?: { _zod?: { def?: ZodCheckDef } }[];
+  items?: unknown[];
+  keyType?: unknown;
+  valueType?: unknown;
 }
 
 function getDef(schema: unknown): ZodDef | undefined {
@@ -103,6 +106,9 @@ function synthesizePrimitive(schema: unknown, fieldName: string): unknown {
     }
     case "boolean":
       return true;
+    case "unknown":
+    case "any":
+      return null;
     case "enum": {
       const values = def.entries ? Object.values(def.entries) : (def.values ?? []);
       if (values.length === 0) throw mockError(fieldName);
@@ -114,6 +120,14 @@ function synthesizePrimitive(schema: unknown, fieldName: string): unknown {
     case "union":
       if (def.options?.[0]) return synthesizePrimitive(def.options[0], fieldName);
       throw mockError(fieldName);
+    case "tuple":
+      return (def.items ?? []).map((item, i) => synthesizePrimitive(item, `${fieldName}[${i}]`));
+    case "record": {
+      if (!def.keyType || !def.valueType) throw mockError(fieldName);
+      const key = synthesizePrimitive(def.keyType, fieldName);
+      const value = synthesizePrimitive(def.valueType, fieldName);
+      return { [String(key)]: value };
+    }
     default:
       throw mockError(fieldName);
   }

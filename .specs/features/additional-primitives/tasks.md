@@ -6,6 +6,7 @@ Split into 2 DEV/QA passes given the size (15 primitives).
 (183/183 cumulative pass, incl. 6 integration tests). **4 real bugs found
 and fixed in shared `mock.ts`** (affects EVERY feature that declares
 codec-based `examples`/`default`, not just this one):
+
 1. `mock.ts`'s pipe-handling didn't distinguish real `z.codec` (useful
    wire schema in `def.in`) from `z.preprocess` (`Boolean` uses this —
    `def.in` is an opaque `transform` schema) — now checks `def.in`'s own
@@ -28,8 +29,25 @@ codec-based `examples`/`default`, not just this one):
    synthesize from — can't constrain one without breaking the dual
    ISO/friendly-notation acceptance).
 
-Pass 2 (T-004/T-005 — Url, Json, Record, Binary, Tuple, SetOf) not yet
-started.
+**Pass 2 status: DONE (2026-08-25).** T-004/T-005 implemented + tested
+(208/208 cumulative pass). `Url()` uses Zod's native `z.url({protocol})` —
+real finding: the `protocol` regex matches the scheme WITHOUT its trailing
+colon (`/^https$/` matches, `/^https:$/` never does), confirmed
+empirically. `Json`/`Record` model as `z.record()` (object-shaped, matches
+INSIGHT.md's own example); `Json<T>`'s generic is cosmetic/inert pending
+the CRITICAL FINDING's `Struct()` generics retrofit. `Binary` is a
+base64-wire/`Uint8Array`-domain codec using Node's `Buffer` internally.
+`Tuple` wraps `z.tuple()` directly. `SetOf` deliberately does NOT use
+Zod's native `z.set()` — its wire/input side is itself a JS `Set`, not
+JSON-representable — instead codes wire=array (JSON-safe, uniqueness
+enforced via `.refine()`) ↔ domain=real `Set<T>`, matching every other
+codec-based primitive's convention; reuses `itemDescriptor` (same field
+`List()` already sets) so `.mock()`'s existing item-synthesis path needs
+zero changes. `mock.ts` gained `"tuple"`/`"record"`/`"unknown"` synthesis
+cases (bare-schema introspection, same pattern as existing cases) — this
+invalidated one pre-existing `mock-fixtures` test's premise (it used
+`z.tuple()` as its "genuinely unsynthesizable" example); updated to use
+`z.instanceof(URL)` instead, which still has no case and correctly throws.
 
 ## Pass 1 — Groups A, B, C (9 primitives)
 

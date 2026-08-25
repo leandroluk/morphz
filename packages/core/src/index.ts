@@ -33,6 +33,13 @@ export { Cuid2 } from "./primitives/cuid2.js";
 export { PlainDate } from "./core/plain-date.js";
 export { PlainTime } from "./core/plain-time.js";
 
+export { Url } from "./primitives/url.js";
+export { Json } from "./primitives/json.js";
+export { Record } from "./primitives/record.js";
+export { Binary } from "./primitives/binary.js";
+export { Tuple } from "./primitives/tuple.js";
+export { SetOf } from "./primitives/set-of.js";
+
 export { Struct } from "./core/struct.js";
 export { Embed } from "./core/embed.js";
 export { STRUCT_META } from "./core/struct-meta.js";
