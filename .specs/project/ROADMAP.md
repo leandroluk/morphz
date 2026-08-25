@@ -93,6 +93,47 @@ hard dependency chain):
 Recommended execution order: `debug-observability` → `additional-
 primitives` → `property-interceptors` (increasing risk/invasiveness).
 
+v3 batch: 100% complete (2026-08-25). All 3 shipped, 219/219 tests.
+
+## v4 batch — INSIGHT.md coverage audit gaps (2026-08-25)
+
+User asked "what's missing to fully satisfy INSIGHT.md" — audited the
+real `src/index.ts`/`struct.ts`/`config.ts` against every section (not
+guessed). Found 5 real gaps:
+
+1. **`recipes-package`** (`morphz/recipes` subpath) — §1's `PrimaryKey`/
+   `CreatedAt`/`Cep`/etc. recipes never shipped. **Correction made during
+   this audit**: these are NOT actually required by INSIGHT.md's own
+   import block (§1's recipes are demonstrated as userland code the
+   consumer writes with `Define`, not a `morphz` export) — resolved with
+   user to ship anyway as an opt-in convenience subpath, not because
+   INSIGHT.md strictly requires it.
+2. **`config-gaps`** — `labels.entityName` auto-derivation (`project-
+   config` REQ-002) is typed but never wired into `struct.ts`; `deprecated`
+   → `@deprecated` JSDoc tag (§10's table) never implemented. Resolved a
+   real timing problem for the first one: `Struct()` resolves templates
+   EAGERLY, before a `class X extends Struct(...) {}` subclass's name
+   exists — fix is LAZY resolution on first construction (`new.target
+   .name` is guaranteed available by then), memoized once, only for
+   Structs that omit `labels.entityName` explicitly (zero cost for the
+   common case).
+3. **`ts-language-service-plugin`** (still pending from v2, not started —
+   only a no-op stub exists in `packages/ts-plugin`).
+4. **`packages/vscode`** — user explicitly said this is NOT optional
+   (despite INSIGHT.md marking it "(Opcional)") — wants a real extension,
+   Tailwind-CSS-IntelliSense-style. Paired with #3 (the extension wraps/
+   packages the `tsserver` plugin) — not started yet, noted as committed
+   future scope, not attempted in this batch.
+5. **CRITICAL FINDING** (carried over, still open) — `Struct()` not
+   generic over fields, zero consumer-side TS inference. Not literally an
+   `INSIGHT.md` numbered item but implicitly assumed by nearly every code
+   example in the doc.
+
+This batch tackles #1 and #2 (small/medium, both resolved and ready for
+Execute). #3/#4 (the real TS tooling) and #5 (generics retrofit) remain
+explicitly deferred — large, separate efforts, user to prioritize
+separately.
+
 ## Resolved decisions
 
 - `Timestamp` = `DateTime` + `default: () => new Date()` baked in. Same
