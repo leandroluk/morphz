@@ -130,6 +130,14 @@
   `jiti` v2 installed. `git init` done — repo now tracked.
 
 ## Progress
+- [2026-08-25] `datetime-codec` T-001, T-002 complete. `src/primitives/
+  {date-time,timestamp}.ts`. QA note (design nuance, not a bug):
+  `meta.default` is metadata-only — `struct-entities`'s field assembly is
+  responsible for applying it to the built `z.object()`, not the primitive
+  itself. DEV also fixed a real type-variance bug in `define-metatypes`'s
+  `src/core/define.ts` (`BaseTypeArg`'s bare-factory case needed `() =>
+  FieldDescriptor<T>`, not `FieldDescriptorFactory<T, unknown>` — TS strict
+  contravariance). Gate: 32/32 pass (cumulative), `tsc --noEmit` clean.
 - [2026-08-25] `define-metatypes` T-001..T-006 complete. DEV wrote
   `src/core/{field-descriptor,merge-descriptor,refine-adapter,define,
   from-zod-type}.ts` + `src/primitives/{text,number,uuid,email,password,ip,

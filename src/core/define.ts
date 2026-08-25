@@ -7,7 +7,12 @@ export interface DefineOptions<T, Opts = undefined> extends Partial<FieldDescrip
   refine?: MorphzRefine<T, Opts>
 }
 
-type BaseTypeArg<T, Opts> = FieldDescriptorFactory<T, unknown> | FieldDescriptor<T>
+// BaseType is always invoked with ZERO args when it's still a bare factory
+// reference (`Define(Text, {...})`), never with its own Opts — so the type
+// only needs to require zero-arg-callability, not match `Opts` structurally.
+// (A factory typed `(opts?: X) => FieldDescriptor<T>` is assignable here:
+// optional-param functions satisfy a zero-arg call signature.)
+type BaseTypeArg<T, Opts> = (() => FieldDescriptor<T>) | FieldDescriptor<T>
 
 /**
  * Normalizes BaseType (call if it's still a bare factory, use as-is if
