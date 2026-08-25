@@ -149,6 +149,21 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `INSIGHT.md` grew further while v2 was in progress — §15-17
+  (v3 batch): `additional-primitives`, `property-interceptors`,
+  `debug-observability` specified. Resolved with user: `Decimal` uses
+  `decimal.js` (precision/robustness prioritized over lighter
+  alternatives); `DateOnly`/`TimeOnly` get custom lightweight
+  `PlainDate`/`PlainTime` wrapper classes (not bare string, not a full
+  `Temporal` polyfill); `property-interceptors`'s `set()` throws on an
+  `immutable` field after first assignment (write-once holds through
+  direct mutation, not just `.parse()`). Fixed `pnpm-workspace.yaml`
+  (removed a stray placeholder, added `lefthook` to
+  `onlyBuiltDependencies` alongside `esbuild` — user is concurrently
+  setting up `lefthook`/`commitlint`/GitHub workflows, pre-commit hook now
+  runs format/lint/typecheck, commit-msg runs `commitlint`). Recommended
+  order: `debug-observability` → `additional-primitives` →
+  `property-interceptors` (increasing risk).
 - [2026-08-25] `jsdoc-generation` (v2 batch) complete. `extractFieldConstraints`
   (`_zod.def` introspection, unwraps `optional`/`nullable`/`pipe`/
   `default`/`prefault`), `sanitizeExample`, `buildFieldTags`, `applyJsDoc`

@@ -49,10 +49,49 @@ ts-plugin` + `packages/vscode` = new empty scaffolds). PREREQUISITE for
     item (a real `tsserver` plugin). Recommend treating as its own
     multi-session effort, not a single DEV/QA fork pass like the rest.
 
+v2 batch progress (2026-08-25): 5/6 done (`monorepo-architecture`,
+`config-jsdoc-flag`, `data-masking`, `mock-fixtures`, `jsdoc-generation`).
+`ts-language-service-plugin` deliberately paused (too large for a single
+DEV/QA pass) — `jsdoc-generation`'s DEV found a CRITICAL cross-cutting gap
+along the way: `Struct()` isn't generic over `fields`, so no `morphz`
+consumer gets ANY field-level TS type inference today. Flagged to user,
+not yet scheduled as its own feature — see `STATE.md`.
+
 `docs/` root directory: explicitly deferred per user request ("no futuro
 incluir") — noted here as a planned future addition, no feature spec
 written, no placeholder created. Revisit once there's real content
 (generated API docs? hand-written guides?) to decide its actual shape.
+
+## v3 batch — INSIGHT.md §15-17 (2026-08-25)
+
+`INSIGHT.md` grew further while v2 was in progress — 3 more features,
+independent of each other (build order below is a recommendation, not a
+hard dependency chain):
+
+15. **additional-primitives** — 15 new core primitives across 5 groups
+    (fundamental scalars, specialized dates, modern IDs, web, flexible/
+    binary structures). Mechanical (`FieldDescriptorFactory` pattern
+    already established) but real new dependencies: `decimal.js`
+    (resolved — precision/robustness over lighter alternatives), `ulid`,
+    `@paralleldrive/cuid2`, `nanoid` (finally shipped for real, previously
+    only a documented v1 recipe). `DateOnly`/`TimeOnly` get custom
+    lightweight `PlainDate`/`PlainTime` wrapper classes (resolved — not a
+    bare string, not a full `Temporal` polyfill).
+16. **property-interceptors** — `get`/`set` accessors on `Define` (wire ↔
+    domain value separation, e.g. MongoDB `ObjectId`). Cross-cuts already-
+    shipped `struct-entities`/`lifecycle-serialization` internals
+    (`to-json.ts`/`to-masked-json.ts` must read the wire slot, not trigger
+    the `get` accessor). Resolved: `set()` throws on an `immutable`
+    field after first assignment — write-once holds through direct
+    mutation too, not just `.parse()`.
+17. **debug-observability** — `DEBUG=morphz:*` namespaced logging (the
+    `debug` npm package, 5 namespaces). Recommend doing this FIRST among
+    the three — lowest risk, purely additive log calls sprinkled through
+    already-shipped files, good low-stakes practice for touching shared
+    internals before `property-interceptors`'s riskier `to-json.ts` change.
+
+Recommended execution order: `debug-observability` → `additional-
+primitives` → `property-interceptors` (increasing risk/invasiveness).
 
 ## Resolved decisions
 
