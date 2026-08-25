@@ -13,9 +13,10 @@ path as the constructor, non-immutable fields tolerate unlimited
 reassignment.
 
 ## T-001: `FieldDescriptorMeta.get`/`.set` + core helpers
+
 - **REQ**: REQ-001, REQ-002
 - **What**: add `get?: (accessor: {value: WireT}) => DomainT` / `set?:
-  (val: DomainT | WireT, accessor: {value: WireT}) => void` to
+(val: DomainT | WireT, accessor: {value: WireT}) => void` to
   `FieldDescriptorMeta`. `src/core/property-interceptor.ts`:
   `getWireSlot()`, `applyFieldValue()`, `readWireValue()`,
   `assignFields()` per design.md.
@@ -23,6 +24,7 @@ reassignment.
 - **Gate**: `npx vitest run -- property-interceptor`
 
 ## T-002: Wire into `struct.ts`
+
 - **REQ**: REQ-002, REQ-005
 - **What**: constructor and `static safeParse()` both use `assignFields()`
   instead of bare `Object.assign`.
@@ -31,6 +33,7 @@ reassignment.
 - **Gate**: `npx vitest run` (full suite, no regression)
 
 ## T-003: Wire into `to-json.ts`/`to-masked-json.ts`
+
 - **REQ**: REQ-004
 - **What**: both use `readWireValue()` instead of direct
   `instance[fieldName]` access.
@@ -39,6 +42,7 @@ reassignment.
 - **Gate**: `npx vitest run` (full suite, no regression)
 
 ## T-004: `Define(BaseType, { get, set })` integration test
+
 - **REQ**: all
 - **What**: end-to-end test mirroring INSIGHT.md §16's `MongoId`/`ObjectId`
   example (or a similar lightweight domain class, no real `mongodb`

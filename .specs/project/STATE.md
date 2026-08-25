@@ -163,6 +163,7 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
   **v3 batch (INSIGHT.md §15-17) now 100% complete**:
   `additional-primitives`, `debug-observability`, `property-interceptors`.
+
 - [2026-08-25] `additional-primitives` Pass 2 (v3 batch) complete: Url,
   Json, Record, Binary, Tuple, SetOf. All 15 primitives from §15 now
   shipped. Real finding: `z.url()`'s `protocol` regex matches the scheme

@@ -40,7 +40,9 @@ describe("property-interceptors integration", () => {
   });
 
   it("(b) toJSON() returns the pure wire string, not the domain object", () => {
-    const user = User.parse({ id: HEX_A, name: "John" }) as User & { toJSON(): Record<string, unknown> };
+    const user = User.parse({ id: HEX_A, name: "John" }) as User & {
+      toJSON(): Record<string, unknown>;
+    };
     const json = user.toJSON();
     expect(json.id).toBe(HEX_A);
     expect(typeof json.id).toBe("string");
