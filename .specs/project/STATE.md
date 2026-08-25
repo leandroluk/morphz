@@ -130,6 +130,14 @@
   `jiti` v2 installed. `git init` done — repo now tracked.
 
 ## Progress
+- [2026-08-25] `struct-entities` T-001..T-004 complete. `STRUCT_META`,
+  template resolver, `Struct()` (pipeline `pre→z.object→post`, no baked
+  transform, `new.target`-based constructor, `meta.default` applied via
+  zod's own `.default()` at assembly time), `Embed()` all implemented.
+  Gate: 47/47 pass (cumulative), `tsc --noEmit` clean. This is the
+  cross-feature God Node — confirmed working: polymorphic `new.target`
+  through pure JS subclass inheritance (no re-`Struct()` needed), `Embed`
+  error cascade into parent parse.
 - [2026-08-25] `datetime-codec` T-001, T-002 complete. `src/primitives/
   {date-time,timestamp}.ts`. QA note (design nuance, not a bug):
   `meta.default` is metadata-only — `struct-entities`'s field assembly is

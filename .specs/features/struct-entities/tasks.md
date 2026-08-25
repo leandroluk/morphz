@@ -1,6 +1,14 @@
 # Tasks: Struct Entities & Embedded Value Objects
 *(PO breakdown, from spec.md + design.md)*
 
+**Status: DONE (2026-08-25).** T-001..T-004 implemented + tested (47/47
+cumulative pass). `new.target` polymorphism confirmed working through pure
+JS subclassing (no second `Struct()` call). `Embed` cascades child errors
+into the parent's parse. `resolveFieldTemplates` also resolves templates
+inside nested `message` maps (design.md didn't spell this out explicitly —
+DEV's reasonable extrapolation, flagged not decided unilaterally on
+anything structural).
+
 ## T-001: `STRUCT_META` symbol + `StructMeta` type
 - **REQ**: internal registry (design.md)
 - **What**: `StructMeta` interface: `fields`, `labels`, `description?`,

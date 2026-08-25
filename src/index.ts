@@ -15,3 +15,8 @@ export { Optional } from './primitives/optional.js'
 export { List } from './primitives/list.js'
 export { DateTime } from './primitives/date-time.js'
 export { Timestamp } from './primitives/timestamp.js'
+
+export { Struct } from './core/struct.js'
+export { Embed } from './core/embed.js'
+export { STRUCT_META } from './core/struct-meta.js'
+export type { StructMeta, StructConstructorLike } from './core/struct-meta.js'
