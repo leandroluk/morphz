@@ -7,16 +7,17 @@ import { Email } from "../../src/primitives/email.js";
 import { List } from "../../src/primitives/list.js";
 import { Define } from "../../src/core/define.js";
 import { resolveIssueMessages } from "../../src/core/i18n/resolve-issues.js";
+import { STRUCT_META } from "../../src/core/struct-meta.js";
 
+// resolveIssueMessages() is tested standalone here, against a RAW ZodError
+// pulled from the schema directly — since lifecycle-serialization, the
+// constructor/.parse() wrap failures in ValidationError (whose .issues is
+// already resolved), so bypassing it via STRUCT_META.schema keeps this
+// suite testing resolveIssueMessages() in isolation, not the constructor.
 function parseAndCatch(StructClass: any, input: unknown): z.ZodError {
-  try {
-    // eslint-disable-next-line no-new
-    new StructClass(input);
-    throw new Error("expected parse to throw");
-  } catch (err) {
-    if (err instanceof z.ZodError) return err;
-    throw err;
-  }
+  const result = StructClass[STRUCT_META].schema.safeParse(input);
+  if (result.success) throw new Error("expected parse to fail");
+  return result.error;
 }
 
 describe("resolveIssueMessages", () => {

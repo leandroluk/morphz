@@ -2,6 +2,10 @@ import { z } from "zod";
 import type { FieldDescriptor } from "./field-descriptor.js";
 import { resolveFieldTemplates } from "./template.js";
 import { STRUCT_META, type StructHooks, type StructMeta } from "./struct-meta.js";
+import { ValidationError } from "./validation-error.js";
+import { resolveIssueMessages } from "./i18n/resolve-issues.js";
+import { resolveLocale } from "./i18n/resolve-locale.js";
+import { toJSON } from "./to-json.js";
 
 export interface StructOptions {
   labels?: Record<string, string>;
@@ -85,7 +89,15 @@ export function Struct(
   class GeneratedStruct {
     constructor(input: unknown) {
       const target = (new.target ?? GeneratedStruct) as StructConstructor;
-      const data = target[STRUCT_META].schema.parse(input) as Record<string, unknown>;
+      let data: Record<string, unknown>;
+      try {
+        data = target[STRUCT_META].schema.parse(input) as Record<string, unknown>;
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          throw new ValidationError(err, target);
+        }
+        throw err;
+      }
       Object.assign(this, data);
     }
 
@@ -93,6 +105,32 @@ export function Struct(
 
     static parse(this: StructConstructor, input: unknown): unknown {
       return new this(input);
+    }
+
+    /**
+     * Validates without throwing. Calls the schema directly (not the
+     * constructor) to avoid double-validating, then bypasses the
+     * (always-validating) constructor via `Object.create` + assign —
+     * `instanceof` still holds since the prototype chain is preserved.
+     */
+    static safeParse(
+      this: StructConstructor,
+      input: unknown,
+    ): { success: true; data: unknown } | { success: false; errors: ReturnType<typeof resolveIssueMessages> } {
+      const result = this[STRUCT_META].schema.safeParse(input);
+      if (!result.success) {
+        return {
+          success: false,
+          errors: resolveIssueMessages(result.error, this, resolveLocale()),
+        };
+      }
+      const instance = Object.create(this.prototype) as Record<string, unknown>;
+      Object.assign(instance, result.data as Record<string, unknown>);
+      return { success: true, data: instance };
+    }
+
+    toJSON(): Record<string, unknown> {
+      return toJSON(this as unknown as Record<string, unknown>, STRUCT_META);
     }
   }
 
@@ -103,4 +141,7 @@ export interface StructConstructor {
   new (input: unknown): unknown;
   [STRUCT_META]: StructMeta;
   parse(input: unknown): unknown;
+  safeParse(
+    input: unknown,
+  ): { success: true; data: unknown } | { success: false; errors: unknown };
 }

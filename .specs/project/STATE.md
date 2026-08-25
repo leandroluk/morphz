@@ -133,6 +133,18 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `lifecycle-serialization` T-001..T-003 complete.
+  `ValidationError`, constructor (now catches `z.ZodError` and re-throws
+  `ValidationError` with i18n-resolved `.issues`), `static parse`/
+  `safeParse` (safeParse bypasses the constructor entirely — validates via
+  `schema.safeParse` then `Object.create(this.prototype)` — confirmed no
+  double-validation via a pre-hook side-effect counter), `.toJSON()`
+  (writeOnly masking, `Embed`/`Ref` recursion, codec `encode`, `List` via
+  `itemDescriptor`) all implemented + tested. One prior test (i18n
+  feature's `resolve-issues.test.ts`) adjusted for the new contract
+  (constructor throws `ValidationError` now, not raw `ZodError`) — expected
+  breaking change from this feature, not a regression. Gate: 80/80 pass
+  (cumulative), `tsc`/`lint` clean.
 - [2026-08-25] `i18n-error-messages` T-001..T-003 complete.
   `resolveLocale`, `lookupMessage`, `descendPath`/`resolveIssueMessages`
   all implemented + tested. `project-config` dependency (not yet built) is

@@ -2,6 +2,13 @@
 
 _(PO breakdown, from spec.md + design.md)_
 
+**Status: DONE (2026-08-25).** T-001..T-003 implemented + tested (80/80
+cumulative pass). Confirmed: constructor always validates and throws
+`ValidationError` (i18n-resolved), `parse`/`safeParse` both polymorphic via
+`new.target`, `safeParse` does not re-run the constructor (no double
+validation, verified via a pre-hook side-effect counter running exactly
+once), `toJSON()` masks `writeOnly` and recurses correctly into `Embed`.
+
 ## T-001: `ValidationError`
 
 - **REQ**: (lifecycle-serialization design)

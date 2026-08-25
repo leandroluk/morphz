@@ -37,3 +37,6 @@ export { resolveLocale, localeStorage, setConfigLocaleReader } from "./core/i18n
 export type { LocaleContext } from "./core/i18n/resolve-locale.js";
 export { lookupMessage } from "./core/i18n/lookup-message.js";
 export { descendPath } from "./core/i18n/descend-path.js";
+
+export { ValidationError } from "./core/validation-error.js";
+export { toJSON } from "./core/to-json.js";

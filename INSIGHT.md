@@ -485,5 +485,61 @@ export default defineConfig({
   template: {
     delimiter: "#",
   },
+
+  // Injeção automática de JSDoc nos tipos gerados a partir dos metadados
+  jsdoc: true,
 });
 ```
+
+---
+
+## 10. Documentação e Autocomplete via JSDoc Automático (`jsdoc: true`)
+
+Com a opção `jsdoc: true` ativada em `morphz.config.ts`, a biblioteca (via plugin/transformer de TypeScript ou geração de `.d.ts`) propaga automaticamente os metadados semânticos definidos em `Define` e `Struct` (`description`, `examples`, `default`, `immutable`, constraints de validação) para comentários JSDoc nos campos dos tipos gerados.
+
+Dessa forma, o schema se torna a única fonte de verdade tanto para validação em runtime quanto para o Intellisense/hover no IDE.
+
+### Exemplo de Declaração vs Hover no IDE
+
+```ts
+export class User extends Struct(
+  {
+    id: PrimaryKey(),
+    name: Text({ min: 2, max: 50, description: "Nome completo", examples: ["João Silva"] }),
+    email: Email({ description: "Email corporativo" }),
+  },
+  {
+    labels: { entityName: "Usuário" },
+  }
+) {}
+```
+
+Ao inspecionar ou autocompletar propriedades de uma instância de `User` ou de um DTO derivado:
+
+```ts
+const user = User.parse(data);
+
+// Hover em `user.id`:
+/**
+ * Identificador único de Usuário
+ * @readonly
+ */
+user.id;
+
+// Hover em `user.name`:
+/**
+ * Nome completo
+ * @minLength 2
+ * @maxLength 50
+ * @example "João Silva"
+ */
+user.name;
+
+// Hover em `user.email`:
+/**
+ * Email corporativo
+ * @format email
+ */
+user.email;
+```
+
