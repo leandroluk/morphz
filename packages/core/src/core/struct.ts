@@ -14,6 +14,17 @@ import { assignFields } from "./property-interceptor.js";
 import { getConfig } from "./config.js";
 import { logLifecycle, logParse, logStruct } from "./debug.js";
 
+/**
+ * Derives a plain instance shape from a field-descriptor record —
+ * `Define`/every primitive already correctly carries its own domain type
+ * `T` per field (`FieldDescriptor<T>`); this is the piece that was never
+ * propagated upward through `Struct`/derivation methods (struct-type-
+ * inference retrofit).
+ */
+export type InferShape<Fields extends Record<string, FieldDescriptor<any>>> = {
+  [K in keyof Fields]: Fields[K] extends FieldDescriptor<infer T> ? T : never;
+};
+
 export interface StructOptions {
   labels?: Record<string, string>;
   description?: string;
@@ -248,10 +259,10 @@ function attachDerivationMethods(klass: StructConstructor): StructConstructor {
  * real class carrying STRUCT_META. The constructor uses `new.target` so
  * subclasses (class-extensibility's `.extend()`) instantiate correctly.
  */
-export function Struct(
-  fields: Record<string, FieldDescriptor>,
+export function Struct<Fields extends Record<string, FieldDescriptor<any>>>(
+  fields: Fields,
   options: StructOptions = {},
-): StructConstructor {
+): StructConstructor<InferShape<Fields>> {
   const labels = options.labels ?? {};
   const delimiter = options.templateDelimiter ?? getConfig().template?.delimiter ?? "#";
   const { rawObjectSchema, resolvedFields } = buildRawObjectSchema(fields, labels, delimiter);
@@ -267,25 +278,62 @@ export function Struct(
     description: options.description,
     pendingEntityNameDerivation,
     templateDelimiter: delimiter,
-  });
+  }) as StructConstructor<InferShape<Fields>>;
 }
 
-export interface StructConstructor {
-  // NOTE: return type is `object`, not a per-field-inferred shape — real
-  // per-field type inference (mapping `Record<string, FieldDescriptor<T>>`
-  // to a concrete instance type) is a substantial, separate TS-generics
-  // problem, out of scope for the jsdoc-generation fix that widened this
-  // from `unknown` (which made `class X extends Struct(...) {}` fail to
-  // typecheck for EVERY consumer with TS2509 — `tests/` was never covered
-  // by `tsc --noEmit`'s `include: ["src"]`, so this was never caught).
-  new (input: unknown): object;
+/**
+ * `Shape` is the ALREADY-COMPUTED plain instance shape (via `InferShape`),
+ * not the raw field-descriptor record — this is what makes every
+ * derivation method below a simple TS utility-type application
+ * (`Omit`/`Pick`/`Partial`) instead of re-deriving from a field map each
+ * time (struct-type-inference retrofit).
+ *
+ * `parse`/`safeParse`/`mock`/`mockMany` use the standard "polymorphic
+ * `this`" TS idiom (`this: T extends new (...) => any`) so a subclass
+ * (`AdminUser extends User` or `AdminUser extends User.extend(...)`)
+ * gets back its OWN type from these static factory methods, not the base
+ * `Shape` — this works because these are real `static` methods on a real
+ * TS class (not stringified/dynamically typed).
+ *
+ * The runtime implementations (`struct.ts`'s constructor/`static parse`/
+ * `safeParse`, `extend.ts`, `derive-variant.ts`, `mock.ts`) are UNCHANGED
+ * by this — they keep operating on loosely-typed `Record<string,
+ * FieldDescriptor>`/`unknown` internally and are attached via `as unknown
+ * as` casts, same pattern already used throughout this file. Only this
+ * PUBLIC interface (what a consumer's `tsc` actually checks against)
+ * became precise.
+ */
+export interface StructConstructor<Shape = unknown> {
+  new (input: unknown): Shape;
   [STRUCT_META]: StructMeta;
-  parse(input: unknown): unknown;
-  safeParse(input: unknown): { success: true; data: unknown } | { success: false; errors: unknown };
-  extend(newFields: Record<string, FieldDescriptor>): StructConstructor;
-  omit(...names: string[] | [string[]]): StructConstructor;
-  pick(...names: string[] | [string[]]): StructConstructor;
-  partial(): StructConstructor;
-  mock(overrides?: Record<string, unknown>): unknown;
-  mockMany(count: number, factory?: (index: number) => Record<string, unknown>): unknown[];
+  parse<T extends abstract new (input: unknown) => unknown>(this: T, input: unknown): InstanceType<T>;
+  safeParse<T extends abstract new (input: unknown) => unknown>(
+    this: T,
+    input: unknown,
+  ):
+    | { success: true; data: InstanceType<T> }
+    | { success: false; errors: ReturnType<typeof resolveIssueMessages> };
+  /**
+   * Reads the FULL calling class's instance type via polymorphic `this`
+   * (`InstanceType<T>`), not just `Shape` — `Shape` alone would lose the
+   * calling class's own declared methods/getters (e.g. `isAdmin()`), since
+   * real JS subclassing (this method's runtime behavior) inherits them but
+   * `Shape` only ever tracked the field portion.
+   */
+  extend<T extends abstract new (input: unknown) => unknown, NewFields extends Record<string, FieldDescriptor<any>>>(
+    this: T,
+    newFields: NewFields,
+  ): StructConstructor<Omit<InstanceType<T>, keyof NewFields> & InferShape<NewFields>>;
+  omit<K extends keyof Shape>(...names: K[] | [K[]]): StructConstructor<Omit<Shape, K>>;
+  pick<K extends keyof Shape>(...names: K[] | [K[]]): StructConstructor<Pick<Shape, K>>;
+  partial(): StructConstructor<Partial<Shape>>;
+  mock<T extends abstract new (input: unknown) => unknown>(
+    this: T,
+    overrides?: Partial<InstanceType<T>>,
+  ): InstanceType<T>;
+  mockMany<T extends abstract new (input: unknown) => unknown>(
+    this: T,
+    count: number,
+    factory?: (index: number) => Partial<InstanceType<T>>,
+  ): InstanceType<T>[];
 }

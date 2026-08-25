@@ -149,6 +149,18 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `struct-type-inference` Pass 1 (T-001/T-002) complete —
+  **resolves the CRITICAL FINDING's core**: `Struct<Fields>(fields,
+  options): StructConstructor<InferShape<Fields>>`, polymorphic-`this`
+  `parse`/`safeParse`/`mock`/`.extend()`, real `expectTypeOf` verification
+  (not just "compiles") confirms `user.name` is genuinely typed `string`,
+  subclass `.parse()` types as the subclass, `Embed`/`Ref` nested fields
+  infer the target's real instance type. ZERO runtime behavior change —
+  pure type-declaration retrofit, all 239 prior tests untouched. Pass 2
+  (`.omit()`/`.pick()`/`.partial()`/`.mockMany()` generics +
+  fuller INSIGHT.md-mirroring type-test suite) still pending — though
+  T-001's DEV already covered basic `.omit()`/`.pick()`/`.partial()`
+  cases ahead of schedule while verifying `.extend()`.
 - [2026-08-25] `recipes-package` + `config-gaps` (v4 batch) complete —
   **v4 batch 100% done for items #1/#2 (the small/medium gaps).**
   `morphz/recipes` subpath ships all 15 §1 recipes (verified real build +
