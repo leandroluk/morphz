@@ -34,12 +34,20 @@ describe("entityName auto-derivation (config-gaps)", () => {
     ) {}
 
     // Not yet constructed -> still pending, description literal.
-    const metaBefore = (WidgetEntity as unknown as { [STRUCT_META]: { fields: Record<string, { meta: { description?: string } }> } })[STRUCT_META];
+    const metaBefore = (
+      WidgetEntity as unknown as {
+        [STRUCT_META]: { fields: Record<string, { meta: { description?: string } }> };
+      }
+    )[STRUCT_META];
     expect(metaBefore.fields.name.meta.description).toBe("Full name of #entityName");
 
     WidgetEntity.parse({ name: "x" });
 
-    const metaAfter = (WidgetEntity as unknown as { [STRUCT_META]: { fields: Record<string, { meta: { description?: string } }> } })[STRUCT_META];
+    const metaAfter = (
+      WidgetEntity as unknown as {
+        [STRUCT_META]: { fields: Record<string, { meta: { description?: string } }> };
+      }
+    )[STRUCT_META];
     expect(metaAfter.fields.name.meta.description).toBe("Full name of Widget");
   });
 
@@ -51,7 +59,9 @@ describe("entityName auto-derivation (config-gaps)", () => {
     );
 
     class CounterEntity extends Struct({ name: Text({ description: "#entityName field" }) }, {}) {}
-    const meta = (CounterEntity as unknown as { [STRUCT_META]: { pendingEntityNameDerivation?: boolean } })[STRUCT_META];
+    const meta = (
+      CounterEntity as unknown as { [STRUCT_META]: { pendingEntityNameDerivation?: boolean } }
+    )[STRUCT_META];
 
     CounterEntity.parse({ name: "a" });
     const pendingAfterFirst = meta.pendingEntityNameDerivation;
@@ -69,7 +79,11 @@ describe("entityName auto-derivation (config-gaps)", () => {
       { labels: { entityName: "Explicit" } },
     ) {}
 
-    const meta = (WidgetModel as unknown as { [STRUCT_META]: { fields: Record<string, { meta: { description?: string } }> } })[STRUCT_META];
+    const meta = (
+      WidgetModel as unknown as {
+        [STRUCT_META]: { fields: Record<string, { meta: { description?: string } }> };
+      }
+    )[STRUCT_META];
     // Already fully resolved eagerly -- no auto-derivation should ever run.
     expect(meta.fields.name.meta.description).toBe("Full name of Explicit");
 

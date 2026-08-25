@@ -167,6 +167,7 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   with the plugin), and the CRITICAL FINDING (`Struct()` not generic,
   zero consumer TS inference). All three are large, separate efforts —
   awaiting user prioritization.
+
 - [2026-08-25] `property-interceptors` (v3 batch) complete — **last
   feature of the v3 batch.** `get`/`set` on `Define`, per-field-name
   `Symbol` backing slot, `assignFields()`/`readWireValue()` shared

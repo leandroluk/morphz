@@ -99,7 +99,10 @@ function resolveEntityNameIfPending(meta: StructMeta, className: string): void {
   const delimiter = meta.templateDelimiter ?? "#";
   const newFields: Record<string, FieldDescriptor> = {};
   for (const [key, descriptor] of Object.entries(meta.fields)) {
-    newFields[key] = { ...descriptor, meta: resolveFieldTemplates(descriptor.meta, newLabels, delimiter) };
+    newFields[key] = {
+      ...descriptor,
+      meta: resolveFieldTemplates(descriptor.meta, newLabels, delimiter),
+    };
   }
   meta.labels = newLabels;
   meta.fields = newFields;

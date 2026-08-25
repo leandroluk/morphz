@@ -65,8 +65,12 @@ describe("entityName auto-derivation edge cases (config-gaps)", () => {
       }
     )[STRUCT_META];
 
-    expect(alphaMeta.fields.name.meta.description).toBe("#entityName A".replace("#entityName", "Alpha"));
-    expect(betaMeta.fields.name.meta.description).toBe("#entityName B".replace("#entityName", "Beta"));
+    expect(alphaMeta.fields.name.meta.description).toBe(
+      "#entityName A".replace("#entityName", "Alpha"),
+    );
+    expect(betaMeta.fields.name.meta.description).toBe(
+      "#entityName B".replace("#entityName", "Beta"),
+    );
   });
 
   it(".extend() propagates lazy entityName derivation to the subclass's own name", () => {
