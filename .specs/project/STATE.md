@@ -149,6 +149,20 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `additional-primitives` Pass 1 QA (integration coverage)
+  complete: `.mock()`/`.toJSON()`/round-trip tested against a real
+  multi-primitive `Struct`. **4 more real bugs found in shared `mock.ts`**
+  (affects every feature declaring codec-based `examples`/`default`, not
+  just this one) — see `tasks.md` for full detail: (1) `mock.ts`'s pipe
+  handling confused real `z.codec` with `z.preprocess` (`Boolean` uses
+  the latter); (2) `mock.ts` fed DOMAIN-typed `meta.examples`/`meta.default`
+  straight in as raw WIRE input, breaking `BigInt`/`Decimal`/`DateOnly`/
+  `TimeOnly`/`Duration`/v1's `Timestamp` — now applies `meta.encode`
+  first; (3) `BigInt`/`Decimal` switched `refine`→`.regex()` so the mock
+  synthesizer has a pattern to generate from; (4) `decimal.js`'s
+  scientific-notation `.toString()` default broke round-trip for large
+  synthesized values — isolated `Decimal.clone()` override fixes it
+  without affecting other consumers. Gate: 183/183 pass (cumulative).
 - [2026-08-25] `additional-primitives` Pass 1 (v3 batch) complete: Boolean,
   BigInt, Decimal, DateOnly/TimeOnly (+ `PlainDate`/`PlainTime` wrapper
   classes), Duration, Ulid, Nanoid, Cuid2. New deps: `decimal.js`, `ulid`,

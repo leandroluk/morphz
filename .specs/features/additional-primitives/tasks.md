@@ -2,6 +2,35 @@
 
 Split into 2 DEV/QA passes given the size (15 primitives).
 
+**Pass 1 status: DONE (2026-08-25).** T-001..T-003 implemented + tested
+(183/183 cumulative pass, incl. 6 integration tests). **4 real bugs found
+and fixed in shared `mock.ts`** (affects EVERY feature that declares
+codec-based `examples`/`default`, not just this one):
+1. `mock.ts`'s pipe-handling didn't distinguish real `z.codec` (useful
+   wire schema in `def.in`) from `z.preprocess` (`Boolean` uses this —
+   `def.in` is an opaque `transform` schema) — now checks `def.in`'s own
+   type, synthesizes from `def.out` when it's a `"transform"`.
+2. `mock.ts` was feeding `meta.examples`/`meta.default` (DOMAIN-typed
+   values) straight into the constructor as raw WIRE input — broke any
+   codec field declaring `examples`/`default` (`BigInt`, `Decimal`,
+   `DateOnly`, `TimeOnly`, `Duration`, and even v1's `Timestamp`). Fixed:
+   applies `meta.encode` before use, when present.
+3. `BigInt`/`Decimal` used `z.string().refine()` with no `.regex()` — the
+   mock synthesizer had no pattern to generate from. Switched to
+   `.regex()` (same validation, now visible to the synthesizer).
+4. `decimal.js` defaults to scientific notation in `.toString()` for
+   large numbers (`toExpPos`/`toExpNeg` ±21) — broke round-trip when
+   `RandExp` generated long digit strings. Fixed via an isolated
+   `Decimal.clone({toExpPos: 9e15, toExpNeg: -9e15})` (doesn't affect
+   other `decimal.js` consumers). Also added `'time'` to
+   `CANONICAL_FORMAT_EXAMPLES` (was missing, broke `TimeOnly`) and a
+   default `examples` for `Duration` (its wire side has no regex to
+   synthesize from — can't constrain one without breaking the dual
+   ISO/friendly-notation acceptance).
+
+Pass 2 (T-004/T-005 — Url, Json, Record, Binary, Tuple, SetOf) not yet
+started.
+
 ## Pass 1 — Groups A, B, C (9 primitives)
 
 ## T-001: Fundamental scalars

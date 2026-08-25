@@ -19,7 +19,9 @@ export function BigInt(overrides: BigIntOptions = {}): FieldDescriptor<bigint> {
   if (min !== undefined) domainSchema = domainSchema.min(min);
   if (max !== undefined) domainSchema = domainSchema.max(max);
 
-  const codec = z.codec(z.string(), domainSchema, {
+  // The regex is also what lets mock.ts synthesize a valid wire example
+  // via pattern-based generation, in addition to being real validation.
+  const codec = z.codec(z.string().regex(/^-?\d+$/), domainSchema, {
     decode: (value: string, payload) => {
       logCodec("decoding BigInt wire value %s", value);
       // globalThis.BigInt() throws a raw SyntaxError on malformed input —

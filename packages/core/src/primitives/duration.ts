@@ -75,8 +75,22 @@ export function Duration(
     },
   });
 
+  // Duration's wire schema is a bare z.string() (no regex — it accepts
+  // TWO distinct formats, ISO 8601 or `ms`-parseable shorthand, so a
+  // single schema-level regex can't usefully constrain it without either
+  // rejecting real input or being too loose for mock.ts's pattern-based
+  // synthesis to help). A built-in default example (15 minutes, domain-
+  // typed so it flows through mock.ts's encode-aware examples path) is
+  // the pragmatic way to keep `.mock()` working out of the box even when
+  // the caller declares no `examples` of their own.
+  const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+
   return {
     zodSchema: codec,
-    meta: { ...overrides, encode: (value: number) => formatIsoDuration(value) },
+    meta: {
+      examples: [FIFTEEN_MINUTES_MS],
+      ...overrides,
+      encode: (value: number) => formatIsoDuration(value),
+    },
   };
 }

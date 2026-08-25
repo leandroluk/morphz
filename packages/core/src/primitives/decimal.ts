@@ -1,7 +1,18 @@
 import { z } from "zod";
-import { Decimal as DecimalJs } from "decimal.js";
+import { Decimal as DecimalJsBase } from "decimal.js";
 import type { FieldDescriptor, FieldDescriptorMeta } from "../core/field-descriptor.js";
 import { logCodec } from "../core/debug.js";
+
+// decimal.js's default `.toString()` switches to exponential notation
+// (e.g. "1.5e+92") once a value's magnitude crosses toExpPos/toExpNeg
+// (default ±21) -- but DECIMAL_STRING_RE (the wire schema's own
+// validation) only accepts plain decimal notation. Left at defaults,
+// encode() could produce a string decode() then rejects, breaking the
+// wire round-trip for sufficiently large/small values. Cloned (not
+// `.set()` on the shared/global class) so this doesn't change decimal.js's
+// behavior for any OTHER consumer importing it directly.
+const DecimalJs = DecimalJsBase.clone({ toExpPos: 9e15, toExpNeg: -9e15 });
+type DecimalJs = InstanceType<typeof DecimalJs>;
 
 export interface DecimalOptions extends Partial<FieldDescriptorMeta<DecimalJs>> {
   /** Total significant digits allowed. */
@@ -22,9 +33,9 @@ const DECIMAL_STRING_RE = /^-?\d+(\.\d+)?$/;
 export function Decimal(overrides: DecimalOptions = {}): FieldDescriptor<DecimalJs> {
   const { precision, scale, min, max, ...meta } = overrides;
 
-  const wireSchema = z.string().refine((val) => DECIMAL_STRING_RE.test(val), {
-    error: () => "Invalid decimal string",
-  });
+  // .regex() (not .refine()) so the check is schema-visible to mock.ts's
+  // pattern-based synthesis, in addition to being real validation.
+  const wireSchema = z.string().regex(DECIMAL_STRING_RE, { error: () => "Invalid decimal string" });
 
   const codec = z.codec(wireSchema, z.instanceof(DecimalJs), {
     decode: (value: string, ctx) => {

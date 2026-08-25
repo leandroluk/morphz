@@ -17,6 +17,7 @@ interface ZodDef {
   format?: string;
   innerType?: unknown;
   in?: unknown;
+  out?: unknown;
   entries?: Record<string, unknown>;
   values?: unknown[];
   options?: unknown[];
@@ -43,6 +44,7 @@ const CANONICAL_FORMAT_EXAMPLES: Record<string, () => unknown> = {
   url: () => "https://example.com",
   datetime: () => new Date().toISOString(),
   date: () => new Date().toISOString().slice(0, 10),
+  time: () => new Date().toISOString().slice(11, 19),
 };
 
 function mockError(fieldName: string): Error {
@@ -63,9 +65,18 @@ function synthesizePrimitive(schema: unknown, fieldName: string): unknown {
     case "nullable":
       return synthesizePrimitive(def.innerType, fieldName);
     case "pipe": {
-      // Codec (e.g. DateTime): synthesize the WIRE (`in`) side — that's
-      // what raw input to .parse() must actually satisfy.
-      if (def.in) return synthesizePrimitive(def.in, fieldName);
+      // Two distinct pipe shapes share `type: "pipe"` in Zod v4:
+      // - a real bidirectional codec (z.codec, e.g. DateTime/BigInt): `in`
+      //   is a genuine wire-format schema — synthesize FROM it, since
+      //   that's what raw input to .parse() must actually satisfy.
+      // - a preprocess pipe (z.preprocess, e.g. Boolean's coercion): `in`
+      //   is an opaque `transform` schema (just the preprocess function,
+      //   no shape to synthesize from) — synthesize from `out` instead,
+      //   since preprocess's input isn't format-constrained the way a
+      //   codec's wire side is.
+      const inDef = getDef(def.in);
+      if (inDef && inDef.type !== "transform") return synthesizePrimitive(def.in, fieldName);
+      if (def.out) return synthesizePrimitive(def.out, fieldName);
       throw mockError(fieldName);
     }
     case "string": {
@@ -121,12 +132,21 @@ function synthesizeField(
   fieldName: string,
   ctx: MockContext,
 ): unknown {
+  // `examples`/`default` are DOMAIN-typed (FieldDescriptorMeta<T>'s own
+  // generic), but the value synthesized here is fed as RAW constructor
+  // input, which for a codec field must be WIRE-typed (it goes through
+  // decode). `meta.encode` (domain -> wire) already exists for exactly
+  // this direction (used by toJSON()) — reuse it here so a codec field's
+  // declared `examples`/`default` doesn't silently hand a domain object
+  // (a bigint, a Decimal instance, a Date) to a decoder expecting a string.
   if (descriptor.meta.examples && descriptor.meta.examples.length > 0) {
-    return descriptor.meta.examples[0];
+    const example = descriptor.meta.examples[0];
+    return descriptor.meta.encode ? descriptor.meta.encode(example) : example;
   }
   if (descriptor.meta.default !== undefined) {
     const def = descriptor.meta.default;
-    return typeof def === "function" ? (def as () => unknown)() : def;
+    const value = typeof def === "function" ? (def as () => unknown)() : def;
+    return descriptor.meta.encode ? descriptor.meta.encode(value) : value;
   }
 
   if (descriptor.targetStruct) {
