@@ -503,31 +503,33 @@ Dessa forma, o schema se torna a única fonte de verdade tanto para validação 
 
 | Campo Zod / JSON Schema        | Tag JSDoc Gerada             | Exemplo / Formato                    |
 | :----------------------------- | :--------------------------- | :----------------------------------- |
-| `description`                  | *(Corpo principal do bloco)* | `Texto descritivo plano`             |
+| `description`                  | _(Corpo principal do bloco)_ | `Texto descritivo plano`             |
 | `default`                      | `@default`                   | `@default "uuid-v4"` ou `@default 0` |
-| `examples` / `example`         | `@example`                   | `@example "John Doe"` *(com escape)* |
+| `examples` / `example`         | `@example`                   | `@example "John Doe"` _(com escape)_ |
 | `readOnly` / `immutable: true` | `@readonly`                  | `@readonly`                          |
 | `writeOnly: true`              | `@writeOnly`                 | `@writeOnly`                         |
 | `deprecated: true`             | `@deprecated`                | `@deprecated [motivo opcional]`      |
-| `minLength` / `min` *(Text)*   | `@minLength`                 | `@minLength 2`                       |
-| `maxLength` / `max` *(Text)*   | `@maxLength`                 | `@maxLength 50`                      |
-| `minimum` / `min` *(Number)*   | `@minimum`                   | `@minimum 0`                         |
-| `maximum` / `max` *(Number)*   | `@maximum`                   | `@maximum 100`                       |
+| `minLength` / `min` _(Text)_   | `@minLength`                 | `@minLength 2`                       |
+| `maxLength` / `max` _(Text)_   | `@maxLength`                 | `@maxLength 50`                      |
+| `minimum` / `min` _(Number)_   | `@minimum`                   | `@minimum 0`                         |
+| `maximum` / `max` _(Number)_   | `@maximum`                   | `@maximum 100`                       |
 | `pattern` / `regex`            | `@pattern`                   | `@pattern ^[a-z0-9-]+$`              |
-| `format` *(Email, Uuid, etc.)* | `@format`                    | `@format email`, `@format uuid`      |
+| `format` _(Email, Uuid, etc.)_ | `@format`                    | `@format email`, `@format uuid`      |
 
 ---
 
 ### Tratamento Especial para `@example` e Decorators (Hover Truncation Fix)
 
 Um problema clássico do parser JSDoc do TypeScript (`tsserver`) no VSCode ocorre quando um `@example` contém código com decorators ou propriedades iniciadas por `@` (ex: `@ApiProperty()`, `@Transform()`, ou chaves como `"@context"`):
+
 - O compilador do TypeScript interpreta qualquer `@` interno como o **início de uma nova tag JSDoc**, quebrando o bloco de exemplo e corrompendo a visualização de hover.
 
 **Solução implementada pelo `morphz`:**
+
 1. **Encapsulamento em Fenced Markdown:** Exemplos de objetos ou snippets de código são envolvidos automaticamente em blocos ` ```ts ` ou ` ```json `.
 2. **Escape Seguro de `@` Internos:** Caso o exemplo contenha decorators ou símbolos `@` no corpo, o gerador sanitiza utilizando o caractere de escape HTML `&#64;` ou literal seguro, impedindo que o `tsserver` interprete o caractere como uma anotação JSDoc de topo.
 
-```ts
+````ts
 // Exemplo gerado no .d.ts / JSDoc para um campo com exemplo estruturado:
 /**
  * User account metadata
@@ -538,7 +540,7 @@ Um problema clássico do parser JSDoc do TypeScript (`tsserver`) no VSCode ocorr
  * ```
  */
 metadata: Record<string, any>;
-```
+````
 
 ---
 
@@ -586,7 +588,6 @@ user.name;
  */
 user.email;
 ```
-
 
 ---
 
@@ -653,6 +654,7 @@ export class User extends Struct({
 O plugin e os geradores de JSDoc adotam **`en-US` como padrão universal de código e documentação técnica**, mas suportam resolução contextual de idiomas:
 
 1. **Definições Multilíngues no Código:** Campos e `Define` podem fornecer descrições em múltiplos idiomas:
+
    ```ts
    export const Slug = Define(Text, {
      description: {
@@ -825,6 +827,3 @@ Dessa forma, o consumidor do `morphz` tem setup **zero-friction**: ao instalar `
   }
 }
 ```
-
-
-

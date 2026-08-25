@@ -130,6 +130,22 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   feature (PO). Tooling decided (Execute phase, no INSIGHT.md guidance):
   npm, TypeScript 5.6, `tsup` (build), `vitest` (test), `zod` v4.4.3 +
   `jiti` v2 installed. `git init` done — repo now tracked.
+- [2026-08-25] User grew `INSIGHT.md` with §9-14 (v2 batch): jsdoc config
+  flag, JSDoc `.d.ts` generation, TS Language Service Plugin, mock/fixture
+  generation, data masking/LGPD, monorepo restructure (pnpm + Turborepo).
+  Specified as 6 new features under `.specs/features/`:
+  `monorepo-architecture`, `config-jsdoc-flag`, `data-masking`,
+  `mock-fixtures`, `jsdoc-generation`, `ts-language-service-plugin` — build
+  order recorded in `ROADMAP.md`'s new "v2 batch" section.
+  `monorepo-architecture` resolved two real open questions itself (pnpm
+  migration confirmed per INSIGHT.md's explicit wording; `ts-plugin`
+  distributes as a subpath export bundled into `core`'s dist, not a
+  separately-published package, reconciling INSIGHT.md's "either/or"
+  wording with its own "zero-friction" recommendation).
+  `ts-language-service-plugin` flagged as needing its own dedicated Design
+  pass (Context7 against the `typescript` LS plugin API) before Execute —
+  by far the largest, most novel item in the batch. `docs/` root directory
+  explicitly deferred per user request, no spec/placeholder created yet.
 
 ## Progress
 

@@ -14,6 +14,7 @@ class (`attachDerivationMethods`), so they're available and chainable
 anywhere in a class family. QA found and fixed a real bug: `.extend()`
 wasn't applying `meta.default` to new fields (unlike `Struct()`'s own
 assembly) — fixed to match.
+
 ## T-001: `stripImmutable()`
 
 - **REQ**: REQ-006

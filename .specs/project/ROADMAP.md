@@ -23,6 +23,37 @@ below are derived directly from `INSIGHT.md` instead of graph-guided discovery.
 8. **project-config** — `morphz.config.ts` / `defineConfig()`, global label
    defaults, template delimiter config.
 
+## v2 batch — INSIGHT.md §9-14 (2026-08-25)
+
+v1 (features 1-8 above) is code-complete: 99/99 tests, build/lint/typecheck
+clean, all committed. `INSIGHT.md` grew 6 new sections (§9-14) — new
+features, build order below (each depends on `monorepo-architecture` for
+its package location; deeper deps noted per item):
+
+9. **monorepo-architecture** — restructures repo into pnpm workspaces +
+   Turborepo (`packages/core` = current package unchanged, `packages/
+ts-plugin` + `packages/vscode` = new empty scaffolds). PREREQUISITE for
+   `ts-language-service-plugin`; everything else just needs to land inside
+   `packages/core` post-move. Also switches `npm` → `pnpm` (INSIGHT.md is
+   explicit about this).
+10. **config-jsdoc-flag** — tiny: `MorphzConfig.jsdoc?: boolean`. Split
+    from `jsdoc-generation` so the config surface can land independently.
+11. **data-masking** — `mask` on `FieldDescriptor.meta` +
+    `.toMaskedJSON()`, directly parallels `.toJSON()`'s existing traversal.
+    Small, mechanical, no new external dependency.
+12. **mock-fixtures** — `.mock()`/`.mockMany()`. Self-contained within
+    `packages/core`, no monorepo cross-package dependency.
+13. **jsdoc-generation** — build-time `.d.ts` JSDoc injection from
+    `STRUCT_META` metadata. Real engineering (AST/declaration rewriting).
+14. **ts-language-service-plugin** — LAST, by far the largest/most novel
+    item (a real `tsserver` plugin). Recommend treating as its own
+    multi-session effort, not a single DEV/QA fork pass like the rest.
+
+`docs/` root directory: explicitly deferred per user request ("no futuro
+incluir") — noted here as a planned future addition, no feature spec
+written, no placeholder created. Revisit once there's real content
+(generated API docs? hand-written guides?) to decide its actual shape.
+
 ## Resolved decisions
 
 - `Timestamp` = `DateTime` + `default: () => new Date()` baked in. Same

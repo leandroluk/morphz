@@ -1,52 +1,21 @@
 {
-  "name": "morphz",
-  "version": "0.1.0",
-  "description": "Zod v4 + class-based, type-safe OO layer: Struct entities, Define meta-types, real instances.",
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./register": {
-      "types": "./dist/register.d.ts",
-      "import": "./dist/register.js",
-      "require": "./dist/register.cjs"
-    }
-  },
+  "name": "morphz-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "morphz monorepo — packages/core (the morphz library), packages/ts-plugin, packages/vscode.",
   "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
     "lint": "oxlint",
     "format": "oxfmt --write",
     "format:check": "oxfmt --check"
   },
-  "dependencies": {
-    "jiti": "^2.4.0"
-  },
   "devDependencies": {
-    "@types/node": "26.3.0",
     "oxfmt": "0.65.0",
     "oxlint": "1.80.0",
-    "tsup": "^8.3.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0",
-    "zod": "^4.0.0"
+    "turbo": "^2.10.11",
+    "typescript": "^5.6.0"
   },
-  "peerDependencies": {
-    "zod": "^4.0.0"
-  },
-  "allowScripts": {
-    "esbuild@0.27.7": true,
-    "esbuild@0.21.5": true
-  }
+  "packageManager": "pnpm@11.21.0"
 }

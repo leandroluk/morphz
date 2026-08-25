@@ -7,8 +7,7 @@ import { createJiti } from "jiti";
 // esbuild's own CJS shim at runtime. Declared locally (not globally typed
 // in an ESM-mode tsconfig) since it only exists in the CJS bundle.
 declare const __filename: string | undefined;
-const jitiBaseUrl: string =
-  typeof __filename !== "undefined" ? __filename : import.meta.url;
+const jitiBaseUrl: string = typeof __filename !== "undefined" ? __filename : import.meta.url;
 
 export interface MorphzLabelsConfig {
   entityName?: (ctx: { className: string }) => string;

@@ -1,0 +1,15 @@
+{
+  "name": "morphz-vscode",
+  "displayName": "morphz",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Editor support for morphz (Struct/Define hover, autocomplete, diagnostics). Placeholder scaffold — no real extension code yet.",
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "engines": {
+    "vscode": "^1.90.0"
+  }
+}

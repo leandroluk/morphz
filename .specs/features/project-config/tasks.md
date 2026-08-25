@@ -14,6 +14,7 @@ for; no further connection needed (an attempt to additionally call
 `setConfigLocaleReader()` from `config.ts` was tried and reverted — it
 created a real circular import between `config.ts` and `resolve-
 locale.ts` that broke module init order under Vitest).
+
 ## T-001: `defineConfig()`
 
 - **REQ**: REQ-001
