@@ -6,6 +6,7 @@ T-003's derivation-method generics ahead of schedule (all of `.extend()`/
 in the same commit). Pass 2 (T-004, coverage) found **3 MORE real
 pre-existing type bugs** (none introduced by Pass 1 — `T` was always a
 free/disconnected generic parameter in each, never actually inferred):
+
 1. `FieldOf<T>`: `T` wasn't derived from `Source`/`fieldName` at all —
    `FieldOf(User, 'id')` typed as `unknown`. Fixed to
    `FieldOf<S, K extends keyof S & string>(...): FieldDescriptor<S[K]>`.
@@ -15,7 +16,7 @@ free/disconnected generic parameter in each, never actually inferred):
    collapsed distinct literals to `never`). Fixed via mapped-type
    per-index extraction (`{[K in keyof Members]: ...}[number]`) instead
    of matching the union directly — confirmed `Union([Literal('DRAFT'),
-   Literal('PUBLISHED')])` now infers the real literal union
+Literal('PUBLISHED')])` now infers the real literal union
    (`"DRAFT" | "PUBLISHED"`), not a widened `string`.
 3. `Nullable`/`Optional`/`List`/`SetOf` accepted
    `FieldDescriptorFactory<T>` (implying a specific `Opts`), but are

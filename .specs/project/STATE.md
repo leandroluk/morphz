@@ -164,7 +164,7 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   `Nullable(DateTime)` — literally INSIGHT.md §1's `DeletedAt` recipe) —
   fixed to the same `BaseTypeArg<T>` pattern `Define` already used. Gate:
   254/254 pass (cumulative), full type-level verification (`tsconfig
-  .tests.json`) clean, `oxlint` clean. This closes the CRITICAL FINDING
+.tests.json`) clean, `oxlint` clean. This closes the CRITICAL FINDING
   entirely — `morphz` consumers now get real field-level TS inference
   throughout: `Struct`, `Embed`, `Ref`, `FieldOf`, `Union`, `.extend()`/
   `.omit()`/`.pick()`/`.partial()`/`.mock()`/`.mockMany()`, all verified

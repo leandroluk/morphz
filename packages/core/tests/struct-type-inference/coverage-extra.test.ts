@@ -120,9 +120,11 @@ describe("struct-type-inference: mockMany + triple chaining", () => {
     expectTypeOf(batch[0]).toEqualTypeOf<User | undefined>();
   });
 
-  class UpdateUserWithBioDto extends User.pick("name", "email").partial().extend({
-    bio: Text({ min: 1 }),
-  }) {}
+  class UpdateUserWithBioDto extends User.pick("name", "email")
+    .partial()
+    .extend({
+      bio: Text({ min: 1 }),
+    }) {}
 
   it("triple chaining (.pick().partial().extend()) combines optional-picked + required-new correctly", () => {
     const dto = UpdateUserWithBioDto.parse({ bio: "hello" });
