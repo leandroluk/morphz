@@ -30,3 +30,10 @@ export { Literal } from "./core/literal.js";
 export { Ref } from "./core/ref.js";
 export { FieldOf } from "./core/field-of.js";
 export { Union } from "./core/union.js";
+
+export { resolveIssueMessages } from "./core/i18n/resolve-issues.js";
+export type { ResolvedIssue } from "./core/i18n/resolve-issues.js";
+export { resolveLocale, localeStorage, setConfigLocaleReader } from "./core/i18n/resolve-locale.js";
+export type { LocaleContext } from "./core/i18n/resolve-locale.js";
+export { lookupMessage } from "./core/i18n/lookup-message.js";
+export { descendPath } from "./core/i18n/descend-path.js";

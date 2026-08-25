@@ -2,6 +2,16 @@
 
 _(PO breakdown, from spec.md + design.md)_
 
+**Status: DONE (2026-08-25).** T-001..T-003 implemented + tested (70/70
+cumulative pass). `resolveLocale`'s `project-config` dependency implemented
+as an injectable hook (`setConfigLocaleReader`) rather than a direct import
+— `project-config` doesn't exist yet; avoids forward coupling, wired up
+when that feature lands. Recursion through `Embed` confirmed working end
+to end; `List` item paths confirmed stopping at the introspectability
+boundary (raw Zod message, even when the item's own type has a registered
+override — correct per design.md, that override only covers the FIELD as
+a unit, never per-item).
+
 ## T-001: `resolveLocale()`
 
 - **REQ**: REQ-003

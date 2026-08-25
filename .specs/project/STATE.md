@@ -133,6 +133,16 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `i18n-error-messages` T-001..T-003 complete.
+  `resolveLocale`, `lookupMessage`, `descendPath`/`resolveIssueMessages`
+  all implemented + tested. `project-config` dependency (not yet built) is
+  an injectable hook (`setConfigLocaleReader`), not a direct import —
+  avoids forward coupling. Confirmed end-to-end: custom `message` overrides
+  apply on parse failure; `Embed` recursion applies the CHILD's own
+  registered override; `List` item paths correctly stop at the raw Zod
+  message even when the item type itself has an override (design.md's
+  "field as a unit, never per-item" rule holds). Gate: 70/70 pass
+  (cumulative), `tsc`/`lint` clean.
 - [2026-08-25] `entity-relationships` T-001..T-004 complete. `Literal`,
   `Ref` (`z.lazy` + self-reference confirmed), `FieldOf` (clones full
   descriptor minus `default`/`immutable`, throws sync on bad field name),
