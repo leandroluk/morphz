@@ -27,9 +27,11 @@ export function SetOf<T>(
   const itemDescriptor = typeof itemType === "function" ? itemType() : itemType;
   const { minSize, ...meta } = overrides;
 
-  let wireSchema = z.array(itemDescriptor.zodSchema).refine((arr) => new Set(arr).size === arr.length, {
-    message: "Items must be unique",
-  });
+  let wireSchema = z
+    .array(itemDescriptor.zodSchema)
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Items must be unique",
+    });
   if (minSize !== undefined) {
     wireSchema = wireSchema.refine((arr) => arr.length >= minSize, {
       message: `Expected at least ${minSize} unique items`,

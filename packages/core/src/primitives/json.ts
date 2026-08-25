@@ -17,5 +17,8 @@ import type { FieldDescriptor, FieldDescriptorMeta } from "../core/field-descrip
 export function Json<T = unknown>(
   overrides: Partial<FieldDescriptorMeta<T>> = {},
 ): FieldDescriptor<T> {
-  return { zodSchema: z.record(z.string(), z.unknown()) as unknown as z.ZodType<T>, meta: overrides };
+  return {
+    zodSchema: z.record(z.string(), z.unknown()) as unknown as z.ZodType<T>,
+    meta: overrides,
+  };
 }

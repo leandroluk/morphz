@@ -18,7 +18,9 @@ export function Url(overrides: UrlOptions = {}): FieldDescriptor<string> {
   // `/^https$/` does) -- strip any trailing `:` callers pass (INSIGHT.md's
   // own example uses `["http:", "https:"]`) before building the pattern.
   const protocol = protocols
-    ? new RegExp(`^(${protocols.map((p) => p.replace(/:$/, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`)
+    ? new RegExp(
+        `^(${protocols.map((p) => p.replace(/:$/, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`,
+      )
     : undefined;
 
   return { zodSchema: z.url({ protocol }), meta };
