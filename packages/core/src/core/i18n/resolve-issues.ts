@@ -28,15 +28,29 @@ export function resolveIssueMessages(
   return zodError.issues.map((issue) => {
     const resolved = descendPath(rootStruct, issue.path);
     if (!resolved || resolved.consumed !== issue.path.length) {
-      logI18n("no field descriptor for issue at path %o, code=%s — raw message kept", issue.path, issue.code);
+      logI18n(
+        "no field descriptor for issue at path %o, code=%s — raw message kept",
+        issue.path,
+        issue.code,
+      );
       return { path: issue.path, code: issue.code, message: issue.message };
     }
 
     const override = lookupMessage(resolved.descriptor, issue, locale, fallbackLocale);
     if (override) {
-      logI18n("applied message override for path %o, code=%s, locale=%s", issue.path, issue.code, locale);
+      logI18n(
+        "applied message override for path %o, code=%s, locale=%s",
+        issue.path,
+        issue.code,
+        locale,
+      );
     } else {
-      logI18n("no message override found for path %o, code=%s, locale=%s", issue.path, issue.code, locale);
+      logI18n(
+        "no message override found for path %o, code=%s, locale=%s",
+        issue.path,
+        issue.code,
+        locale,
+      );
     }
     return {
       path: issue.path,

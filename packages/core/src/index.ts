@@ -21,6 +21,18 @@ export { List } from "./primitives/list.js";
 export { DateTime } from "./primitives/date-time.js";
 export { Timestamp } from "./primitives/timestamp.js";
 
+export { Boolean } from "./primitives/boolean.js";
+export { BigInt } from "./primitives/bigint.js";
+export { Decimal } from "./primitives/decimal.js";
+export { DateOnly } from "./primitives/date-only.js";
+export { TimeOnly } from "./primitives/time-only.js";
+export { Duration } from "./primitives/duration.js";
+export { Ulid } from "./primitives/ulid.js";
+export { Nanoid } from "./primitives/nanoid.js";
+export { Cuid2 } from "./primitives/cuid2.js";
+export { PlainDate } from "./core/plain-date.js";
+export { PlainTime } from "./core/plain-time.js";
+
 export { Struct } from "./core/struct.js";
 export { Embed } from "./core/embed.js";
 export { STRUCT_META } from "./core/struct-meta.js";

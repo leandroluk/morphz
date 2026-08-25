@@ -9,6 +9,7 @@ when `DEBUG` unset (both a manual smoke test against the real built
 package and automated tests with the namespace enabled/disabled).
 
 ## T-001: Namespace loggers module
+
 - **REQ**: REQ-001, REQ-002
 - **What**: `src/core/debug.ts` — exports 5 module-level `debug()` instances
   (`morphz:struct`, `morphz:parse`, `morphz:codec`, `morphz:i18n`,
@@ -18,6 +19,7 @@ package and automated tests with the namespace enabled/disabled).
 - **Gate**: `npx tsc --noEmit`
 
 ## T-002: Wire log calls into existing modules
+
 - **REQ**: REQ-002, REQ-003, REQ-004
 - **What**: add `log(...)` calls at meaningful points: `struct.ts`
   (`morphz:struct` — Struct compiled; `morphz:lifecycle` — pre/post hook

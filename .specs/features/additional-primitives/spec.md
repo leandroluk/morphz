@@ -1,5 +1,18 @@
 # Spec: Additional Primitives (§15)
 
+**Status: Pass 1 DONE (2026-08-25).** T-001..T-003 (9 primitives:
+Boolean, BigInt, Decimal, DateOnly, TimeOnly, Duration, Ulid, Nanoid,
+Cuid2) implemented + tested (177/177 cumulative pass). 2 real bugs found
+and fixed during implementation: `z.codec`'s `decode` does NOT catch
+exceptions thrown inside it (verified empirically — even `safeParse`
+propagates an uncaught raw error) — `BigInt`'s native `BigInt(str)` throws
+a raw `SyntaxError` on malformed input, caught and converted to a proper
+Zod issue instead. `PlainDate.addMonths` originally re-stamped the
+original day onto the target month without validating overflow (e.g. "Jan
+31" + 1 month produced an invalid "Feb 31") — fixed to use `Date.UTC`'s
+own day-overflow rollover, same mechanism `addDays` already used.
+Pass 2 (Url, Json, Record, Binary, Tuple, SetOf) still pending.
+
 ## Summary
 
 Per `INSIGHT.md` §15: 15 new core primitives across 5 groups, all following

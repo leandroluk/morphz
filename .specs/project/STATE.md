@@ -149,6 +149,19 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `additional-primitives` Pass 1 (v3 batch) complete: Boolean,
+  BigInt, Decimal, DateOnly/TimeOnly (+ `PlainDate`/`PlainTime` wrapper
+  classes), Duration, Ulid, Nanoid, Cuid2. New deps: `decimal.js`, `ulid`,
+  `@paralleldrive/cuid2`, `nanoid`, `ms`. 2 real bugs found+fixed: `z.codec`
+  decode doesn't catch thrown exceptions (verified empirically — breaks
+  `safeParse`'s never-throws contract) — `BigInt`'s native `BigInt(str)`
+  now caught and converted to a proper issue. `PlainDate.addMonths`
+  produced invalid dates on day-overflow (e.g. "Feb 31") — fixed via
+  `Date.UTC`'s own rollover, matching `addDays`. `Boolean` deliberately
+  does NOT use `z.coerce.boolean()` (that's raw JS truthiness — `"false"`
+  would coerce to `true`) — hand-rolled string-value mapping instead.
+  Gate: 177/177 pass (cumulative), `tsc`/`lint` clean. Pass 2 (Url, Json,
+  Record, Binary, Tuple, SetOf) still pending.
 - [2026-08-25] `debug-observability` (v3 batch) complete. `debug.ts` (5
   loggers: `logStruct`/`logParse`/`logCodec`/`logI18n`/`logLifecycle`)
   wired into `struct.ts`, `template.ts`, `resolve-locale.ts`,
