@@ -76,6 +76,34 @@ export interface BuildStructClassParams {
    * deliberately does NOT hold for that branch.
    */
   extendsClass?: StructConstructor;
+  pendingEntityNameDerivation?: boolean;
+  templateDelimiter?: string;
+}
+
+/**
+ * Resolves the pending auto-derived `entityName` (config-gaps), once, on
+ * first construction — `className` is only reliably known by now (`class X
+ * extends Struct(...) {}` binds `X.name` synchronously before any `new
+ * X()`/`X.parse()` could ever run). No-op if not pending. Mutates `meta` in
+ * place — every other reader of `STRUCT_META` (i18n, toJSON, FieldOf,
+ * Union, ...) reads it live, so the patch propagates for free.
+ */
+function resolveEntityNameIfPending(meta: StructMeta, className: string): void {
+  if (!meta.pendingEntityNameDerivation) return;
+  const deriver = getConfig().labels?.entityName;
+  meta.pendingEntityNameDerivation = false;
+  if (typeof deriver !== "function") return;
+
+  const entityName = deriver({ className });
+  const newLabels = { ...meta.labels, entityName };
+  const delimiter = meta.templateDelimiter ?? "#";
+  const newFields: Record<string, FieldDescriptor> = {};
+  for (const [key, descriptor] of Object.entries(meta.fields)) {
+    newFields[key] = { ...descriptor, meta: resolveFieldTemplates(descriptor.meta, newLabels, delimiter) };
+  }
+  meta.labels = newLabels;
+  meta.fields = newFields;
+  logStruct("lazily resolved entityName=%s for %s", entityName, className);
 }
 
 /**
@@ -85,7 +113,16 @@ export interface BuildStructClassParams {
  * same as `Struct()` itself (independent class, no instanceof source).
  */
 export function buildStructClass(params: BuildStructClassParams): StructConstructor {
-  const { rawObjectSchema, hooks, fields, labels, description, extendsClass } = params;
+  const {
+    rawObjectSchema,
+    hooks,
+    fields,
+    labels,
+    description,
+    extendsClass,
+    pendingEntityNameDerivation,
+    templateDelimiter,
+  } = params;
 
   let schema: z.ZodType = hooks.post
     ? rawObjectSchema.superRefine((val, ctx) => {
@@ -101,7 +138,16 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
     }, schema);
   }
 
-  const meta: StructMeta = { fields, labels, description, schema, rawObjectSchema, hooks };
+  const meta: StructMeta = {
+    fields,
+    labels,
+    description,
+    schema,
+    rawObjectSchema,
+    hooks,
+    pendingEntityNameDerivation,
+    templateDelimiter,
+  };
   logStruct(
     "compiled Struct with %d field(s), pre=%s post=%s",
     Object.keys(fields).length,
@@ -124,6 +170,7 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
   class GeneratedStruct {
     constructor(input: unknown) {
       const target = (new.target ?? GeneratedStruct) as StructConstructor;
+      resolveEntityNameIfPending(target[STRUCT_META], target.name);
       logParse("parsing input for %s", target.name);
       let data: Record<string, unknown>;
       try {
@@ -157,6 +204,7 @@ export function buildStructClass(params: BuildStructClassParams): StructConstruc
     ):
       | { success: true; data: unknown }
       | { success: false; errors: ReturnType<typeof resolveIssueMessages> } {
+      resolveEntityNameIfPending(this[STRUCT_META], this.name);
       const result = this[STRUCT_META].schema.safeParse(input);
       if (!result.success) {
         logParse("safeParse failed for %s with %d issue(s)", this.name, result.error.issues.length);
@@ -205,6 +253,8 @@ export function Struct(
   const delimiter = options.templateDelimiter ?? getConfig().template?.delimiter ?? "#";
   const { rawObjectSchema, resolvedFields } = buildRawObjectSchema(fields, labels, delimiter);
   const hooks: StructHooks = { pre: options.pre, post: options.post };
+  const entityNameDeriver = getConfig().labels?.entityName;
+  const pendingEntityNameDerivation = !labels.entityName && typeof entityNameDeriver === "function";
 
   return buildStructClass({
     rawObjectSchema,
@@ -212,6 +262,8 @@ export function Struct(
     fields: resolvedFields,
     labels,
     description: options.description,
+    pendingEntityNameDerivation,
+    templateDelimiter: delimiter,
   });
 }
 

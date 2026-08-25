@@ -41,6 +41,11 @@
       "types": "./dist/register.d.ts",
       "import": "./dist/register.js",
       "require": "./dist/register.cjs"
+    },
+    "./recipes": {
+      "types": "./dist/recipes.d.ts",
+      "import": "./dist/recipes.js",
+      "require": "./dist/recipes.cjs"
     }
   },
   "scripts": {

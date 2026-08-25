@@ -18,6 +18,17 @@ export interface StructMeta {
   /** Same pipeline, WITHOUT pre/post — bare object shape, for FieldOf/Union to read. */
   rawObjectSchema: z.ZodObject;
   hooks: StructHooks;
+  /**
+   * `true` only when `labels.entityName` was omitted AND a global
+   * `config.labels.entityName` derivation function exists (config-gaps).
+   * Resolved LAZILY on first construction (the class name isn't known at
+   * `Struct()` call time) — mutated to `false` after resolving once,
+   * memoized. Absent/`false` for the common case (explicit `entityName`),
+   * zero extra cost.
+   */
+  pendingEntityNameDerivation?: boolean;
+  /** Delimiter used for template resolution — needed to re-run it lazily. */
+  templateDelimiter?: string;
 }
 
 export interface StructClass {

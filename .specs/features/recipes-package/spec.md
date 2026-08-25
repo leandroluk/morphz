@@ -1,6 +1,16 @@
 # Spec: `morphz/recipes` (convenience `Define` presets)
 
+**Status: DONE (2026-08-25).** Implemented + tested (239/239 cumulative
+pass). All 15 recipes shipped via the `morphz/recipes` subpath
+(`tsup`-verified real build, `require()`-tested). `TimeAgo`'s
+`subtractDuration` uses a small dedicated parser (`/^(\d+)(ms|s|m|h|d|w|y)
+$/`) rather than unwrapping the full `Duration` codec — simpler for the
+`{within: '30d'}`-style short notation INSIGHT.md's example actually
+needs. Integration-tested against a real `Struct` combining
+`PrimaryKey`/`CreatedAt`/`UpdatedAt`/`DeletedAt`.
+
 ## Summary
+
 Ships `INSIGHT.md` §1's reference `Define`-based recipes as an OPTIONAL
 subpath export (`morphz/recipes`), NOT part of the main `morphz` entry
 point. Resolved with user: not required by `INSIGHT.md`'s own import block
@@ -8,6 +18,7 @@ point. Resolved with user: not required by `INSIGHT.md`'s own import block
 convenience so consumers don't have to hand-write the well-known ones.
 
 ## Requirements
+
 - REQ-001: New subpath `morphz/recipes` (own `tsup` entry, own `exports`
   map entry in `packages/core/package.json`, mirroring the existing
   `./register` subpath pattern).
@@ -33,14 +44,17 @@ convenience so consumers don't have to hand-write the well-known ones.
   transcription of INSIGHT.md's implied userland pattern.
 
 ## Affected Components
+
 New file(s) only, `packages/core/src/recipes/*.ts` or a single
 `src/recipes.ts` barrel — no existing file touched.
 
 ## Out of Scope
+
 - Any NEW recipe not explicitly in `INSIGHT.md` §1.
 - Locale/i18n `message` maps for these recipes (§1's examples don't show
   any `message` option on them — only `description`/`regex`/`refine`/
   `default`/`immutable`/`examples`).
 
 ## Open Questions
+
 None.

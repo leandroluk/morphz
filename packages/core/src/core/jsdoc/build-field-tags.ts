@@ -52,6 +52,12 @@ export function buildFieldTags(
   }
   if (meta.immutable) tags.push({ tagName: "readonly" });
   if (meta.writeOnly) tags.push({ tagName: "writeOnly" });
+  if (meta.deprecated) {
+    tags.push({
+      tagName: "deprecated",
+      text: typeof meta.deprecated === "string" ? meta.deprecated : undefined,
+    });
+  }
   tags.push(...extractFieldConstraints(descriptor.zodSchema));
 
   return {

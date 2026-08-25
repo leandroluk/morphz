@@ -59,6 +59,8 @@ function deriveVariant(
     fields: newFields,
     labels: sourceMeta.labels,
     description: sourceMeta.description,
+    pendingEntityNameDerivation: sourceMeta.pendingEntityNameDerivation,
+    templateDelimiter: sourceMeta.templateDelimiter,
   });
 }
 
@@ -81,6 +83,8 @@ function partial(this: StructConstructor): StructConstructor {
     fields: meta.fields,
     labels: meta.labels,
     description: meta.description,
+    pendingEntityNameDerivation: meta.pendingEntityNameDerivation,
+    templateDelimiter: meta.templateDelimiter,
   });
 }
 

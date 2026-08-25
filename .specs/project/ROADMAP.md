@@ -109,12 +109,12 @@ guessed). Found 5 real gaps:
    user to ship anyway as an opt-in convenience subpath, not because
    INSIGHT.md strictly requires it.
 2. **`config-gaps`** — `labels.entityName` auto-derivation (`project-
-   config` REQ-002) is typed but never wired into `struct.ts`; `deprecated`
+config` REQ-002) is typed but never wired into `struct.ts`; `deprecated`
    → `@deprecated` JSDoc tag (§10's table) never implemented. Resolved a
    real timing problem for the first one: `Struct()` resolves templates
    EAGERLY, before a `class X extends Struct(...) {}` subclass's name
    exists — fix is LAZY resolution on first construction (`new.target
-   .name` is guaranteed available by then), memoized once, only for
+.name` is guaranteed available by then), memoized once, only for
    Structs that omit `labels.entityName` explicitly (zero cost for the
    common case).
 3. **`ts-language-service-plugin`** (still pending from v2, not started —

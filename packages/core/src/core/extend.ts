@@ -21,7 +21,11 @@ function extend(
   const shape: Record<string, z.ZodType> = {};
   const resolvedNewFields: Record<string, FieldDescriptor> = {};
   for (const [key, descriptor] of Object.entries(newFields)) {
-    const resolvedMeta = resolveFieldTemplates(descriptor.meta, parentMeta.labels, "#");
+    const resolvedMeta = resolveFieldTemplates(
+      descriptor.meta,
+      parentMeta.labels,
+      parentMeta.templateDelimiter ?? "#",
+    );
     let fieldSchema = descriptor.zodSchema;
 
     // Primitives never bake `.default()` in themselves (see struct.ts's
@@ -50,6 +54,8 @@ function extend(
     fields: { ...parentMeta.fields, ...resolvedNewFields },
     labels: parentMeta.labels,
     description: parentMeta.description,
+    pendingEntityNameDerivation: parentMeta.pendingEntityNameDerivation,
+    templateDelimiter: parentMeta.templateDelimiter,
   });
 }
 

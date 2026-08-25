@@ -149,6 +149,24 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `recipes-package` + `config-gaps` (v4 batch) complete —
+  **v4 batch 100% done for items #1/#2 (the small/medium gaps).**
+  `morphz/recipes` subpath ships all 15 §1 recipes (verified real build +
+  `require()`). Lazy `entityName` auto-derivation wired into `struct.ts`,
+  memoized once per class, no cross-class leakage, works through
+  `.extend()`. `@deprecated` JSDoc tag wired. 2 real bugs found by QA
+  across DEV+QA passes: `TimeAgo` parser simplification (documented, not
+  really a bug), and a genuine one — `.extend()` ignored
+  `parentMeta.templateDelimiter` for new fields (hardcoded `'#'`), fixed.
+  Gate: 239/239 pass (cumulative), `tsc`/`lint` clean, `tsup` build
+  verified for the new subpath.
+
+  **Still open** (items #3/#4/#5 from the audit, explicitly NOT attempted):
+  `ts-language-service-plugin` (stub only), `packages/vscode` (user wants
+  a REAL Tailwind-IntelliSense-style extension, not optional — paired
+  with the plugin), and the CRITICAL FINDING (`Struct()` not generic,
+  zero consumer TS inference). All three are large, separate efforts —
+  awaiting user prioritization.
 - [2026-08-25] `property-interceptors` (v3 batch) complete — **last
   feature of the v3 batch.** `get`/`set` on `Define`, per-field-name
   `Symbol` backing slot, `assignFields()`/`readWireValue()` shared

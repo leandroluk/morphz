@@ -29,6 +29,12 @@ export interface FieldDescriptorMeta<T = unknown> {
   immutable?: boolean;
   examples?: T[];
   writeOnly?: boolean;
+  /**
+   * `true` for a bare `@deprecated` JSDoc tag, or a string for
+   * `@deprecated <reason>` (jsdoc-generation). Build-time/documentation
+   * concern only — no runtime behavior (e.g. no console warning).
+   */
+  deprecated?: boolean | string;
   message?: MessageMap;
   /** Set concretely by DateTime/Timestamp (datetime-codec) for .toJSON(). */
   encode?: (val: T) => unknown;
