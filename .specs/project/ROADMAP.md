@@ -24,6 +24,7 @@ below are derived directly from `INSIGHT.md` instead of graph-guided discovery.
    defaults, template delimiter config.
 
 ## Resolved decisions
+
 - `Timestamp` = `DateTime` + `default: () => new Date()` baked in. Same
   wire/domain codec, just a `define-metatypes` recipe over `DateTime`.
 - `immutable: true` = write-once-at-creation. Base `Struct.parse()`/`new`
@@ -52,12 +53,14 @@ below are derived directly from `INSIGHT.md` instead of graph-guided discovery.
   field, but RECURSES through `Embed`/`Ref` targets (own `STRUCT_META`,
   their own registered messages apply) — only stops at `List` items /
   `FromZodType` internals, where `morphz` genuinely has no structural
-  knowledge. *(Refined during `i18n-error-messages` design — supersedes an
-  earlier, too-broad version of this note.)*
+  knowledge. _(Refined during `i18n-error-messages` design — supersedes an
+  earlier, too-broad version of this note.)_
 
 ## Design phase — complete (2026-08-25)
+
 All 8 features have `spec.md` + `design.md`. Headline architectural
 decisions that cut across multiple features:
+
 - One uniform `FieldDescriptor` shape (Zod schema + `meta`) flows through
   every primitive, `Define`, `Struct` field, `Embed`, `Ref`, `FieldOf`.
 - `STRUCT_META` (symbol-keyed, per-class registry: `fields`,
@@ -83,6 +86,7 @@ Next phase: Tasks (breaking each feature into atomic implementable steps),
 per `.specs/project/STATE.md`'s Todos.
 
 ## Open questions carried at roadmap level (not blocking spec writing)
+
 - Package manager / monorepo tooling — not specified in INSIGHT.md.
 - Test framework — not specified in INSIGHT.md.
 - Publishing target (npm scope/name `morphz`) — assumed but not confirmed.

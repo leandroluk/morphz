@@ -1,7 +1,9 @@
 # Tasks: Custom Error Messages & i18n
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 ## T-001: `resolveLocale()`
+
 - **REQ**: REQ-003
 - **What**: `AsyncLocalStorage → getConfig().locale?.default → 'en-US'`.
 - **Where**: `src/core/i18n/resolve-locale.ts`
@@ -12,6 +14,7 @@
 - **Gate**: `npm run test -- resolve-locale`
 
 ## T-002: `lookupMessage()`
+
 - **REQ**: REQ-001, REQ-002, REQ-004
 - **What**: `(descriptor, issue, locale, fallbackLocale?) => string | undefined`.
   Handles `invalid_format`'s `format` sub-key shorthand (direct locale-map OR
@@ -25,6 +28,7 @@
 - **Gate**: `npm run test -- lookup-message`
 
 ## T-003: `descendPath()` / `resolveIssueMessages()`
+
 - **REQ**: REQ-004, REQ-005, REQ-006 (+ the Embed/Ref recursion refinement)
 - **What**: walks `zodError.issues`; per issue, descends `STRUCT_META.fields`
   one path segment at a time, following `targetStruct` into `Embed`/`Ref`

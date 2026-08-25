@@ -1,6 +1,7 @@
 # Design: Custom Error Messages & i18n
 
 ## Architecture Overview
+
 One function, `resolveIssueMessages(zodError, rootStructClass, locale)`,
 called by `lifecycle-serialization`'s `.parse()`/`.safeParse()` right after
 Zod validation fails, before the error/result is returned to the caller. It
@@ -24,6 +25,7 @@ descriptor.meta.message['invalid_format']['regex']?.[locale]
 ```
 
 ## Correction to earlier "Resolved" note in spec.md
+
 The session's earlier resolution said "`List`, `Embed`, `FromZodType`
 composite all behave identically [...] fall back to Zod's raw message." That
 was **too broad** — worked through more carefully during design, it
@@ -51,33 +53,35 @@ rule, no per-field-type special-casing" — the rule is just "recurse while
 introspectable," not "never recurse."
 
 ## Required addition to `struct-entities`/`entity-relationships` designs
+
 For the recursion above to work, `Embed()` and `Ref()`'s `FieldDescriptor`
 must expose WHICH target `Struct` class they point at, not just the target's
 `.zodSchema`:
 
 ```ts
 interface FieldDescriptor<T> {
-  zodSchema: z.ZodType<T>
-  meta: { /* ...existing... */ }
-  targetStruct?: () => StructClass   // set by Embed()/Ref() only;
-                                      // thunk form covers Ref's lazy case,
-                                      // Embed can wrap a same-shape thunk
-                                      // trivially (`() => TargetStructClass`)
+  zodSchema: z.ZodType<T>;
+  meta: {/* ...existing... */};
+  targetStruct?: () => StructClass; // set by Embed()/Ref() only;
+  // thunk form covers Ref's lazy case,
+  // Embed can wrap a same-shape thunk
+  // trivially (`() => TargetStructClass`)
 }
 ```
+
 This is a small, additive change to `struct-entities/design.md`'s `Embed()`
 section and `entity-relationships/design.md`'s `Ref()` section — flagged
 here rather than silently redesigning those (both already-completed)
 designs; apply as a follow-up edit to both files.
 
 ## Locale resolution
+
 ```ts
 function resolveLocale(): string {
-  return asyncLocalStorageContext.getStore()?.locale
-      ?? loadedConfig?.locale?.default
-      ?? 'en-US'  // hard fallback when zero-config AND no request context
+  return asyncLocalStorageContext.getStore()?.locale ?? loadedConfig?.locale?.default ?? "en-US"; // hard fallback when zero-config AND no request context
 }
 ```
+
 Order: request-scoped `AsyncLocalStorage` (highest precedence, per-call) →
 `morphz.config.ts`'s `locale.default` (project-wide) → hard-coded `'en-US'`
 (zero-config safety net — resolves `project-config/spec.md`'s open question
@@ -87,24 +91,31 @@ PREFERRED locale; `fallback` is consulted when that locale's specific key is
 missing from a given `message` map.
 
 ## Message lookup for one issue
+
 ```ts
-function lookupMessage(descriptor: FieldDescriptor, issue: ZodIssue, locale: string, fallbackLocale?: string): string | undefined {
-  const codeEntry = descriptor.meta.message?.[issue.code]
-  if (!codeEntry) return undefined
+function lookupMessage(
+  descriptor: FieldDescriptor,
+  issue: ZodIssue,
+  locale: string,
+  fallbackLocale?: string,
+): string | undefined {
+  const codeEntry = descriptor.meta.message?.[issue.code];
+  if (!codeEntry) return undefined;
 
   // invalid_format issues carry a `format` sub-discriminator (see
   // define-metatypes correction) — codeEntry may itself be a locale map
   // (shorthand, single-format field) OR nested one level under `issue.format`
   const localeMap =
-    typeof codeEntry === 'object' && issue.format && issue.format in codeEntry
+    typeof codeEntry === "object" && issue.format && issue.format in codeEntry
       ? codeEntry[issue.format]
-      : codeEntry
+      : codeEntry;
 
-  if (typeof localeMap === 'string') return localeMap  // fixed, locale-independent
-  return localeMap[locale] ?? (fallbackLocale ? localeMap[fallbackLocale] : undefined)
+  if (typeof localeMap === "string") return localeMap; // fixed, locale-independent
+  return localeMap[locale] ?? (fallbackLocale ? localeMap[fallbackLocale] : undefined);
   // undefined here → caller leaves Zod's raw message untouched (REQ-004, never throws)
 }
 ```
+
 Resolves the fallback open question from spec.md: if neither `locale` nor
 `fallback` has an entry, the function returns `undefined` — the CALLER
 (`resolveIssueMessages`) treats that identically to "no override registered
@@ -112,14 +123,16 @@ at all," falling through to Zod's raw message. No config error is ever
 thrown — consistent with REQ-004's "never throws" guarantee.
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
-| `resolveIssueMessages()` | Top-level entry point, walks `zodError.issues`, called by `lifecycle-serialization` | `src/core/i18n/resolve-issues.ts` |
-| `descendPath()` | Recurses through `STRUCT_META.fields` via `targetStruct`, stops at introspectability boundary | `src/core/i18n/descend-path.ts` |
-| `lookupMessage()` | `(descriptor, issue, locale) → string \| undefined`, handles `invalid_format`'s `format` sub-key | `src/core/i18n/lookup-message.ts` |
-| `resolveLocale()` | `AsyncLocalStorage → config.locale.default → 'en-US'` | `src/core/i18n/resolve-locale.ts` |
+
+| Component                | Responsibility                                                                                   | Location                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------ | --------------------------------- |
+| `resolveIssueMessages()` | Top-level entry point, walks `zodError.issues`, called by `lifecycle-serialization`              | `src/core/i18n/resolve-issues.ts` |
+| `descendPath()`          | Recurses through `STRUCT_META.fields` via `targetStruct`, stops at introspectability boundary    | `src/core/i18n/descend-path.ts`   |
+| `lookupMessage()`        | `(descriptor, issue, locale) → string \| undefined`, handles `invalid_format`'s `format` sub-key | `src/core/i18n/lookup-message.ts` |
+| `resolveLocale()`        | `AsyncLocalStorage → config.locale.default → 'en-US'`                                            | `src/core/i18n/resolve-locale.ts` |
 
 ## Dependency Paths
+
 - `resolveIssueMessages` → `STRUCT_META.fields` (`struct-entities`) →
   `targetStruct` (new field, `struct-entities`/`entity-relationships`
   addition above).
@@ -130,6 +143,7 @@ thrown — consistent with REQ-004's "never throws" guarantee.
   this feature only defines the pure function, not where it's called from.
 
 ## Risks
+
 - `descendPath`'s recursion depth is bounded by the entity graph's actual
   nesting (typically 1-3 levels for `Embed`d value objects) — no risk of
   runaway recursion since `Ref`'s lazy thunks still resolve to a FINITE
@@ -141,6 +155,7 @@ thrown — consistent with REQ-004's "never throws" guarantee.
   follow-up edit before Execute phase treats them as final.
 
 ## Decision Log
+
 - Corrected the session's earlier over-broad "List/Embed/FromZodType all
   behave identically" resolution — recursion boundary is "introspectable
   morphz Struct" vs. "opaque to morphz," not "nested at all vs. not."

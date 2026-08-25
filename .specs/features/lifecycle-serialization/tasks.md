@@ -1,10 +1,12 @@
 # Tasks: Lifecycle — Parsing, Instantiation, Serialization
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 ## T-001: `ValidationError`
+
 - **REQ**: (lifecycle-serialization design)
 - **What**: `extends Error`, `.issues` = `resolveIssueMessages(zodError,
-  structClass, resolveLocale())` output.
+structClass, resolveLocale())` output.
 - **Where**: `src/core/validation-error.ts`
 - **Depends on**: `i18n-error-messages` (`resolveIssueMessages`, `resolveLocale`)
 - **Done when**: thrown from a failing `.parse()`, `.issues` messages are
@@ -12,6 +14,7 @@
 - **Gate**: `npm run test -- validation-error`
 
 ## T-002: constructor + `static parse`/`safeParse`
+
 - **REQ**: REQ-001, REQ-002, REQ-003
 - **What**: constructor uses `new.target[STRUCT_META].schema.parse(input)`
   → `ValidationError` on throw, else `Object.assign(this, data)`.
@@ -24,11 +27,12 @@
 - **Depends on**: T-001, `struct-entities` (`STRUCT_META`, base class)
 - **Done when**: `X.parse(valid)` returns `instanceof X`; `X.parse(invalid)`
   throws `ValidationError`; `X.safeParse(invalid)` returns `{success:false,
-  errors}` without throwing; `new X(input)` behaves identically to
+errors}` without throwing; `new X(input)` behaves identically to
   `.parse()`.
 - **Gate**: `npm run test -- lifecycle`
 
 ## T-003: `.toJSON()`
+
 - **REQ**: REQ-005
 - **What**: skips `meta.writeOnly` fields; recurses into `Embed`/`Ref`
   instances (`descriptor.targetStruct` set) via their own `.toJSON()`;

@@ -1,7 +1,9 @@
 # Tasks: Class Extensibility (`.extend()`, `.omit()`, `.pick()`, `.partial()`)
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 ## T-001: `stripImmutable()`
+
 - **REQ**: REQ-006
 - **What**: patches every `meta.immutable` field still present in a raw
   object schema's shape to `z.undefined().optional()`.
@@ -13,6 +15,7 @@
 - **Gate**: `npm run test -- strip-immutable`
 
 ## T-002: `.omit()` / `.pick()` / `.partial()`
+
 - **REQ**: REQ-003, REQ-004, REQ-005
 - **What**: native Zod `.omit()`/`.pick()`/`.partial()` on
   `rawObjectSchema`, variadic-or-single-array argument normalization,
@@ -27,13 +30,14 @@
 - **Gate**: `npm run test -- derive-variant`
 
 ## T-003: `.extend()`
+
 - **REQ**: REQ-001, REQ-002
 - **What**: `rawObjectSchema.extend(newShape)` (native Zod), rebuilt via
   `buildStructClass({ extendsClass: this, ... })` — real `class extends`.
 - **Where**: `src/core/extend.ts`
 - **Depends on**: `struct-entities` (`buildStructClass`)
 - **Done when**: `class AdminUser extends User.extend({department: Text()})
-  {}` — `admin instanceof AdminUser` AND `admin instanceof User` both true;
+{}` — `admin instanceof AdminUser` AND `admin instanceof User` both true;
   redeclaring an existing field name silently overrides it.
 - **Gate**: `npm run test -- extend`
 

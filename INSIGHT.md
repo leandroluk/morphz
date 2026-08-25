@@ -24,8 +24,8 @@ import {
   Union,
   Literal,
   Version,
-  FromZodType
-} from 'morphz'
+  FromZodType,
+} from "morphz";
 ```
 
 `Ref` e `FieldOf` têm papéis distintos e não são intercambiáveis:
@@ -43,50 +43,50 @@ import {
 
 ## 1. Criação de Meta-Tipos Customizados (`Define`) com Templates
 
-Meta-tipos permitem criar especializações reutilizáveis com *smart defaults* e templates de texto interpolados a partir do contexto da entidade (`#entityName`, `#module`, etc.):
+Meta-tipos permitem criar especializações reutilizáveis com _smart defaults_ e templates de texto interpolados a partir do contexto da entidade (`#entityName`, `#module`, etc.):
 
 ```ts
 // Chave primária com gerador de UUID e template dinâmico
 // immutable: true fica aqui — é característica da PK, não escolha de cada entidade
 export const PrimaryKey = Define(Uuid, {
-  description: 'Identificador único de #entityName',
+  description: "Identificador único de #entityName",
   default: () => crypto.randomUUID(),
-  immutable: true
-})
+  immutable: true,
+});
 
 // Timestamps padronizados
 // createdAt também é sempre imutável — nasce com o registro, nunca muda depois
 export const CreatedAt = Define(Timestamp, {
-  description: 'Data de criação do registro de #entityName',
+  description: "Data de criação do registro de #entityName",
   default: () => new Date(),
-  immutable: true
-})
+  immutable: true,
+});
 
 export const UpdatedAt = Define(Timestamp, {
-  description: 'Data da última atualização do registro de #entityName'
-})
+  description: "Data da última atualização do registro de #entityName",
+});
 
 export const DeletedAt = Define(Nullable(DateTime), {
-  description: 'Data de exclusão lógica de #entityName',
-  default: null
-})
+  description: "Data de exclusão lógica de #entityName",
+  default: null,
+});
 
 // Tipos de Domínio com Regras e Metadados Semânticos
 export const Cep = Define(Text, {
-  description: 'Código postal (CEP) formatado',
+  description: "Código postal (CEP) formatado",
   regex: /^\d{5}-\d{3}$/,
-  examples: ['01001-000']
-})
+  examples: ["01001-000"],
+});
 
 export const Slug = Define(Text, {
-  description: 'Identificador textual amigável (slug) de #entityName',
-  regex: /^[a-z0-9-]+$/
-})
+  description: "Identificador textual amigável (slug) de #entityName",
+  regex: /^[a-z0-9-]+$/,
+});
 
 // Ip é primitivo core (mesma categoria de Text/Email/Uuid) — Define especializa em cima
-export const PublicIp = Define(Ip({ version: 'v4' }), {
-  description: 'Endereço IPv4 público de origem da requisição'
-})
+export const PublicIp = Define(Ip({ version: "v4" }), {
+  description: "Endereço IPv4 público de origem da requisição",
+});
 
 // Restrições temporais NÃO são primitivo core — são `Define(DateTime, { refine })`,
 // igual Cep/Slug são Define(Text, ...). `refine` é o escape hatch pra validação
@@ -96,31 +96,31 @@ export const PublicIp = Define(Ip({ version: 'v4' }), {
 // enxerga o valor do próprio campo, não o objeto inteiro.
 
 export const TimeAgo = Define(DateTime, {
-  description: 'Data no passado, opcionalmente dentro de uma janela',
-  refine: (val: Date, opts?: {within?: string}) => {
-    if (val > new Date()) return 'Não pode ser no futuro'
+  description: "Data no passado, opcionalmente dentro de uma janela",
+  refine: (val: Date, opts?: { within?: string }) => {
+    if (val > new Date()) return "Não pode ser no futuro";
     if (opts?.within && val < subtractDuration(new Date(), opts.within)) {
-      return `Não pode ser mais antigo que ${opts.within}`
+      return `Não pode ser mais antigo que ${opts.within}`;
     }
-    return true
-  }
-})
+    return true;
+  },
+});
 
 export const TimeBefore = Define(DateTime, {
-  description: 'Data anterior a uma referência (default: agora)',
-  refine: (val: Date, opts?: {ref?: Date | (() => Date)}) => {
-    const ref = typeof opts?.ref === 'function' ? opts.ref() : (opts?.ref ?? new Date())
-    return val < ref || `Precisa ser antes de ${ref.toISOString()}`
-  }
-})
+  description: "Data anterior a uma referência (default: agora)",
+  refine: (val: Date, opts?: { ref?: Date | (() => Date) }) => {
+    const ref = typeof opts?.ref === "function" ? opts.ref() : (opts?.ref ?? new Date());
+    return val < ref || `Precisa ser antes de ${ref.toISOString()}`;
+  },
+});
 
 export const TimeAfter = Define(DateTime, {
-  description: 'Data posterior a uma referência (default: agora)',
-  refine: (val: Date, opts?: {ref?: Date | (() => Date)}) => {
-    const ref = typeof opts?.ref === 'function' ? opts.ref() : (opts?.ref ?? new Date())
-    return val > ref || `Precisa ser depois de ${ref.toISOString()}`
-  }
-})
+  description: "Data posterior a uma referência (default: agora)",
+  refine: (val: Date, opts?: { ref?: Date | (() => Date) }) => {
+    const ref = typeof opts?.ref === "function" ? opts.ref() : (opts?.ref ?? new Date());
+    return val > ref || `Precisa ser depois de ${ref.toISOString()}`;
+  },
+});
 
 // Uso:
 // tokenIssuedAt: TimeAgo({ within: '30d' })   -- OTP/sessão, não pode ter mais de 30 dias
@@ -129,58 +129,60 @@ export const TimeAfter = Define(DateTime, {
 
 // Versionamento otimista do registro (concorrência), não confundir com
 // versionamento de schema/migração — isso fica fora do escopo da lib.
-export const RowVersion = Define(Version({ type: 'incr' }), {
-  description: 'Versão otimista do registro de #entityName'
-})
+export const RowVersion = Define(Version({ type: "incr" }), {
+  description: "Versão otimista do registro de #entityName",
+});
 
 // Mais receitas — todas iguais em espírito a Cep/Slug: pegam um primitivo core
 // (Text, Number...) e travam regex/refine/description uma vez, reusam em todo lugar.
 
 export const Mac = Define(Text, {
-  description: 'Endereço MAC de interface de rede',
+  description: "Endereço MAC de interface de rede",
   regex: /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/,
-  examples: ['00:1B:44:11:3A:B7']
-})
+  examples: ["00:1B:44:11:3A:B7"],
+});
 
 export const Domain = Define(Text, {
-  description: 'Nome de domínio (sem protocolo)',
+  description: "Nome de domínio (sem protocolo)",
   regex: /^([a-z0-9-]+\.)+[a-z]{2,}$/,
-  examples: ['metha.dev']
-})
+  examples: ["metha.dev"],
+});
 
 export const Url = Define(Text, {
-  description: 'URL completa',
-  refine: (val: string, opts?: {protocols?: string[]}) => {
+  description: "URL completa",
+  refine: (val: string, opts?: { protocols?: string[] }) => {
     try {
-      const url = new URL(val)
-      const protocols = opts?.protocols ?? ['http:', 'https:']
-      return protocols.includes(url.protocol) || `Protocolo precisa ser um de: ${protocols.join(', ')}`
+      const url = new URL(val);
+      const protocols = opts?.protocols ?? ["http:", "https:"];
+      return (
+        protocols.includes(url.protocol) || `Protocolo precisa ser um de: ${protocols.join(", ")}`
+      );
     } catch {
-      return 'URL inválida'
+      return "URL inválida";
     }
-  }
-})
+  },
+});
 
 export const Phone = Define(Text, {
-  description: 'Telefone em formato E.164',
+  description: "Telefone em formato E.164",
   regex: /^\+[1-9]\d{7,14}$/,
-  examples: ['+5511999999999']
-})
+  examples: ["+5511999999999"],
+});
 
 // Money guarda o valor como inteiro (menor unidade — centavos), evitando erro de
 // ponto flutuante. `currency` fica fixo por Define especializado, não por campo.
 export const Brl = Define(Number({ int: true, min: 0 }), {
-  description: 'Valor monetário em centavos (BRL)',
-  examples: [15000] // R$ 150,00
-})
+  description: "Valor monetário em centavos (BRL)",
+  examples: [15000], // R$ 150,00
+});
 
 // Formato de identificador alternativo a Uuid — mesma receita, base Text
 // (não vira primitivo core novo, só mais um Define em cima de Text, como Cep/Slug)
 export const ShortId = Define(Text, {
-  description: 'Identificador curto, não-sequencial, seguro pra URL',
+  description: "Identificador curto, não-sequencial, seguro pra URL",
   regex: /^[A-Za-z0-9_-]{21}$/,
-  default: () => nanoid()
-})
+  default: () => nanoid(),
+});
 ```
 
 ---
@@ -188,17 +190,20 @@ export const ShortId = Define(Text, {
 ## 2. Embedded / Value Objects
 
 ```ts
-export class Address extends Struct({
-  street: Text({ description: 'Logradouro', min: 3 }),
-  number: Text({ description: 'Número' }),
-  city: Text({ description: 'Cidade' }),
-  zipCode: Cep() // Reutiliza o meta-tipo Cep
-}, {
-  labels: { entityName: 'Endereço' },
-  description: 'Objeto de valor representando endereço físico'
-}) {
+export class Address extends Struct(
+  {
+    street: Text({ description: "Logradouro", min: 3 }),
+    number: Text({ description: "Número" }),
+    city: Text({ description: "Cidade" }),
+    zipCode: Cep(), // Reutiliza o meta-tipo Cep
+  },
+  {
+    labels: { entityName: "Endereço" },
+    description: "Objeto de valor representando endereço físico",
+  },
+) {
   get fullAddress(): string {
-    return `${this.street}, ${this.number} - ${this.city} (${this.zipCode})`
+    return `${this.street}, ${this.number} - ${this.city} (${this.zipCode})`;
   }
 }
 ```
@@ -211,32 +216,32 @@ Ao declarar `labels` no segundo argumento de `Struct`, os valores são propagado
 
 ```ts
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  USER = 'USER'
+  ADMIN = "ADMIN",
+  USER = "USER",
 }
 
 export class User extends Struct(
   {
-    id: PrimaryKey(), 
+    id: PrimaryKey(),
     // -> description gerada: "Identificador único de Usuário"
     // immutable já vem do Define — DTOs de update que incluírem esse campo
     // falham a validação, sem precisar de `.omit()` manual em cada entidade
 
-    createdAt: CreatedAt(), 
+    createdAt: CreatedAt(),
     // -> description gerada: "Data de criação do registro de Usuário"
 
-    updatedAt: UpdatedAt(), 
+    updatedAt: UpdatedAt(),
     // -> description gerada: "Data da última atualização do registro de Usuário"
 
-    deletedAt: DeletedAt(), 
+    deletedAt: DeletedAt(),
     // -> description gerada: "Data de exclusão lógica de Usuário"
 
-    name: Text({ min: 2, max: 50, description: 'Nome completo' }),
-    username: Slug(), 
+    name: Text({ min: 2, max: 50, description: "Nome completo" }),
+    username: Slug(),
     // -> description gerada: "Identificador textual amigável (slug) de Usuário"
 
-    email: Email({ description: 'Email corporativo' }),
-    password: Password({ description: 'Hash da senha', writeOnly: true }),
+    email: Email({ description: "Email corporativo" }),
+    password: Password({ description: "Hash da senha", writeOnly: true }),
     role: Enum(UserRole, { default: UserRole.USER }),
 
     // Value Object aninhado
@@ -246,33 +251,37 @@ export class User extends Struct(
     tags: List(Text(), { default: () => [] }),
 
     // Relacionamento 1:N com Lazy Evaluation
-    posts: Optional(List(Ref(() => Post)))
+    posts: Optional(List(Ref(() => Post))),
   },
   {
     // Propaga contexto para os templates filhos (#entityName, #module, etc.)
     labels: {
-      entityName: 'Usuário',
-      module: 'Gestão de Contas'
+      entityName: "Usuário",
+      module: "Gestão de Contas",
     },
-    description: 'Entidade de representação de contas de usuários no sistema',
+    description: "Entidade de representação de contas de usuários no sistema",
 
     // Hooks equivalentes a z.preprocess / z.superRefine — cross-field validation
     // e normalização entram aqui, não como campo declarado
     pre: (val) => ({ ...val, username: val.username?.toLowerCase() }),
     post: (val, ctx) => {
-      if (val.role === UserRole.ADMIN && !val.email.endsWith('@empresa.com')) {
-        ctx.addIssue({ code: 'custom', path: ['email'], message: 'Admin precisa de e-mail corporativo' })
+      if (val.role === UserRole.ADMIN && !val.email.endsWith("@empresa.com")) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["email"],
+          message: "Admin precisa de e-mail corporativo",
+        });
       }
-    }
-  }
+    },
+  },
 ) {
   // Métodos de domínio têm acesso tipado a `this.*`
   isAdmin(): boolean {
-    return this.role === UserRole.ADMIN
+    return this.role === UserRole.ADMIN;
   }
 
   isDeleted(): boolean {
-    return this.deletedAt !== null
+    return this.deletedAt !== null;
   }
 }
 ```
@@ -284,40 +293,38 @@ export class User extends Struct(
 ```ts
 export class Post extends Struct(
   {
-    id: PrimaryKey(), 
+    id: PrimaryKey(),
     // -> description gerada: "Identificador único de Publicação"
 
-    createdAt: CreatedAt(), 
+    createdAt: CreatedAt(),
     // -> description gerada: "Data de criação do registro de Publicação"
 
-    updatedAt: UpdatedAt(), 
+    updatedAt: UpdatedAt(),
     // -> description gerada: "Data da última atualização do registro de Publicação"
 
-    deletedAt: DeletedAt(), 
+    deletedAt: DeletedAt(),
     // -> description gerada: "Data de exclusão lógica de Publicação"
 
     // FK escalar — reaproveita o tipo do campo `id` de User, sem carregar a entidade
-    userId: FieldOf(User, 'id', {
-      description: 'Chave estrangeira apontando para o autor da Publicação'
+    userId: FieldOf(User, "id", {
+      description: "Chave estrangeira apontando para o autor da Publicação",
     }),
 
-    title: Text({ min: 5, max: 120, description: 'Título da publicação' }),
-    body: Text({ description: 'Conteúdo em markdown' }),
-    
-    status: Union([
-      Literal('DRAFT'),
-      Literal('PUBLISHED'),
-      Literal('ARCHIVED')
-    ], { default: 'DRAFT' })
+    title: Text({ min: 5, max: 120, description: "Título da publicação" }),
+    body: Text({ description: "Conteúdo em markdown" }),
+
+    status: Union([Literal("DRAFT"), Literal("PUBLISHED"), Literal("ARCHIVED")], {
+      default: "DRAFT",
+    }),
   },
   {
     labels: {
-      entityName: 'Publicação',
-      module: 'Conteúdo'
+      entityName: "Publicação",
+      module: "Conteúdo",
     },
-    description: 'Postagens criadas no blog'
-  }
-) { }
+    description: "Postagens criadas no blog",
+  },
+) {}
 ```
 
 ---
@@ -330,13 +337,13 @@ A base é o error tree do Zod (`error.issues`: `path`, `code`, `message`). Em ci
 export const Email = Define(Text, {
   regex: /^[^@]+@[^@]+\.[^@]+$/,
   message: {
-    invalid_type: { 'pt-BR': 'Precisa ser texto', 'en-US': 'Must be text' },
-    regex: { 'pt-BR': 'E-mail inválido', 'en-US': 'Invalid email' }
-  }
-})
+    invalid_type: { "pt-BR": "Precisa ser texto", "en-US": "Must be text" },
+    regex: { "pt-BR": "E-mail inválido", "en-US": "Invalid email" },
+  },
+});
 
 // Também dá pra sobrescrever pontualmente, na declaração do campo:
-email: Email({ message: { regex: { 'pt-BR': 'Formato de e-mail incorreto' } } })
+email: Email({ message: { regex: { "pt-BR": "Formato de e-mail incorreto" } } });
 ```
 
 Locale ativo vem de `morphz.config.ts` (`defineConfig({ locale: { default: 'pt-BR', fallback: 'en-US' } })`) ou de um `AsyncLocalStorage`/contexto por request, pra não precisar passar locale em toda chamada de `.parse()`.
@@ -347,11 +354,11 @@ Isso significa que **`FromZodType` (wrapper de schema Zod arbitrário) funciona 
 
 ```ts
 export const Coordinates = Define(FromZodType(z.tuple([z.number(), z.number()])), {
-  description: 'Par [latitude, longitude]',
+  description: "Par [latitude, longitude]",
   message: {
-    invalid_type: 'Precisa ser uma tupla de duas coordenadas'
-  }
-})
+    invalid_type: "Precisa ser uma tupla de duas coordenadas",
+  },
+});
 ```
 
 **Limite real:** o override só é confiável no `path` raiz do campo (`['coordinates']`). Se o schema embrulhado é composto — `z.object()`/`z.tuple()`/`z.array()` aninhado — os issues internos vêm com `path` mais fundo (`['coordinates', 0]`) e o `message` do `Define` (pensado pra campo escalar) não tem entrada pra esse nível. Cai no fallback automático: mensagem crua do Zod pro erro interno. Não é bug, é o comportamento esperado — `message` cobre o campo como unidade, não a árvore inteira de um `FromZodType` complexo. Quem precisa de mensagem custom nos níveis internos aplica `.meta()`/mensagens direto no schema Zod original, antes de embrulhar.
@@ -367,13 +374,13 @@ O fix de raiz não é "converter depois" (override/tree-walk), é **`DateTime`/`
 ```ts
 // Implementação de referência do primitivo — não API pública, mostra a ideia:
 const DateTime = z.codec(
-  z.iso.datetime(),   // wire: string ISO 8601 — 100% representável em JSON Schema
-  z.date(),           // domínio: Date real — TimeAgo/TimeBefore continuam comparando com `new Date()`
+  z.iso.datetime(), // wire: string ISO 8601 — 100% representável em JSON Schema
+  z.date(), // domínio: Date real — TimeAgo/TimeBefore continuam comparando com `new Date()`
   {
-    decode: (s) => new Date(s),   // parse: string (JSON/HTTP) -> Date (instância em memória)
-    encode: (d) => d.toISOString() // serialize: Date -> string (resposta HTTP/JSON Schema)
-  }
-)
+    decode: (s) => new Date(s), // parse: string (JSON/HTTP) -> Date (instância em memória)
+    encode: (d) => d.toISOString(), // serialize: Date -> string (resposta HTTP/JSON Schema)
+  },
+);
 ```
 
 Consequência: `z.toJSONSchema()` nunca vê `z.date()` — só vê o lado `in` do codec (`z.iso.datetime()`, uma string), então gera `{type: 'string', format: 'date-time'}` sozinho, sem override nenhum, porque o schema já nasceu representável.
@@ -396,29 +403,29 @@ Diferente do Zod que gera apenas dicionários/objetos planos anônimos, cada ope
 ```ts
 // A. Parsing Direto / Instanciação (lança ValidationError se inválido):
 const user = User.parse({
-  name: 'John Doe',
-  username: 'johndoe',
-  email: 'john@example.com',
-  password: 'secret_hash_value'
-})
+  name: "John Doe",
+  username: "johndoe",
+  email: "john@example.com",
+  password: "secret_hash_value",
+});
 // Ou via construtor: const user = new User({ ... })
 
-console.log(user instanceof User) // true
-console.log(user.id)              // string (preenchido pelo default)
-console.log(user.isAdmin())        // método de domínio executado na instância!
+console.log(user instanceof User); // true
+console.log(user.id); // string (preenchido pelo default)
+console.log(user.isAdmin()); // método de domínio executado na instância!
 
 // B. Safe Parsing (ideal para controllers e APIs HTTP):
-const result = User.safeParse(req.body)
+const result = User.safeParse(req.body);
 
 if (!result.success) {
-  return res.status(400).json({ errors: result.errors })
+  return res.status(400).json({ errors: result.errors });
 }
 
 // result.data é uma instância real e tipada de User
-const validUser: User = result.data
+const validUser: User = result.data;
 
 // C. Serialização Controlada (respeita writeOnly, transformações e mascaramento):
-const json = user.toJSON() // omite campos marcados como `writeOnly: true` (como password)
+const json = user.toJSON(); // omite campos marcados como `writeOnly: true` (como password)
 ```
 
 ---
@@ -428,33 +435,33 @@ const json = user.toJSON() // omite campos marcados como `writeOnly: true` (como
 ```ts
 // A. Extensão de Schema + Comportamento (Novos campos + métodos):
 export class AdminUser extends User.extend({
-  department: Text({ description: 'Departamento administrativo' }),
-  permissions: List(Text(), { default: () => ['READ', 'WRITE'] })
+  department: Text({ description: "Departamento administrativo" }),
+  permissions: List(Text(), { default: () => ["READ", "WRITE"] }),
 }) {
   canExecute(action: string): boolean {
-    return this.permissions.includes(action) || this.isAdmin()
+    return this.permissions.includes(action) || this.isAdmin();
   }
 }
 
 const admin = AdminUser.parse({
-  name: 'Admin Master',
-  username: 'admin',
-  email: 'admin@example.com',
-  password: 'admin_password',
-  department: 'Segurança'
-})
+  name: "Admin Master",
+  username: "admin",
+  email: "admin@example.com",
+  password: "admin_password",
+  department: "Segurança",
+});
 
-console.log(admin instanceof AdminUser) // true
-console.log(admin instanceof User)      // true (polimorfismo preservado!)
-console.log(admin.canExecute('DELETE')) // true
+console.log(admin instanceof AdminUser); // true
+console.log(admin instanceof User); // true (polimorfismo preservado!)
+console.log(admin.canExecute("DELETE")); // true
 
 // B. Derivação de DTOs para APIs:
-export class CreatePostDto extends Post.omit('id', 'createdAt', 'updatedAt', 'deletedAt') { }
-export class UpdateUserDto extends User.pick('name', 'address').partial() { }
+export class CreatePostDto extends Post.omit("id", "createdAt", "updatedAt", "deletedAt") {}
+export class UpdateUserDto extends User.pick("name", "address").partial() {}
 
 // C. Update real: `immutable` já barra campos como `id`/`createdAt` sem precisar
 // listar tudo manualmente — só precisa tirar o que não faz parte da superfície pública
-export class PatchUserDto extends User.omit('password').partial() { }
+export class PatchUserDto extends User.omit("password").partial() {}
 ```
 
 ---
@@ -465,18 +472,18 @@ Configurações e convenções aplicadas em nível de monorepo/projeto:
 
 ```ts
 // morphz.config.ts
-import { defineConfig } from 'morphz'
+import { defineConfig } from "morphz";
 
 export default defineConfig({
   // Transformação automática de labels por padrão
   labels: {
     // Injeta `entityName` automaticamente a partir do nome da classe
-    entityName: (ctx) => ctx.className.replace(/(Entity|Model)$/, '')
+    entityName: (ctx) => ctx.className.replace(/(Entity|Model)$/, ""),
   },
 
   // Delimitador de templates nas descrições ('#entityName', '{entityName}', etc.)
   template: {
-    delimiter: '#'
-  }
-})
+    delimiter: "#",
+  },
+});
 ```

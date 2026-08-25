@@ -1,6 +1,7 @@
 # Spec: Lifecycle — Parsing, Instantiation, Serialization
 
 ## Summary
+
 Unlike raw Zod (which produces anonymous plain objects), every `Struct`-based
 parse operation must produce a real instance of the declaring class, with
 `instanceof` identity and access to hand-written domain methods. Three entry
@@ -10,6 +11,7 @@ presumably equivalent to `.parse()`). Serialization via `.toJSON()` respects
 per-field `writeOnly` masking and any declared transforms.
 
 ## Requirements
+
 - REQ-001: `StructClass.parse(input)` validates `input` against the field
   schema, runs `pre`/`post` hooks (see `struct-entities`), and on success
   returns `new StructClass(validatedData)` — an instance where
@@ -18,7 +20,7 @@ per-field `writeOnly` masking and any declared transforms.
   override, see `i18n-error-messages`).
 - REQ-002: `new StructClass(input)` is equivalent to `StructClass.parse(input)`
   in validation behavior (throws on invalid input) — confirm this equivalence
-  vs. an alternative where the constructor is a *trusted* fast-path (no
+  vs. an alternative where the constructor is a _trusted_ fast-path (no
   validation) and only `.parse()` validates. INSIGHT.md's example implies
   they're equivalent ("Ou via construtor").
 - REQ-003: `StructClass.safeParse(input)` never throws. Returns
@@ -39,6 +41,7 @@ per-field `writeOnly` masking and any declared transforms.
   constructor-produced instances identically — no separate "hydration" step.
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Depends on `struct-entities` (the class produced by
 `Struct(...)`), `define-metatypes` (`writeOnly`/`default` field options —
 confirm `writeOnly` is part of `define-metatypes`'s option set, currently
@@ -46,6 +49,7 @@ only shown used directly on `Password()` in INSIGHT.md §3), and
 `i18n-error-messages` (error shape returned on failure).
 
 ## Out of Scope
+
 - `.extend()`-produced subclass lifecycle nuances (polymorphism through
   inheritance) — separate feature (`class-extensibility`); this spec covers
   the base-class lifecycle contract that subclasses must also satisfy.
@@ -53,6 +57,7 @@ only shown used directly on `Password()` in INSIGHT.md §3), and
   serializable instances; it does not persist them.
 
 ## Resolved (design phase)
+
 - `writeOnly` lives on `FieldDescriptor.meta` (`define-metatypes` tier,
   same as `immutable`) — set directly by whichever primitive/`Define` call
   declares it (`Password({ writeOnly: true })`). Not a separate

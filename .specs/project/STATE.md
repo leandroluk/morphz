@@ -1,10 +1,12 @@
 ## Degraded Mode
+
 - graphify not run — greenfield repo (only `INSIGHT.md` existed, no source
   code, not yet a git repository). Graph build deferred until source exists.
 - Token budget: load only the active feature's spec.md + this STATE.md per
   session until code/graph exist.
 
 ## Decisions
+
 - [2026-08-25] 8 features specified from `INSIGHT.md`, no graph-guided
   discovery (nothing to discover yet): `define-metatypes`, `datetime-codec`,
   `struct-entities`, `entity-relationships`, `i18n-error-messages`,
@@ -16,7 +18,7 @@
   otherwise block the whole Design phase at once.
 
 - [2026-08-25] Resolved: `Timestamp` = `DateTime` + `default: () => new
-  Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
+Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   rejecting (not dropping) any presence of the field in input on
   `.omit()`/`.pick()`/`.partial()`-derived classes. Updated
   `datetime-codec`, `define-metatypes`, `class-extensibility` spec.md.
@@ -74,7 +76,7 @@
   behave identically" was wrong — `Embed`/`Ref` DO resolve recursively,
   only `List` items and `FromZodType` internals fall back to raw Zod.
   Locale resolution: `AsyncLocalStorage → config.locale.default →
-  'en-US'` hard fallback. **Follow-up applied**: `Embed()`/`Ref()`
+'en-US'` hard fallback. **Follow-up applied**: `Embed()`/`Ref()`
   descriptors now also carry `targetStruct` (thunk to the pointed-at
   `Struct` class) — small additive edit made to already-completed
   `struct-entities/design.md` and `entity-relationships/design.md`.
@@ -130,6 +132,7 @@
   `jiti` v2 installed. `git init` done — repo now tracked.
 
 ## Progress
+
 - [2026-08-25] `struct-entities` T-001..T-004 complete. `STRUCT_META`,
   template resolver, `Struct()` (pipeline `pre→z.object→post`, no baked
   transform, `new.target`-based constructor, `meta.default` applied via
@@ -139,17 +142,17 @@
   through pure JS subclass inheritance (no re-`Struct()` needed), `Embed`
   error cascade into parent parse.
 - [2026-08-25] `datetime-codec` T-001, T-002 complete. `src/primitives/
-  {date-time,timestamp}.ts`. QA note (design nuance, not a bug):
+{date-time,timestamp}.ts`. QA note (design nuance, not a bug):
   `meta.default` is metadata-only — `struct-entities`'s field assembly is
   responsible for applying it to the built `z.object()`, not the primitive
   itself. DEV also fixed a real type-variance bug in `define-metatypes`'s
   `src/core/define.ts` (`BaseTypeArg`'s bare-factory case needed `() =>
-  FieldDescriptor<T>`, not `FieldDescriptorFactory<T, unknown>` — TS strict
+FieldDescriptor<T>`, not `FieldDescriptorFactory<T, unknown>` — TS strict
   contravariance). Gate: 32/32 pass (cumulative), `tsc --noEmit` clean.
 - [2026-08-25] `define-metatypes` T-001..T-006 complete. DEV wrote
   `src/core/{field-descriptor,merge-descriptor,refine-adapter,define,
-  from-zod-type}.ts` + `src/primitives/{text,number,uuid,email,password,ip,
-  enum,version,nullable,optional,list}.ts` + `src/index.ts`. QA wrote
+from-zod-type}.ts` + `src/primitives/{text,number,uuid,email,password,ip,
+enum,version,nullable,optional,list}.ts` + `src/index.ts`. QA wrote
   `tests/define-metatypes/*.test.ts`, 25/25 pass, `tsc --noEmit` clean, and
   fixed a real bug in the refine-to-Zod adapter (zod v4's actual `.refine()`
   params shape is `{ error: (issue) => string }`, receiving the issue not
@@ -158,6 +161,7 @@
   commit both together or separately depending on how it goes).
 
 ## Todos
+
 - [ ] `datetime-codec` DEV+QA (T-001, T-002 in its tasks.md) — next in
       build order, depends on `define-metatypes` (now done)
 - [ ] `struct-entities` DEV+QA — depends on `define-metatypes` (done) +

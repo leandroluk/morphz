@@ -1,10 +1,14 @@
-import type { FieldDescriptor, FieldDescriptorFactory, FieldDescriptorMeta } from './field-descriptor.js'
-import { mergeDescriptor } from './merge-descriptor.js'
-import { toZodRefine, type MorphzRefine } from './refine-adapter.js'
+import type {
+  FieldDescriptor,
+  FieldDescriptorFactory,
+  FieldDescriptorMeta,
+} from "./field-descriptor.js";
+import { mergeDescriptor } from "./merge-descriptor.js";
+import { toZodRefine, type MorphzRefine } from "./refine-adapter.js";
 
 export interface DefineOptions<T, Opts = undefined> extends Partial<FieldDescriptorMeta<T>> {
-  regex?: RegExp
-  refine?: MorphzRefine<T, Opts>
+  regex?: RegExp;
+  refine?: MorphzRefine<T, Opts>;
 }
 
 // BaseType is always invoked with ZERO args when it's still a bare factory
@@ -12,7 +16,7 @@ export interface DefineOptions<T, Opts = undefined> extends Partial<FieldDescrip
 // only needs to require zero-arg-callability, not match `Opts` structurally.
 // (A factory typed `(opts?: X) => FieldDescriptor<T>` is assignable here:
 // optional-param functions satisfy a zero-arg call signature.)
-type BaseTypeArg<T, Opts> = (() => FieldDescriptor<T>) | FieldDescriptor<T>
+type BaseTypeArg<T> = (() => FieldDescriptor<T>) | FieldDescriptor<T>;
 
 /**
  * Normalizes BaseType (call if it's still a bare factory, use as-is if
@@ -22,38 +26,45 @@ type BaseTypeArg<T, Opts> = (() => FieldDescriptor<T>) | FieldDescriptor<T>
  * captures the refine FUNCTION.
  */
 export function Define<T, Opts = undefined>(
-  base: BaseTypeArg<T, Opts>,
+  base: BaseTypeArg<T>,
   options: DefineOptions<T, Opts> = {},
 ): FieldDescriptorFactory<T, Partial<DefineOptions<T, Opts>>> {
-  const baseDescriptor: FieldDescriptor<T> = typeof base === 'function' ? base() : base
+  const baseDescriptor: FieldDescriptor<T> = typeof base === "function" ? base() : base;
 
-  const { regex, refine, ...meta } = options
+  const { regex, refine, ...meta } = options;
 
-  let mergedSchema = baseDescriptor.zodSchema
+  let mergedSchema = baseDescriptor.zodSchema;
   if (regex) {
-    mergedSchema = (mergedSchema as unknown as { regex: (r: RegExp) => typeof mergedSchema }).regex(regex)
+    mergedSchema = (mergedSchema as unknown as { regex: (r: RegExp) => typeof mergedSchema }).regex(
+      regex,
+    );
   }
 
-  const merged = mergeDescriptor(baseDescriptor, { ...meta, zodSchema: mergedSchema })
+  const merged = mergeDescriptor(baseDescriptor, { ...meta, zodSchema: mergedSchema });
 
-  return function specialized(instanceOverrides?: Partial<DefineOptions<T, Opts>>): FieldDescriptor<T> {
-    const { regex: instRegex, refine: instRefine, ...instMeta } = instanceOverrides ?? {}
+  return function specialized(
+    instanceOverrides?: Partial<DefineOptions<T, Opts>>,
+  ): FieldDescriptor<T> {
+    const { regex: instRegex, refine: instRefine, ...instMeta } = instanceOverrides ?? {};
 
-    let schema = merged.zodSchema
+    let schema = merged.zodSchema;
     if (instRegex) {
-      schema = (schema as unknown as { regex: (r: RegExp) => typeof schema }).regex(instRegex)
+      schema = (schema as unknown as { regex: (r: RegExp) => typeof schema }).regex(instRegex);
     }
 
-    const effectiveRefine = instRefine ?? refine
+    const effectiveRefine = instRefine ?? refine;
     if (effectiveRefine) {
-      const { check, params } = toZodRefine(effectiveRefine, instanceOverrides as Opts | undefined)
+      const { check, params } = toZodRefine(effectiveRefine, instanceOverrides as Opts | undefined);
       schema = (
         schema as unknown as {
-          refine: (c: (v: T) => boolean, p: { error: (issue: { input: unknown }) => string }) => typeof schema
+          refine: (
+            c: (v: T) => boolean,
+            p: { error: (issue: { input: unknown }) => string },
+          ) => typeof schema;
         }
-      ).refine(check, params)
+      ).refine(check, params);
     }
 
-    return mergeDescriptor(merged, { ...instMeta, zodSchema: schema })
-  }
+    return mergeDescriptor(merged, { ...instMeta, zodSchema: schema });
+  };
 }

@@ -1,6 +1,7 @@
 # Design: Class Extensibility (`.extend()`, `.omit()`, `.pick()`, `.partial()`)
 
 ## Architecture Overview
+
 Two genuinely different mechanisms, chosen per-method based on whether the
 result is a SUPERSET of the parent's shape (`.extend()` — real `instanceof`
 relationship makes sense) or a SUBSET/reshape (`.omit()`/`.pick()`/
@@ -26,22 +27,26 @@ STRUCT_META.schema =                  STRUCT_META.schema =
 ```
 
 ## Required addition to `struct-entities`'s `STRUCT_META`
+
 Both branches need to REBUILD the `pre`/`post`-wrapped pipeline around a
 NEW raw object schema. `STRUCT_META` (as designed) stores the already-built
 `schema`/`rawObjectSchema` but not the original hook FUNCTIONS — needed so
 this feature can re-wrap. Small additive follow-up:
+
 ```ts
 interface StructMeta {
   // ...existing fields...
-  hooks: { pre?: (val: unknown) => unknown; post?: (val: unknown, ctx) => void }
+  hooks: { pre?: (val: unknown) => unknown; post?: (val: unknown, ctx) => void };
 }
 ```
+
 Flagged here, applied as a follow-up edit to
 `struct-entities/design.md`'s `StructMeta` interface (same pattern as the
 `targetStruct`/`writeOnly`/`encode`/`itemDescriptor` additions already made
 by later-designed features).
 
 ## `.extend(newFields)`
+
 ```ts
 static extend(newFields: Record<string, FieldDescriptor>) {
   const parentMeta = this[STRUCT_META]
@@ -60,6 +65,7 @@ static extend(newFields: Record<string, FieldDescriptor>) {
   })
 }
 ```
+
 `buildStructClass({ extendsClass: this, ... })` emits a real
 `class extends this { ... }` — this is the ONE case where the internal
 class-builder (also used by `Struct()` itself) takes an explicit parent to
@@ -81,6 +87,7 @@ in `newFields` overwrite the parent's — this is exactly Zod's own
 delegating to Zod rather than being a `morphz`-specific rule to implement.
 
 ## `.omit(...names)` / `.pick(...names)`
+
 ```ts
 static omit(...names: string[] | [string[]]) {
   const flatNames = names.length === 1 && Array.isArray(names[0]) ? names[0] : names as string[]
@@ -91,6 +98,7 @@ static pick(...names: string[] | [string[]]) {
   return deriveVariant(this, schema => schema.pick(toMask(flatNames)), flatNames, 'pick')
 }
 ```
+
 **Resolves spec.md's open question**: supports BOTH the variadic form
 (`omit('id', 'createdAt')`, matching every INSIGHT.md example) AND a single
 array argument (`omit(['id', 'createdAt'])`) via a one-line normalization —
@@ -101,6 +109,7 @@ receive their native shape; `morphz`'s variadic sugar is purely an ergonomic
 layer on top, never a divergent implementation.
 
 `deriveVariant(sourceClass, transform, names, mode)`:
+
 1. `newRawObjectSchema = transform(sourceMeta.rawObjectSchema)` (native Zod
    `.omit()`/`.pick()`).
 2. `newFields` = source's `STRUCT_META.fields` filtered to the surviving
@@ -113,8 +122,8 @@ layer on top, never a divergent implementation.
    correctly reject writes to `id`/`createdAt` — order of chaining doesn't
    matter.
 4. `buildStructClass({ extendsClass: null, rawObjectSchema:
-   newRawObjectSchema, hooks: sourceMeta.hooks, fields: newFields, labels:
-   sourceMeta.labels, description: sourceMeta.description })` —
+newRawObjectSchema, hooks: sourceMeta.hooks, fields: newFields, labels:
+sourceMeta.labels, description: sourceMeta.description })` —
    `extendsClass: null` means an INDEPENDENT class, no prototype chain to
    `sourceClass`. **`instanceof sourceClass` deliberately does NOT hold**
    for `.omit()`/`.pick()`/`.partial()` results — a `CreatePostDto` missing
@@ -124,6 +133,7 @@ layer on top, never a divergent implementation.
    regardless of the `extendsClass` branch taken.
 
 ## `.partial()`
+
 ```ts
 static partial() {
   const meta = this[STRUCT_META]
@@ -132,23 +142,26 @@ static partial() {
     hooks: meta.hooks, fields: meta.fields, labels: meta.labels, description: meta.description })
 }
 ```
+
 Same `extendsClass: null` / no-`instanceof`-source rule as `.omit()`/
 `.pick()`. `stripImmutable` applied here too (not just when chained after
 `.omit()`/`.pick()`) — covers a hypothetical standalone `X.partial()` call
 not shown in INSIGHT.md but not excluded by it either.
 
 ## `stripImmutable()` — concrete REQ-006 enforcement
+
 ```ts
 function stripImmutable(rawSchema: z.ZodObject, fields: Record<string, FieldDescriptor>) {
-  const patch: Record<string, z.ZodType> = {}
+  const patch: Record<string, z.ZodType> = {};
   for (const [name, descriptor] of Object.entries(fields)) {
     if (descriptor.meta.immutable && name in rawSchema.shape) {
-      patch[name] = z.undefined().optional()   // accepts ONLY absence/undefined
+      patch[name] = z.undefined().optional(); // accepts ONLY absence/undefined
     }
   }
-  return Object.keys(patch).length ? rawSchema.extend(patch) : rawSchema
+  return Object.keys(patch).length ? rawSchema.extend(patch) : rawSchema;
 }
 ```
+
 Simpler than an earlier-considered `.refine()`-based reject: a field that
 must NEVER carry any value on a derived/update variant is exactly what
 `z.undefined().optional()` already means natively — no custom refinement
@@ -162,14 +175,16 @@ same `message` map the field's `Define` already carries — not required for
 correctness, flagged as a nice-to-have, not a spec requirement.
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
+
+| Component                                               | Responsibility                                                                     | Location                                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | `buildStructClass()` (internal, shared with `Struct()`) | Builds a class + attaches `STRUCT_META`, optionally as `class extends parentClass` | `src/core/struct.ts` (factored out of `Struct()`'s own implementation) |
-| `.extend()` | Superset derivation, real JS subclassing | `src/core/extend.ts` |
-| `.omit()` / `.pick()` / `.partial()` | Subset/reshape derivation, independent class | `src/core/derive-variant.ts` |
-| `stripImmutable()` | Patches immutable fields to `z.undefined().optional()` on derived variants | `src/core/derive-variant.ts` |
+| `.extend()`                                             | Superset derivation, real JS subclassing                                           | `src/core/extend.ts`                                                   |
+| `.omit()` / `.pick()` / `.partial()`                    | Subset/reshape derivation, independent class                                       | `src/core/derive-variant.ts`                                           |
+| `stripImmutable()`                                      | Patches immutable fields to `z.undefined().optional()` on derived variants         | `src/core/derive-variant.ts`                                           |
 
 ## Dependency Paths
+
 - `.extend()` → `rawObjectSchema.extend()` (native Zod v4, confirmed via
   Context7) + `STRUCT_META.hooks` (new follow-up to `struct-entities`).
 - `.omit()`/`.pick()`/`.partial()` → native Zod `.omit()`/`.pick()`/
@@ -181,6 +196,7 @@ correctness, flagged as a nice-to-have, not a spec requirement.
   note, not a required edit to that already-completed design).
 
 ## Risks
+
 - `post` hook edge case (not resolved, flagged rather than silently
   ignored): if a source `Struct`'s `post` hook cross-validates two fields
   (`startDate < endDate`) and ONE of them is `.omit()`-ted in a derived
@@ -196,6 +212,7 @@ correctness, flagged as a nice-to-have, not a spec requirement.
   doesn't assume they're interchangeable.
 
 ## Decision Log
+
 - `.extend()` uses REAL JS `class extends` (subclassing the parent
   directly); `.omit()`/`.pick()`/`.partial()` build a fully INDEPENDENT
   class with no prototype relationship to the source — resolved by

@@ -1,6 +1,7 @@
 # Spec: Define & Meta-Types (foundation)
 
 ## Summary
+
 `Define(BaseType, options)` creates a reusable, named specialization of a core
 primitive type (`Text`, `Number`, `Uuid`, `DateTime`, `Ip`, `FromZodType`, ...)
 with baked-in defaults, description, regex/refine validation, and i18n
@@ -11,6 +12,7 @@ feature (`Struct` fields, `FieldOf`, error messages) is built by calling
 declaration time.
 
 ## Requirements
+
 - REQ-001: `Define(BaseType, options)` returns a callable factory. Calling the
   factory with no args or with per-field overrides (e.g. `Cep()`,
   `PrimaryKey()`) produces a field descriptor consumable by `Struct`.
@@ -55,10 +57,12 @@ declaration time.
   `morphz` core vs. a separate "recipes" package).
 
 ## Affected Components (from graph)
+
 N/A — greenfield, no graph built yet. This feature has no existing code to
 touch; it is the first module written.
 
 ## Out of Scope
+
 - Cross-field validation (belongs to `Struct`'s `post` hook, see
   `struct-entities`).
 - Entity-to-entity relationships (`Ref`, `FieldOf`) — separate feature.
@@ -69,6 +73,7 @@ touch; it is the first module written.
   exist as importable primitives.
 
 ## Open Questions
+
 - REQ-005 mechanics: an "update/patch parse" has no access to the prior
   record by default (`morphz` is schema-only, no persistence) — so
   "rejects if payload includes a value" means ANY presence of the field in

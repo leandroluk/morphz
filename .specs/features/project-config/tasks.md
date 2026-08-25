@@ -1,7 +1,9 @@
 # Tasks: Project Configuration (`morphz.config.ts`)
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 ## T-001: `defineConfig()`
+
 - **REQ**: REQ-001
 - **What**: type-only identity function.
 - **Where**: `src/core/define-config.ts`
@@ -10,6 +12,7 @@
 - **Gate**: `npx tsc --noEmit`
 
 ## T-002: `discoverConfig()` + `getConfig()` singleton
+
 - **REQ**: REQ-002, REQ-003, REQ-004, REQ-005
 - **What**: cosmiconfig-style sync upward search for
   `morphz.config.{ts,js,mjs,cjs}` from `process.cwd()`, loaded via `jiti`
@@ -24,6 +27,7 @@
 - **Gate**: `npm run test -- config`
 
 ## T-003: `morphz/register`
+
 - **REQ**: REQ-005
 - **What**: side-effect module calling the same discovery eagerly; no-op if
   `getConfig()` already populated the singleton.

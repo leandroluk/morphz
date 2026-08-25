@@ -1,6 +1,7 @@
 # Spec: Custom Error Messages & i18n
 
 ## Summary
+
 Error messages are built on Zod's native issue tree (`error.issues`: `path`,
 `code`, `message`, plus a `format` sub-field on format-check issues). `Define`
 accepts a `message` option to override the default text per validation rule —
@@ -20,10 +21,11 @@ are distinguished by an issue-level `format` string (`'regex'`, `'email'`,
 `'uuid'`, ...). REQ-001 below reflects the corrected shape.
 
 ## Requirements
+
 - REQ-001: `Define(BaseType, { message })` accepts `message` as either
   `string` (fixed, locale-independent) or a per-code map:
   `{ [zodIssueCode]: string | Record<locale, string> | Record<formatString,
-  string | Record<locale, string>> }`. For every code EXCEPT
+string | Record<locale, string>> }`. For every code EXCEPT
   `invalid_format`, the value is the string/locale-map directly (e.g.
   `invalid_type: { 'pt-BR': '...' } `). For `invalid_format` specifically,
   since one field can only realistically fail one format check in practice
@@ -32,7 +34,7 @@ are distinguished by an issue-level `format` string (`'regex'`, `'email'`,
   `morphz` does not require callers to nest under the format name when a
   field has only one format check, per REQ-004's matching rule below.
 - REQ-002: Per-field override at declaration site: `email: Email({ message:
-  { invalid_format: { 'pt-BR': '...' } } })` merges with (overrides) the
+{ invalid_format: { 'pt-BR': '...' } } })` merges with (overrides) the
   `Define`-level `message` map for that specific field instance, without
   mutating the shared `Define` factory's defaults.
 - REQ-003: Active locale resolves from `morphz.config.ts`
@@ -49,7 +51,7 @@ are distinguished by an issue-level `format` string (`'regex'`, `'email'`,
   inspects the wrapped schema's internal structure — only `path`/`code` on
   the final issue.
 - REQ-006: Documented limitation (not a bug): for a `FromZodType`-wrapped
-  *composite* schema (nested `z.object`/`z.tuple`/`z.array`), issues at a
+  _composite_ schema (nested `z.object`/`z.tuple`/`z.array`), issues at a
   deeper path (e.g. `['coordinates', 0]`) do NOT match the field-level
   `message` map (which only has entries for the field as a scalar unit) and
   fall back to Zod's raw message. Deep-level custom messages must be set
@@ -57,12 +59,14 @@ are distinguished by an issue-level `format` string (`'regex'`, `'email'`,
   passing it to `FromZodType`.
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Depends on `define-metatypes` (the `message` option shape
 lives on `Define`). Cuts across every feature that produces `ValidationError`
 output (`lifecycle-serialization`'s `.safeParse()` result).
 
 ## Out of Scope
-- Translating Zod's own built-in message *strings* wholesale (e.g. shipping
+
+- Translating Zod's own built-in message _strings_ wholesale (e.g. shipping
   a full i18n bundle for every Zod built-in) — `morphz` only provides the
   override mechanism; translation content is the consumer's responsibility
   except for the recipe types documented in INSIGHT.md.
@@ -70,6 +74,7 @@ output (`lifecycle-serialization`'s `.safeParse()` result).
   `AsyncLocalStorage` context; `morphz` only reads from it.
 
 ## Resolved
+
 - REQ-003 fallback: if neither the requested locale nor `fallback` has an
   entry, the lookup returns `undefined` — treated identically to "no
   override registered," falls back to Zod's raw message. Never throws a

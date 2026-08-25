@@ -1,15 +1,17 @@
 # Spec: Entity Relationships (`Ref`, `FieldOf`, `Union`)
 
 ## Summary
+
 Two distinct, non-interchangeable primitives model relationships between
 entities: `Ref(() => Struct)` for lazy entity-to-entity relations (1:1, 1:N),
-and `FieldOf(Struct, 'fieldName')` for reusing the *type* of a single already
+and `FieldOf(Struct, 'fieldName')` for reusing the _type_ of a single already
 declared field (typically a scalar FK) without pulling in the whole related
 entity. `Union`/`Literal` provide Zod-mirrored union resolution (discriminated
 when members share a discriminator key, plain union otherwise), used e.g. for
 `Post.status`.
 
 ## Requirements
+
 - REQ-001: `Ref(() => Struct)` takes a thunk (not the class directly) so two
   `Struct`s can reference each other circularly (e.g. mutual `User.posts` /
   `Post.author` if that were declared) without a temporal-dead-zone error at
@@ -18,7 +20,7 @@ when members share a discriminator key, plain union otherwise), used e.g. for
   (`Optional(List(Ref(() => Post)))` for 1:N, bare `Ref(() => X)` for 1:1)
   — `morphz` does not need a separate `HasMany`/`BelongsTo` API; composition
   with `List`/`Optional` expresses cardinality.
-- REQ-003: `FieldOf(Struct, 'fieldName', options?)` reads the *shape* (type +
+- REQ-003: `FieldOf(Struct, 'fieldName', options?)` reads the _shape_ (type +
   base validation) of `Struct`'s already-declared field named `'fieldName'`
   and produces a new field descriptor with that same base type. It is NOT
   lazy — `Struct` must already be fully declared (its field record populated)
@@ -50,11 +52,13 @@ when members share a discriminator key, plain union otherwise), used e.g. for
   `Union([Literal('DRAFT'), Literal('PUBLISHED'), Literal('ARCHIVED')])`).
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Depends on `struct-entities` (needs a `Struct` class to
 reference/read fields from). `FieldOf` specifically depends on `Struct`'s
 internal field-record representation being introspectable.
 
 ## Out of Scope
+
 - ORM/repository-level relationship loading (eager/lazy DB fetch, joins) —
   explicitly out of scope per INSIGHT.md; `Ref` only models the schema-level
   relationship, not persistence.
@@ -62,11 +66,12 @@ internal field-record representation being introspectable.
   another field," filtering is a repository/ORM concern.
 
 ## Resolved (design phase)
+
 - `FieldOf` throws synchronously at its OWN call site (module load time,
   fail-fast) when `'fieldName'` isn't in the source `Struct`'s field record
   — never deferred to first parse. TS-level `keyof`-based compile-time
   safety is achievable and planned as an Execute-phase typing task.
 - `Ref` DOES support self-reference (`parent: Optional(Ref(() =>
-  Category))` inside `Category`'s own declaration) with zero extra work —
+Category))` inside `Category`'s own declaration) with zero extra work —
   confirmed by how `z.lazy()` defers thunk evaluation past module load, past
   the referenced class's own temporal dead zone.

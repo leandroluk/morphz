@@ -1,6 +1,7 @@
 # Spec: DateTime/Timestamp as Codec
 
 ## Summary
+
 `DateTime` and `Timestamp` must never be backed by `z.date()` internally,
 because `z.toJSONSchema()` (Zod v4) treats `z.date()` as unrepresentable
 (throws or emits an empty `{}` schema), which breaks OpenAPI/Swagger
@@ -10,6 +11,7 @@ representable string schema (`z.iso.datetime()`), the domain side is a real
 `Date` for in-memory comparisons (`TimeAgo`, `TimeBefore`, `TimeAfter`, etc.).
 
 ## Requirements
+
 - REQ-001: `DateTime` (and `Timestamp`) are defined as
   `z.codec(z.iso.datetime(), z.date(), { decode, encode })`. `decode` parses
   wire string → `Date`; `encode` serializes `Date` → ISO string.
@@ -37,12 +39,14 @@ representable string schema (`z.iso.datetime()`), the domain side is a real
   patch needed.
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Depends on nothing else in `morphz`; other features
 (`define-metatypes`'s `TimeAgo`/`TimeBefore`/`TimeAfter`, `struct-entities`'s
 `CreatedAt`/`UpdatedAt`/`DeletedAt`) depend on this feature's `DateTime`
 export existing and behaving as a real `Date` on the domain side.
 
 ## Out of Scope
+
 - `Define`-based date refinements (`TimeAgo`, `TimeBefore`, `TimeAfter`,
   `RowVersion`) — those live in `define-metatypes`, built on top of this
   feature's `DateTime` export.
@@ -50,6 +54,7 @@ export existing and behaving as a real `Date` on the domain side.
   delegated to `nestjs-zod`.
 
 ## Resolved (design phase)
+
 - Timezone handling: `z.iso.datetime()` (no options) is strict UTC-only —
   requires the `Z` suffix, rejects both numeric offsets and local/
   timezone-less strings (confirmed via Context7 against `/colinhacks/zod`

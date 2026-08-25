@@ -1,6 +1,7 @@
 # Design: Lifecycle — Parsing, Instantiation, Serialization
 
 ## Architecture Overview
+
 This feature is where `STRUCT_META.schema` (validation-only, per the
 correction applied to `struct-entities/design.md` during this design) gets
 turned into actual instances, using JS static-method polymorphism (`this`/
@@ -27,17 +28,19 @@ new.target[STRUCT_META]              ▼              ▼
 ```
 
 ## `constructor(input)` — the single validating entry point
+
 ```ts
 class GeneratedBase {
   constructor(input: unknown) {
-    const target = new.target as typeof GeneratedBase
-    const data = target[STRUCT_META].schema.parse(input)
+    const target = new.target as typeof GeneratedBase;
+    const data = target[STRUCT_META].schema.parse(input);
     // pipeline may itself throw ZodError — caught and re-thrown as
     // ValidationError with i18n-resolved messages, see below
-    Object.assign(this, data)
+    Object.assign(this, data);
   }
 }
 ```
+
 `new.target` (not `this.constructor`) is used deliberately: it resolves to
 whatever class `new` was actually invoked on, correctly, even inside a
 `super()` call chain from a subclass constructor that adds its own fields
@@ -53,16 +56,18 @@ StructClass(input)` and `StructClass.parse(input)` are fully equivalent —
 code path, not two.
 
 ## `ValidationError`
+
 ```ts
 class ValidationError extends Error {
-  issues: ResolvedIssue[]   // same shape as ZodError.issues, messages
-                             // already passed through resolveIssueMessages()
+  issues: ResolvedIssue[]; // same shape as ZodError.issues, messages
+  // already passed through resolveIssueMessages()
   constructor(zodError: z.ZodError, structClass: StructClass) {
-    super('Validation failed')
-    this.issues = resolveIssueMessages(zodError, structClass, resolveLocale())
+    super("Validation failed");
+    this.issues = resolveIssueMessages(zodError, structClass, resolveLocale());
   }
 }
 ```
+
 The constructor above catches the `ZodError` `schema.parse()` throws and
 re-throws `ValidationError` instead — `i18n-error-messages`'s
 `resolveIssueMessages()` (already designed) is the ONLY place messages get
@@ -71,6 +76,7 @@ fields already substituted, so callers never need to know the override
 mechanism exists.
 
 ## `static safeParse(input)` — avoids double validation
+
 ```ts
 static safeParse(input: unknown) {
   const result = this[STRUCT_META].schema.safeParse(input)
@@ -88,6 +94,7 @@ static safeParse(input: unknown) {
   return { success: true, data: instance }
 }
 ```
+
 This resolves `spec.md`'s open question about a "trusted fast-path
 constructor" WITHOUT adding one to the public API (INSIGHT.md never asks
 for a second public constructor mode, and REQ-002 above commits the public
@@ -98,6 +105,7 @@ chain), and domain methods work identically since they live on the
 prototype, not per-instance.
 
 ## `.toJSON()`
+
 ```ts
 toJSON(): Record<string, unknown> {
   const out: Record<string, unknown> = {}
@@ -119,6 +127,7 @@ function encodeFieldValue(value: unknown, descriptor: FieldDescriptor): unknown 
   return descriptor.meta.encode ? descriptor.meta.encode(value) : value
 }
 ```
+
 - `writeOnly` fields (e.g. `Password`) are skipped entirely — resolves
   `spec.md`'s open question on where `writeOnly` lives: it's a `meta` flag
   on `FieldDescriptor` (same tier as `immutable`), set by whichever core
@@ -140,16 +149,18 @@ function encodeFieldValue(value: unknown, descriptor: FieldDescriptor): unknown 
   a follow-up to that design.
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
-| `GeneratedBase` constructor | Single validating entry point using `new.target` polymorphism | `src/core/struct.ts` (extends the class `struct-entities` already builds) |
-| `ValidationError` | Thrown by constructor/`.parse()` on failure, i18n-resolved issues | `src/core/validation-error.ts` |
-| `static parse()` / `static safeParse()` | Public entry points, `safeParse` bypasses double-validation | `src/core/struct.ts` |
-| `.toJSON()` | Recursive serialization, `writeOnly` masking, codec `encode` application | `src/core/to-json.ts` |
+
+| Component                               | Responsibility                                                           | Location                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `GeneratedBase` constructor             | Single validating entry point using `new.target` polymorphism            | `src/core/struct.ts` (extends the class `struct-entities` already builds) |
+| `ValidationError`                       | Thrown by constructor/`.parse()` on failure, i18n-resolved issues        | `src/core/validation-error.ts`                                            |
+| `static parse()` / `static safeParse()` | Public entry points, `safeParse` bypasses double-validation              | `src/core/struct.ts`                                                      |
+| `.toJSON()`                             | Recursive serialization, `writeOnly` masking, codec `encode` application | `src/core/to-json.ts`                                                     |
 
 ## Dependency Paths
+
 - `constructor`/`parse`/`safeParse` → `STRUCT_META.schema` (`struct-
-  entities`, corrected to exclude instantiation) → `resolveIssueMessages()`
+entities`, corrected to exclude instantiation) → `resolveIssueMessages()`
   (`i18n-error-messages`, already designed).
 - `.toJSON()` → `FieldDescriptor.meta.writeOnly` (new, `define-metatypes`
   follow-up), `meta.encode` (new, `datetime-codec` — still pending design),
@@ -159,6 +170,7 @@ function encodeFieldValue(value: unknown, descriptor: FieldDescriptor): unknown 
   second consumer).
 
 ## Risks
+
 - Three small additive follow-ups now owed to `define-metatypes`
   (`writeOnly`, `List`'s `itemDescriptor`) and ONE to the still-undesigned
   `datetime-codec` (`encode`) — none change existing shape, all are new
@@ -174,6 +186,7 @@ function encodeFieldValue(value: unknown, descriptor: FieldDescriptor): unknown 
   this doc.
 
 ## Decision Log
+
 - Instantiation deliberately excluded from `STRUCT_META.schema` (correction
   applied retroactively to `struct-entities/design.md`) — the ROOT decision
   this whole feature's design turns on. Without it, subclass polymorphism

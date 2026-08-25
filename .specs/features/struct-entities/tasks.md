@@ -1,5 +1,6 @@
 # Tasks: Struct Entities & Embedded Value Objects
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 **Status: DONE (2026-08-25).** T-001..T-004 implemented + tested (47/47
 cumulative pass). `new.target` polymorphism confirmed working through pure
@@ -10,6 +11,7 @@ DEV's reasonable extrapolation, flagged not decided unilaterally on
 anything structural).
 
 ## T-001: `STRUCT_META` symbol + `StructMeta` type
+
 - **REQ**: internal registry (design.md)
 - **What**: `StructMeta` interface: `fields`, `labels`, `description?`,
   `schema` (pre→object→post, validation-only, NO instantiation transform —
@@ -20,6 +22,7 @@ anything structural).
 - **Gate**: `npx tsc --noEmit`
 
 ## T-002: Template resolver
+
 - **REQ**: REQ-001 (labels, scoped to one `Struct` call — no cascade)
 - **What**: walk `meta.description`/`meta.message` strings, substitute
   `#placeholder` (or configured delimiter) using `options.labels`, produce
@@ -32,11 +35,12 @@ anything structural).
 - **Gate**: `npm run test -- template`
 
 ## T-003: `buildStructClass()` internal helper
+
 - **REQ**: REQ-001..REQ-006 (core pipeline)
 - **What**: assembles `pre → z.object(fields) → post` (NO transform —
   design.md correction), attaches `STRUCT_META`. Constructor uses
   `new.target[STRUCT_META].schema.parse(input)` then `Object.assign(this,
-  data)` (this piece is technically `lifecycle-serialization`'s REQ, but
+data)` (this piece is technically `lifecycle-serialization`'s REQ, but
   MUST be written now since the constructor lives on the class this task
   builds — implement per `lifecycle-serialization/design.md`'s
   constructor snippet; `lifecycle-serialization`'s own DEV pass will add
@@ -50,9 +54,10 @@ anything structural).
 - **Gate**: `npm run test -- struct`
 
 ## T-004: `Embed()`
+
 - **REQ**: REQ-005
 - **What**: `TargetStruct[STRUCT_META].schema.transform(data => new
-  TargetStruct(data))`, sets `targetStruct: () => TargetStruct` on the
+TargetStruct(data))`, sets `targetStruct: () => TargetStruct` on the
   descriptor.
 - **Where**: `src/core/embed.ts`
 - **Depends on**: T-003

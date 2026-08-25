@@ -1,7 +1,9 @@
 # Tasks: Entity Relationships (`Ref`, `FieldOf`, `Union`)
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 ## T-001: `Literal()`
+
 - **REQ**: REQ-006
 - **What**: thin `z.literal(value)` wrapper, `FieldDescriptor { zodSchema, meta: {} }`.
 - **Where**: `src/core/literal.ts`
@@ -10,9 +12,10 @@
 - **Gate**: `npm run test -- literal`
 
 ## T-002: `Ref()`
+
 - **REQ**: REQ-001, REQ-002
 - **What**: `z.lazy(() => { const S = thunk(); return S[STRUCT_META].schema.transform(d => new S(d)) })`
-  + `targetStruct: thunk`.
+  - `targetStruct: thunk`.
 - **Where**: `src/core/ref.ts`
 - **Depends on**: `struct-entities` (`STRUCT_META`, T-003 there)
 - **Done when**: self-referencing `Ref(() => SameStruct)` works (declare a
@@ -21,6 +24,7 @@
 - **Gate**: `npm run test -- ref`
 
 ## T-003: `FieldOf()`
+
 - **REQ**: REQ-003, REQ-004
 - **What**: eager clone of `Struct[STRUCT_META].fields['name']`'s FULL
   descriptor (zodSchema + meta) MINUS `default`/`immutable`, merged with
@@ -34,6 +38,7 @@
 - **Gate**: `npm run test -- field-of`
 
 ## T-004: `Union()` with discriminator detection
+
 - **REQ**: REQ-005
 - **What**: `isZodObject` check on `STRUCT_META.rawObjectSchema` (pre-
   transform) for each member; `detectDiscriminatorKey` finds a shared key

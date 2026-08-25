@@ -1,6 +1,7 @@
 # Spec: Project Configuration (`morphz.config.ts`)
 
 ## Summary
+
 `defineConfig({...})` in a project-root `morphz.config.ts` sets monorepo/
 project-wide conventions consumed by other features: automatic `labels`
 derivation (e.g. deriving `entityName` from the class name, stripping
@@ -9,6 +10,7 @@ derivation (e.g. deriving `entityName` from the class name, stripping
 consumed by `i18n-error-messages` (`locale: { default, fallback }`).
 
 ## Requirements
+
 - REQ-001: `defineConfig(options)` is a typed identity function (type-only
   helper, like Vite/Vitest's `defineConfig`) — returns `options` unchanged,
   exists purely for editor autocomplete/type-checking on the config shape.
@@ -48,6 +50,7 @@ consumed by `i18n-error-messages` (`locale: { default, fallback }`).
     implies).
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Consumed by `define-metatypes` (template delimiter),
 `struct-entities` (labels default), `i18n-error-messages` (locale default).
 This feature can be designed last since nothing in the core library hard-
@@ -56,11 +59,13 @@ sane defaults (`#` delimiter, no auto-label derivation, `'en-US'`-or-similar
 locale default — confirm exact fallback).
 
 ## Out of Scope
+
 - Full monorepo/workspace-level config merging (e.g. package-level overrides
   of a root config) — not demonstrated in INSIGHT.md; single flat config
   assumed unless a concrete multi-package need surfaces.
 
 ## Resolved (design phase)
+
 - Zero-config locale default: `'en-US'` (matches `i18n-error-messages`'s
   `resolveLocale()` fallback chain, already designed).
 - Monorepo caveat accepted as a known v1 limitation, not solved further —

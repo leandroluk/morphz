@@ -1,5 +1,6 @@
 # Tasks: Define & Meta-Types (foundation)
-*(PO breakdown, from spec.md + design.md)*
+
+_(PO breakdown, from spec.md + design.md)_
 
 **Status: DONE (2026-08-25).** All 6 tasks implemented (DEV) + tested (QA,
 25/25 passing, `tsc --noEmit` clean). QA fixed a real bug: `.refine()`'s
@@ -9,6 +10,7 @@ silently produced generic "Invalid input" instead of custom messages. See
 `src/core/refine-adapter.ts` + `src/core/define.ts`.
 
 ## T-001: `FieldDescriptor` type + `mergeDescriptor()`
+
 - **REQ**: REQ-002
 - **What**: `FieldDescriptor<T>` interface (`zodSchema`, `meta`) per design.md
   (including `itemDescriptor`, `targetStruct` slots reserved for later
@@ -22,6 +24,7 @@ silently produced generic "Invalid input" instead of custom messages. See
 - **Gate**: `npm run test -- merge-descriptor`
 
 ## T-002: `toZodRefine()` adapter
+
 - **REQ**: REQ-002 (refine convention)
 - **What**: adapts `(val, opts?) => true | string` into Zod's
   `.refine(validator, params)` shape (truthy/falsy + separate message).
@@ -32,6 +35,7 @@ silently produced generic "Invalid input" instead of custom messages. See
 - **Gate**: `npm run test -- refine-adapter`
 
 ## T-003: `Define()` factory
+
 - **REQ**: REQ-001
 - **What**: BaseType normalization (call if function, else use as-is) +
   `mergeDescriptor` + deferred `refine`/runtime-opts binding at
@@ -44,6 +48,7 @@ silently produced generic "Invalid input" instead of custom messages. See
 - **Gate**: `npm run test -- define`
 
 ## T-004: Core primitives
+
 - **REQ**: REQ-006
 - **What**: `Text`, `Number`, `Uuid`, `Email`, `Password`, `Ip`, `Enum`,
   `Version`, `Nullable`, `Optional`, `List` — each a zero-arg-callable
@@ -55,6 +60,7 @@ silently produced generic "Invalid input" instead of custom messages. See
 - **Gate**: `npm run test -- primitives`
 
 ## T-005: `FromZodType()`
+
 - **REQ**: REQ-007
 - **What**: wraps an arbitrary Zod schema into `FieldDescriptor` (empty
   `meta`).
@@ -65,6 +71,7 @@ silently produced generic "Invalid input" instead of custom messages. See
 - **Gate**: `npm run test -- from-zod-type`
 
 ## T-006: `writeOnly` flag on `meta`
+
 - **REQ**: (lifecycle-serialization follow-up, landed on this feature's shape)
 - **What**: confirm `meta.writeOnly?: boolean` is accepted/propagated by
   `Define`/`mergeDescriptor` (already in T-001's type, this task is the

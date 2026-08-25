@@ -1,6 +1,7 @@
 # Design: Struct Entities & Embedded Value Objects
 
 ## Architecture Overview
+
 `Struct(fields, options)` synchronously builds ONE Zod pipeline per class and
 returns a real ES class carrying that pipeline plus an internal, symbol-keyed
 metadata registry. `class X extends Struct({...}, {...}) {}` works because
@@ -43,6 +44,7 @@ hypothetical future subclass — that asymmetry with `.parse()`'s
 polymorphism is intentional, see `lifecycle-serialization/design.md`).
 
 ## Correction to struct-entities/spec.md REQ-001
+
 Re-reading INSIGHT.md §2 vs §3: `Address` (an `Embed`-ed `Struct`) declares
 its OWN `labels: { entityName: 'Endereço' }` in its OWN `Struct(...)` call —
 it does NOT inherit `entityName: 'Usuário'` from `User`. **Labels do NOT
@@ -56,7 +58,9 @@ THAT call's `options.labels` — never against an ancestor/descendant
 ... to nested `Embed`/`Ref` unless overridden" — replaced below.
 
 ## Template resolution timing
+
 Resolved once, synchronously, inside `Struct(fields, options)`:
+
 1. For each field in `fields`, read `FieldDescriptor.meta.description` (and
    `meta.message` string values) from `define-metatypes`.
 2. Scan for `options.template?.delimiter ?? '#'` + identifier pattern
@@ -76,6 +80,7 @@ performance/correctness choice: `labels` are static for a given `Struct`
 call, so there is nothing to re-resolve per parse.
 
 ## Internal metadata registry
+
 Every class `Struct(...)` produces attaches a symbol-keyed static registry
 (not enumerable, not part of the public field surface) so later features can
 introspect without re-deriving the pipeline:
@@ -105,6 +110,7 @@ interface StructMeta {
 "introspectable field-record representation" that feature's spec assumes.
 
 ## `Embed(Struct)` — real nested instances
+
 `Embed(TargetStructClass)` returns a `FieldDescriptor` whose `zodSchema` is
 `TargetStructClass[STRUCT_META].schema.transform(data => new
 TargetStructClass(data))` — the target's validation pipeline REUSED (not a
@@ -124,12 +130,13 @@ zero special-casing in `struct-entities`'s own object-assembly step. This is
 the same mechanism `Ref` (separate feature) reuses.
 
 ## `pre`/`post` hook wiring
+
 - `pre`: implemented via `z.preprocess(options.pre, objectSchema)` — Context7
   confirms `z.preprocess(fn, schema)` still exists in Zod v4 as a pipe (`fn`
   runs first, output feeds `schema`). Runs on the raw, still-unvalidated
   input object.
 - `post`: implemented via `.superRefine((val, ctx) => options.post(val,
-  ctx))` on the object schema (after `pre`, before `.transform()`).
+ctx))` on the object schema (after `pre`, before `.transform()`).
   Context7 flags `.superRefine()` as deprecated in v4 in favor of `.check()`
   — internally `morphz` should call `.check()` (the non-deprecated
   primitive `.superRefine()` delegates to), but the PUBLIC `post(val, ctx)`
@@ -138,6 +145,7 @@ the same mechanism `Ref` (separate feature) reuses.
   implementation choice, not a public API change.
 
 ## `List`/`Optional`/`Nullable` composition
+
 Already implemented as core primitives in `define-metatypes` (each a
 `FieldDescriptorFactory` wrapping `.array()`/`.optional()`/`.nullable()`
 around an inner `FieldDescriptor`'s `zodSchema`). `struct-entities` consumes
@@ -149,14 +157,16 @@ a `Ref` — it only ever reads `.zodSchema` off whatever descriptor is in the
 `fields` record.
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
-| `Struct()` | Assembles the pre→object→post pipeline (no instantiation), returns a real class with `STRUCT_META` attached | `src/core/struct.ts` |
+
+| Component                                | Responsibility                                                                                               | Location                  |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| `Struct()`                               | Assembles the pre→object→post pipeline (no instantiation), returns a real class with `STRUCT_META` attached  | `src/core/struct.ts`      |
 | `STRUCT_META` symbol + `StructMeta` type | Internal introspectable registry consumed by `FieldOf`, `.extend()`/`.omit()`/`.pick()`, i18n message lookup | `src/core/struct-meta.ts` |
-| Template resolver | Walks field `meta.description`/`meta.message` strings, substitutes `#placeholder` using `options.labels` | `src/core/template.ts` |
-| `Embed()` | Field descriptor whose `zodSchema` = target `Struct`'s full pipeline schema (reused, not rebuilt) | `src/core/embed.ts` |
+| Template resolver                        | Walks field `meta.description`/`meta.message` strings, substitutes `#placeholder` using `options.labels`     | `src/core/template.ts`    |
+| `Embed()`                                | Field descriptor whose `zodSchema` = target `Struct`'s full pipeline schema (reused, not rebuilt)            | `src/core/embed.ts`       |
 
 ## Dependency Paths
+
 - `Embed`/field assembly → `FieldDescriptor.zodSchema` (from
   `define-metatypes`, already built).
 - Template resolver → `options.template.delimiter` (from `project-config`,
@@ -165,8 +175,9 @@ a `Ref` — it only ever reads `.zodSchema` off whatever descriptor is in the
   dependency).
 
 ## Risks
+
 - `STRUCT_META`'s exact shape is a cross-cutting contract — `entity-
-  relationships` (`FieldOf`, `Ref`), `class-extensibility` (`.extend()`/
+relationships` (`FieldOf`, `Ref`), `class-extensibility` (`.extend()`/
   `.omit()`/`.pick()`/`.partial()`), and `lifecycle-serialization`
   (`.parse()`/`.safeParse()`/`.toJSON()`) all read/derive from it. Any
   shape change here has wide blast radius across those three features —
@@ -183,6 +194,7 @@ a `Ref` — it only ever reads `.zodSchema` off whatever descriptor is in the
   consistent with the labels-don't-cascade correction above.
 
 ## Decision Log
+
 - Pipeline order fixed as `pre → object → post` — matches INSIGHT.md's
   stated Zod equivalents (`z.preprocess` / `z.superRefine`) exactly.
   Instantiation deliberately kept OUT of this pipeline (corrected during

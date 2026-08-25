@@ -16,11 +16,11 @@
  * intended message. Fixed here: `error` is a function of the ISSUE,
  * recomputing the refine result from `issue.input`.
  */
-export type MorphzRefine<T, Opts = undefined> = (val: T, opts?: Opts) => true | string
+export type MorphzRefine<T, Opts = undefined> = (val: T, opts?: Opts) => true | string;
 
 export interface ZodRefineArgs<T> {
-  check: (val: T) => boolean
-  params: { error: (issue: { input: unknown }) => string }
+  check: (val: T) => boolean;
+  params: { error: (issue: { input: unknown }) => string };
 }
 
 export function toZodRefine<T, Opts = undefined>(
@@ -31,9 +31,9 @@ export function toZodRefine<T, Opts = undefined>(
     check: (val: T) => refineFn(val, opts) === true,
     params: {
       error: (issue: { input: unknown }) => {
-        const result = refineFn(issue.input as T, opts)
-        return typeof result === 'string' ? result : 'Invalid value'
+        const result = refineFn(issue.input as T, opts);
+        return typeof result === "string" ? result : "Invalid value";
       },
     },
-  }
+  };
 }

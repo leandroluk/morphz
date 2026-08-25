@@ -1,6 +1,7 @@
 # Design: Project Configuration (`morphz.config.ts`)
 
 ## Architecture Overview
+
 A single module-level singleton, populated exactly once (lazily on first
 need, or eagerly via `morphz/register`), read by every other feature that
 already designed a dependency on it (`define-metatypes`'s template
@@ -31,16 +32,18 @@ discovery function eagerly, at import time, instead of waiting for
 `getConfig()`'s first lazy call.
 
 ## `getConfig()` — the singleton accessor
+
 ```ts
-let cachedConfig: MorphzConfig | undefined
+let cachedConfig: MorphzConfig | undefined;
 
 function getConfig(): MorphzConfig {
   if (cachedConfig === undefined) {
-    cachedConfig = discoverConfig() ?? {}
+    cachedConfig = discoverConfig() ?? {};
   }
-  return cachedConfig
+  return cachedConfig;
 }
 ```
+
 Every consumer (`resolveLocale()` in `i18n-error-messages`, the template
 resolver in `struct-entities`, `defineConfig`'s labels-derivation default)
 calls `getConfig()` — never reads a config FILE directly, never re-runs
@@ -50,6 +53,7 @@ binding, shared by the whole process regardless of how many `Struct`
 classes/packages import `morphz`.
 
 ## `discoverConfig()`
+
 Cosmiconfig-style synchronous upward search from `process.cwd()` for
 `morphz.config.{ts,js,mjs,cjs}`. `.ts`/`.mjs`/`.cjs`/`.js` all load via
 `jiti`'s synchronous `require` — using `jiti` uniformly for every extension
@@ -58,11 +62,13 @@ Cosmiconfig-style synchronous upward search from `process.cwd()` for
 file is found at any ancestor directory (search stops at filesystem root).
 
 ## `defineConfig(options)`
+
 ```ts
 function defineConfig(options: MorphzConfig): MorphzConfig {
-  return options   // pure type-level identity, per REQ-001
+  return options; // pure type-level identity, per REQ-001
 }
 ```
+
 No runtime behavior — exists solely so `morphz.config.ts` authors get
 autocomplete/type-checking on `options`. The ACTUAL config object reaches
 `morphz` only via `discoverConfig()` loading the file and reading its
@@ -75,17 +81,20 @@ does NOT itself trigger discovery — discovery is driven by
 the other way around).
 
 ## `morphz/register`
+
 ```ts
 // src/register.ts — side-effect module
-import { discoverConfig } from './core/config'
-cachedConfig = discoverConfig() ?? {}   // eager population of the SAME singleton
+import { discoverConfig } from "./core/config";
+cachedConfig = discoverConfig() ?? {}; // eager population of the SAME singleton
 ```
+
 A no-op if `cachedConfig` is already populated (either a prior
 `morphz/register` import, or a config-needing API already ran lazy
 discovery first) — matches REQ-005's "calling it twice is a no-op"
 requirement exactly.
 
 ## Resolved open questions
+
 - **Zero-config locale default**: `'en-US'` — this was already settled
   concretely by `i18n-error-messages/design.md`'s `resolveLocale()`
   (`AsyncLocalStorage → config.locale.default → 'en-US'`); this design adds
@@ -104,28 +113,32 @@ requirement exactly.
   (non-peer) dependency of `morphz` itself.
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
-| `getConfig()` | Singleton accessor, triggers lazy discovery on first call | `src/core/config.ts` |
-| `discoverConfig()` | Cosmiconfig-style sync search + `jiti` load | `src/core/config.ts` |
-| `defineConfig()` | Type-only identity helper | `src/core/define-config.ts` |
-| `morphz/register` | Side-effect module, eager discovery | `src/register.ts` |
+
+| Component          | Responsibility                                            | Location                    |
+| ------------------ | --------------------------------------------------------- | --------------------------- |
+| `getConfig()`      | Singleton accessor, triggers lazy discovery on first call | `src/core/config.ts`        |
+| `discoverConfig()` | Cosmiconfig-style sync search + `jiti` load               | `src/core/config.ts`        |
+| `defineConfig()`   | Type-only identity helper                                 | `src/core/define-config.ts` |
+| `morphz/register`  | Side-effect module, eager discovery                       | `src/register.ts`           |
 
 ## Dependency Paths
+
 - `getConfig()` is read by: `struct-entities`'s template resolver (delimiter
-  + labels-derivation default), `i18n-error-messages`'s `resolveLocale()`.
-  Both already-completed designs reference `project-config` by name; this
-  design fulfills that reference with the concrete `getConfig()` API,
-  requiring no changes to either of those designs (they already treated
-  config as an opaque "the loaded singleton").
+  - labels-derivation default), `i18n-error-messages`'s `resolveLocale()`.
+    Both already-completed designs reference `project-config` by name; this
+    design fulfills that reference with the concrete `getConfig()` API,
+    requiring no changes to either of those designs (they already treated
+    config as an opaque "the loaded singleton").
 
 ## Risks
+
 - None new — this is the last of the 8 features to receive a design, and
   it introduces no further follow-ups onto any other feature's shape
   (unlike most of the preceding designs). Safe to treat as the final piece
   before Execute phase.
 
 ## Decision Log
+
 - `jiti` used uniformly for ALL config extensions (not just `.ts`) — one
   code path instead of branching on file extension, simpler to implement
   and reason about.

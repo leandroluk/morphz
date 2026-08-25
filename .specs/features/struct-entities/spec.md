@@ -1,6 +1,7 @@
 # Spec: Struct Entities & Embedded Value Objects
 
 ## Summary
+
 `Struct(fields, options)` is the core class-factory: a plain object of field
 descriptors (built via core primitives / `Define`) plus an `options` object
 (`labels`, `description`, `pre`, `post`) produces a base class. Extending that
@@ -11,6 +12,7 @@ entity that carries both schema-driven validation and hand-written methods.
 nested inside `User`.
 
 ## Requirements
+
 - REQ-001: `Struct(fields, options)` returns a base class. `fields` is a
   record of field-descriptor factories (`Text()`, `PrimaryKey()`, etc.).
   `options.labels` is a record (e.g. `{ entityName, module }`) propagated to
@@ -39,7 +41,7 @@ nested inside `User`.
   value (typically inside `Optional(Embed(X))` or bare). Parsing an embedded
   field produces a real instance of the embedded `Struct` (not a plain
   object) nested inside the parent instance — `user.address instanceof
-  Address` must hold.
+Address` must hold.
 - REQ-006: A `Struct`-derived class may declare plain class members (getters,
   methods) that are NOT part of `fields` — these are pure behavior, excluded
   from parse/serialize/JSON-Schema generation entirely (see INSIGHT.md
@@ -55,6 +57,7 @@ nested inside `User`.
   any other primitive/`Embed`/`Ref`/`List`.
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Depends on `define-metatypes` (field descriptors, template
 labels) and `datetime-codec` (for `CreatedAt`/`UpdatedAt`/`DeletedAt` fields
 used in the `User`/`Post` examples). `entity-relationships` depends on this
@@ -62,6 +65,7 @@ feature for `Struct` class identity (`Ref`/`FieldOf` both need a resolvable
 `Struct` class).
 
 ## Out of Scope
+
 - `Ref` (entity relationship) and `FieldOf` (field-type reuse) — separate
   feature (`entity-relationships`), even though both appear inside `Struct`
   field records in examples.
@@ -75,8 +79,9 @@ feature for `Struct` class identity (`Ref`/`FieldOf` both need a resolvable
   class SUPPORTS those calls, not their internal behavior.
 
 ## Resolved (design phase)
+
 - `post` hook signature: public shape stays `ctx.addIssue({ code, path,
-  message })` matching INSIGHT.md §3 exactly. Internally implemented via
+message })` matching INSIGHT.md §3 exactly. Internally implemented via
   Zod v4's `.check()` (Context7 confirms `.superRefine()` is deprecated in
   v4 in favor of `.check()`, though still functional) — implementation
   detail, doesn't change the public `post(val, ctx)` contract.
@@ -87,6 +92,7 @@ feature for `Struct` class identity (`Ref`/`FieldOf` both need a resolvable
   than merging/inheriting anything across the `Struct` boundary.
 
 ## Open Questions
+
 - Field-level `description` (e.g. `Text({ description: 'Logradouro' })`) vs.
   entity-level `options.description` — do both appear in JSON Schema output
   simultaneously, and at what precedence if a `Define` template also sets a

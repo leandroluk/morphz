@@ -1,6 +1,7 @@
 # Design: Entity Relationships (`Ref`, `FieldOf`, `Union`)
 
 ## Architecture Overview
+
 All three primitives produce the same `FieldDescriptor` shape from
 `define-metatypes` — no special-casing anywhere else in the pipeline
 (`struct-entities`'s field assembly already treats every field uniformly by
@@ -24,6 +25,7 @@ FieldDescriptor{ zodSchema: lazy }       FieldDescriptor (cloned) + options
 ```
 
 ## `Ref(() => Struct)` — lazy resolution
+
 `zodSchema = z.lazy(() => { const S = thunk(); return
 S[STRUCT_META].schema.transform(data => new S(data)) })`. Per the
 correction made during `lifecycle-serialization` design,
@@ -56,6 +58,7 @@ wrappers already built in `struct-entities`, no new composition primitive
 needed (confirms spec.md REQ-002 as designed).
 
 ## `FieldOf(Struct, 'fieldName', options?)` — eager field-shape reuse
+
 Reads `Struct[STRUCT_META].fields['fieldName']` directly — this MUST be
 fully populated already, which is guaranteed by JS module evaluation order
 (the referenced `Struct` class's `class X extends Struct(...) {}` must have
@@ -87,20 +90,25 @@ TS-level safety via `keyof StructFields<Struct>` is achievable since
 phase typing task, not a design blocker.
 
 ## `Union([...members], options?)` — mirrors Zod's own applicability rule
+
 Per the earlier resolution (mirror Zod exactly, no `morphz`-specific
 heuristic), the detection algorithm is:
 
 ```ts
 function resolveUnion(members: FieldDescriptor[]) {
-  const objectMembers = members.filter(m => isZodObject(m.zodSchema))
-  const allAreObjects = objectMembers.length === members.length
-  const sharedKey = allAreObjects ? detectDiscriminatorKey(objectMembers) : null
+  const objectMembers = members.filter((m) => isZodObject(m.zodSchema));
+  const allAreObjects = objectMembers.length === members.length;
+  const sharedKey = allAreObjects ? detectDiscriminatorKey(objectMembers) : null;
 
   return sharedKey
-    ? z.discriminatedUnion(sharedKey, objectMembers.map(m => m.zodSchema))
-    : z.union(members.map(m => m.zodSchema))
+    ? z.discriminatedUnion(
+        sharedKey,
+        objectMembers.map((m) => m.zodSchema),
+      )
+    : z.union(members.map((m) => m.zodSchema));
 }
 ```
+
 - `isZodObject`: every `Struct`-produced `FieldDescriptor.zodSchema` IS a
   `ZodObject`-based pipeline underneath (see `struct-entities` design) — but
   the pipeline includes `pre`/`post`/`.transform()` wrapping, so
@@ -127,21 +135,24 @@ needed; it falls out of the same structural check used for the all-`Struct`
 case.
 
 ## `Literal(value)`
+
 Thin wrapper: `FieldDescriptor { zodSchema: z.literal(value), meta: {} }`.
 No `Define`-based specialization needed or expected — it's a leaf primitive,
 same tier as `Text`/`Number` in `define-metatypes`, but scoped to this
 feature since its only real use in INSIGHT.md is as a `Union` member.
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
-| `Ref()` | Lazy `FieldDescriptor` via `z.lazy()` reading target `STRUCT_META.schema` | `src/core/ref.ts` |
-| `FieldOf()` | Eager clone of a source field's `FieldDescriptor` (minus `default`/`immutable`) + `mergeDescriptor` with `options` | `src/core/field-of.ts` |
-| `Union()` | Structural discriminator detection + `z.discriminatedUnion`/`z.union` dispatch | `src/core/union.ts` |
-| `Literal()` | Thin `z.literal()` wrapper | `src/core/literal.ts` |
-| `detectDiscriminatorKey()` (internal) | Shared-literal-key detection over raw object shapes | `src/core/union.ts` |
+
+| Component                             | Responsibility                                                                                                     | Location               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------- |
+| `Ref()`                               | Lazy `FieldDescriptor` via `z.lazy()` reading target `STRUCT_META.schema`                                          | `src/core/ref.ts`      |
+| `FieldOf()`                           | Eager clone of a source field's `FieldDescriptor` (minus `default`/`immutable`) + `mergeDescriptor` with `options` | `src/core/field-of.ts` |
+| `Union()`                             | Structural discriminator detection + `z.discriminatedUnion`/`z.union` dispatch                                     | `src/core/union.ts`    |
+| `Literal()`                           | Thin `z.literal()` wrapper                                                                                         | `src/core/literal.ts`  |
+| `detectDiscriminatorKey()` (internal) | Shared-literal-key detection over raw object shapes                                                                | `src/core/union.ts`    |
 
 ## Dependency Paths
+
 - `Ref`/`FieldOf` → `STRUCT_META` (from `struct-entities` design) —
   `STRUCT_META.rawObjectSchema` specifically is what makes `Union`'s
   discriminator detection possible without re-parsing the full pipeline.
@@ -149,6 +160,7 @@ feature since its only real use in INSIGHT.md is as a `Union` member.
   verbatim, no new merge logic.
 
 ## Risks
+
 - Confirms `STRUCT_META` as the cross-feature God Node flagged in
   `struct-entities/design.md` — THREE of its four fields
   (`schema`, `rawObjectSchema`, `fields`) are now load-bearing for this
@@ -161,6 +173,7 @@ feature since its only real use in INSIGHT.md is as a `Union` member.
   pointing at "declare `User` before `FieldOf(User, ...)`."
 
 ## Decision Log
+
 - `FieldOf` clones the FULL descriptor but explicitly strips `default`/
   `immutable` from the source — resolves spec.md REQ-004, prevents an FK
   field from silently inheriting a PK's self-generation/immutability

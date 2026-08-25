@@ -1,6 +1,7 @@
 # Spec: Class Extensibility (`.extend()`, `.omit()`, `.pick()`, `.partial()`)
 
 ## Summary
+
 `Struct`-derived classes support real class extension: `.extend(newFields)`
 adds fields (and the subclass can add its own methods) while preserving
 `instanceof` polymorphism against the parent class. `.omit()`/`.pick()`
@@ -10,6 +11,7 @@ fields for a "create" DTO). `.partial()` makes all remaining fields optional
 constrain what a derived "update" DTO can legally accept.
 
 ## Requirements
+
 - REQ-001: `BaseStruct.extend(newFields)` returns a new base class usable
   with `class X extends BaseStruct.extend({...}) {}`, combining the parent's
   field record with `newFields`. If `newFields` redeclares a field name that
@@ -17,7 +19,7 @@ constrain what a derived "update" DTO can legally accept.
   parent's for that field — ordinary single-parent override semantics, same
   as overriding a class field/property in standard OOP. This is NOT the
   mixin-collision problem INSIGHT.md warns against (that concerns two
-  *sibling* mixins composed at the same level with no hierarchy to resolve
+  _sibling_ mixins composed at the same level with no hierarchy to resolve
   precedence — `.extend()` has exactly one parent, so precedence is always
   unambiguous: child wins).
 - REQ-002: A class extending `.extend(...)`'s result satisfies BOTH
@@ -27,7 +29,7 @@ constrain what a derived "update" DTO can legally accept.
 - REQ-003: `.omit(...fieldNames)` returns a class with the named fields
   removed from the schema (and thus from parse/serialize) — used for DTOs
   like `CreatePostDto extends Post.omit('id', 'createdAt', 'updatedAt',
-  'deletedAt')`.
+'deletedAt')`.
 - REQ-004: `.pick(...fieldNames)` returns a class with ONLY the named fields
   retained — used for narrow update DTOs like
   `UpdateUserDto extends User.pick('name', 'address').partial()`.
@@ -46,6 +48,7 @@ constrain what a derived "update" DTO can legally accept.
   `instanceof`).
 
 ## Affected Components (from graph)
+
 N/A — greenfield. Depends on `struct-entities` (base class shape) and
 `define-metatypes` (`immutable` flag semantics — REQ-006 above is the
 concrete enforcement point: base `Struct.parse()` always allows writing an
@@ -54,6 +57,7 @@ that still carries the field rejects it if present in input, resolved per
 `define-metatypes` REQ-005).
 
 ## Out of Scope
+
 - Deep/structural merge of `Embed`-nested field overrides on `.extend()` —
   not demonstrated in INSIGHT.md; assume `.extend()` only adds/overrides
   top-level fields unless a concrete use case surfaces.
@@ -61,6 +65,7 @@ that still carries the field rejects it if present in input, resolved per
   not covered.
 
 ## Resolved (design phase)
+
 - `.omit()`/`.pick()` accept BOTH the variadic form
   (`.omit('id', 'createdAt')`, matching every INSIGHT.md example) AND a
   single array argument (`.omit(['id', 'createdAt'])`) — normalized
