@@ -73,7 +73,9 @@ function synthesizePrimitive(schema: unknown, fieldName: string): unknown {
       if (topExample) return topExample();
 
       const formatCheck = findCheck(schema, "string_format");
-      const checkExample = formatCheck?.format ? CANONICAL_FORMAT_EXAMPLES[formatCheck.format] : undefined;
+      const checkExample = formatCheck?.format
+        ? CANONICAL_FORMAT_EXAMPLES[formatCheck.format]
+        : undefined;
       if (checkExample) return checkExample();
 
       if (formatCheck?.pattern) {
@@ -114,7 +116,11 @@ interface MockContext {
 
 const MAX_MOCK_DEPTH = 5;
 
-function synthesizeField(descriptor: FieldDescriptor, fieldName: string, ctx: MockContext): unknown {
+function synthesizeField(
+  descriptor: FieldDescriptor,
+  fieldName: string,
+  ctx: MockContext,
+): unknown {
   if (descriptor.meta.examples && descriptor.meta.examples.length > 0) {
     return descriptor.meta.examples[0];
   }

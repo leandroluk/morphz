@@ -1,6 +1,7 @@
 # Tasks: JSDoc Generation
 
 ## T-001: `extractFieldConstraints()` — Zod internal introspection
+
 - **REQ**: REQ-002
 - **What**: walk `zodSchema._zod.def.checks` for min/max length, min/max
   numeric, regex, format-check discriminator; return a tag list.
@@ -12,6 +13,7 @@
 - **Gate**: `npx vitest run -- extract-constraints`
 
 ## T-002: `sanitizeExample()`
+
 - **REQ**: REQ-003
 - **What**: `@`-escape + fence per the design.md algorithm.
 - **Where**: `src/core/jsdoc/sanitize-example.ts`
@@ -23,6 +25,7 @@
 - **Gate**: `npx vitest run -- sanitize-example`
 
 ## T-003: `buildFieldTags()` — mapping table composition
+
 - **REQ**: REQ-002
 - **What**: composes `description` (locale-resolved) + `@default`/
   `@example`/`@readonly`/`@writeOnly` + T-001's constraint tags, per
@@ -34,6 +37,7 @@
 - **Gate**: `npx vitest run -- build-field-tags`
 
 ## T-004: `applyJsDoc()` — the entry point
+
 - **REQ**: REQ-001, REQ-004, REQ-005
 - **What**: gated on `getConfig().jsdoc`; dynamic-`import()`s the built
   JS; for each `STRUCT_META`-carrying export, opens the `.d.ts` via

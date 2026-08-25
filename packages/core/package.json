@@ -2,6 +2,28 @@
   "name": "morphz",
   "version": "0.1.0",
   "description": "Zod v4 + class-based, type-safe OO layer: Struct entities, Define meta-types, real instances.",
+  "keywords": [
+    "domain-driven-design",
+    "ide",
+    "jsdocs",
+    "plugin",
+    "schema",
+    "types",
+    "typescript",
+    "validation",
+    "vscode",
+    "zod"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Leandro Santiago Gomes",
+    "email": "leandroluk@gmail.com",
+    "url": "https://linkedin.com/in/leandroluk"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leandroluk/morphz.git"
+  },
   "files": [
     "dist"
   ],
@@ -9,28 +31,6 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/leandroluk/morphz.git"
-  },
-  "keywords": [
-    "schema",
-    "validation",
-    "types",
-    "zod",
-    "domain-driven-design",
-    "jsdocs",
-    "typescript",
-    "plugin",
-    "vscode",
-    "ide"
-  ],
-  "author": {
-    "name": "Leandro Santiago Gomes",
-    "email": "leandroluk@gmail.com",
-    "url": "https://linkedin.com/in/leandroluk"
-  },
-  "license": "MIT",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

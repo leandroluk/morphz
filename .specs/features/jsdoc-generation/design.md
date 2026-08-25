@@ -1,6 +1,7 @@
 # Design: JSDoc Generation (`jsdoc: true`)
 
 ## Architecture Overview
+
 **Runtime-metadata-driven, not static-AST-driven.** Resolves the spec's
 open question: instead of re-deriving labels/constraints by parsing
 `Define`/`Struct` call expressions statically (what `ts-language-service
@@ -35,6 +36,7 @@ only when getConfig().jsdoc === true)
 ```
 
 ## Resolves spec's open question #2 (class discovery)
+
 Only classes reachable from the CONSUMER's own built entry point's exports
 get documented — a class never re-exported isn't importable by anyone
 either, so there's nothing meaningful to document for it. No project-wide
@@ -43,6 +45,7 @@ filtering by `STRUCT_META in value` is sufficient and exactly matches
 "what a consumer of this package can actually see."
 
 ## Resolves spec's open question #1 (rewrite mechanism)
+
 `ts-morph`, confirmed via Context7 (`/dsherret/ts-morph`):
 `declaration.addJsDoc({ description, tags: [{ tagName, text }] })` works
 on any `JSDocableNode` (covers both `ClassDeclaration` and
@@ -51,6 +54,7 @@ custom AST-diffing/regex-patching needed — `ts-morph` IS the chosen
 post-processor.
 
 ## Constraint extraction — NOT from `meta`
+
 `FieldDescriptorMeta` (already shipped, `define-metatypes`) does NOT carry
 `min`/`max`/`regex`/`format` as separate metadata — those are baked
 directly into `zodSchema` via `.regex()`/`.min()`/`.max()` calls
@@ -66,34 +70,39 @@ its own `format` field, etc.) — this is real, already-proven-working
 introspection in THIS codebase, not speculative.
 
 ## `@example` sanitization (REQ-003)
+
 ```ts
 function sanitizeExample(value: unknown): string {
-  const rendered = typeof value === "string" ? value : JSON.stringify(value, null, 2)
-  const escaped = rendered.replace(/@/g, "&#64;")
+  const rendered = typeof value === "string" ? value : JSON.stringify(value, null, 2);
+  const escaped = rendered.replace(/@/g, "&#64;");
   return typeof value === "string" && !value.includes("\n")
-    ? escaped  // short scalar — no fencing needed
-    : `\`\`\`ts\n${escaped}\n\`\`\``
+    ? escaped // short scalar — no fencing needed
+    : `\`\`\`ts\n${escaped}\n\`\`\``;
 }
 ```
+
 Matches INSIGHT.md §10's documented `tsserver` JSDoc-parser quirk exactly
 (an unescaped `@` inside `@example`'s body gets misread as a new tag
 boundary) — this is a real, previously-documented TypeScript tooling
 issue, not a hypothetical.
 
 ## The generator's own entry point
+
 ```ts
 // exported from packages/core, called by the CONSUMER's build script
 export async function applyJsDoc(options: {
-  jsEntryPath: string   // e.g. './dist/index.js' (already built)
-  dtsPath: string       // e.g. './dist/index.d.ts' (already built)
-}): Promise<void>
+  jsEntryPath: string; // e.g. './dist/index.js' (already built)
+  dtsPath: string; // e.g. './dist/index.d.ts' (already built)
+}): Promise<void>;
 ```
+
 Gated internally on `getConfig().jsdoc === true` (REQ-002 from
 `config-jsdoc-flag`) — a no-op (returns immediately) when the flag is
 off, so consumers can unconditionally call it in their build script
 without an extra `if` themselves.
 
 ## Locale resolution for i18n `description` maps
+
 Per spec REQ-005 (already decided): `config.locale.default` ONLY — no
 `AsyncLocalStorage` (no request context exists at build time). Reuses
 `i18n-error-messages`'s locale-map-resolution LOGIC (pick key by locale,
@@ -103,14 +112,16 @@ AsyncLocalStorage-first behavior would be wrong here (there's no
 "request" to read a locale from at build time).
 
 ## New Components
-| Component | Responsibility | Location |
-|---|---|---|
-| `applyJsDoc()` | Entry point, dynamic-imports the built JS, drives the whole step | `packages/core/src/core/jsdoc/apply-jsdoc.ts` |
-| `extractFieldConstraints()` | `_zod.def.checks` introspection → tag list | `packages/core/src/core/jsdoc/extract-constraints.ts` |
-| `sanitizeExample()` | `@`-escaping + fencing for `@example` | `packages/core/src/core/jsdoc/sanitize-example.ts` |
-| `buildFieldTags()` | Composes `description` + all tags per INSIGHT.md §10's mapping table, for one field | `packages/core/src/core/jsdoc/build-field-tags.ts` |
+
+| Component                   | Responsibility                                                                      | Location                                              |
+| --------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `applyJsDoc()`              | Entry point, dynamic-imports the built JS, drives the whole step                    | `packages/core/src/core/jsdoc/apply-jsdoc.ts`         |
+| `extractFieldConstraints()` | `_zod.def.checks` introspection → tag list                                          | `packages/core/src/core/jsdoc/extract-constraints.ts` |
+| `sanitizeExample()`         | `@`-escaping + fencing for `@example`                                               | `packages/core/src/core/jsdoc/sanitize-example.ts`    |
+| `buildFieldTags()`          | Composes `description` + all tags per INSIGHT.md §10's mapping table, for one field | `packages/core/src/core/jsdoc/build-field-tags.ts`    |
 
 ## Dependency Paths
+
 - `applyJsDoc` → `STRUCT_META` (`struct-entities`) — reads real,
   fully-resolved field descriptors.
 - `extractFieldConstraints` → Zod's internal `_zod.def` shape (same
@@ -121,6 +132,7 @@ AsyncLocalStorage-first behavior would be wrong here (there's no
 - New external dependency: `ts-morph` (`packages/core`).
 
 ## Risks
+
 - This step runs AFTER the consumer's OWN build already emitted `.d.ts` —
   meaning it must be wired into THEIR build pipeline (a `postbuild`
   script calling `applyJsDoc()`, or a `tsup`/`vite` plugin hook). This
@@ -136,6 +148,7 @@ AsyncLocalStorage-first behavior would be wrong here (there's no
   only to `_zod.def`, not `z.string()` etc.).
 
 ## Decision Log
+
 - Chose runtime-metadata-driven over static-AST-driven specifically
   BECAUSE `ts-language-service-plugin` already has to solve the harder,
   static version of this problem for live hover — no reason to duplicate

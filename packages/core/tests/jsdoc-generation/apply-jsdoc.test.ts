@@ -141,7 +141,10 @@ export class Partial2 extends Struct(
 `,
     );
     // .d.ts only declares "a" — "b" has no PropertyDeclaration to patch.
-    writeFileSync(join(tmpDir, "fixture.d.ts"), `export declare class Partial2 {\n  a: string;\n}\n`);
+    writeFileSync(
+      join(tmpDir, "fixture.d.ts"),
+      `export declare class Partial2 {\n  a: string;\n}\n`,
+    );
 
     process.chdir(tmpDir);
 

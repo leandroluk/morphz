@@ -12,10 +12,7 @@ import { Uuid } from "../../src/primitives/uuid.js";
 
 describe(".mock()", () => {
   it("uses the first declared example when present", () => {
-    class User extends Struct(
-      { name: Text({ examples: ["Ada Lovelace"] }), email: Email() },
-      {},
-    ) {}
+    class User extends Struct({ name: Text({ examples: ["Ada Lovelace"] }), email: Email() }, {}) {}
     const u = (User as unknown as { mock: (o?: object) => { name: string; email: string } }).mock();
     expect(u.name).toBe("Ada Lovelace");
     expect(u.email).toBe("user@example.com");
@@ -66,7 +63,10 @@ describe(".mock()", () => {
 
   it("recursively mocks Ref()-ed fields", () => {
     class Author extends Struct({ name: Text({ examples: ["Ada"] }) }, {}) {}
-    class Post extends Struct({ title: Text({ examples: ["Hi"] }), author: Ref(() => Author) }, {}) {}
+    class Post extends Struct(
+      { title: Text({ examples: ["Hi"] }), author: Ref(() => Author) },
+      {},
+    ) {}
     const p = (Post as unknown as { mock: (o?: object) => { author: unknown } }).mock();
     expect(p.author).toBeInstanceOf(Author);
   });
@@ -119,9 +119,7 @@ describe(".mock()", () => {
   it("required (non-Optional) mutually-circular Refs fail loud instead of hanging/overflowing", () => {
     class A extends Struct({ name: Text({ examples: ["a"] }), b: Ref((): typeof B => B) }, {}) {}
     class B extends Struct({ name: Text({ examples: ["b"] }), a: Ref(() => A) }, {}) {}
-    expect(() => (A as unknown as { mock: () => unknown }).mock()).toThrow(
-      /circular or too-deep/,
-    );
+    expect(() => (A as unknown as { mock: () => unknown }).mock()).toThrow(/circular or too-deep/);
   });
 
   it("plain unconstrained Text() still synthesizes (no examples/default/regex needed)", () => {
@@ -135,9 +133,7 @@ describe(".mock()", () => {
       { coordinates: FromZodType(z.tuple([z.number(), z.number()])) },
       {},
     ) {}
-    expect(() => (Weird as unknown as { mock: () => unknown }).mock()).toThrow(
-      /cannot synthesize/,
-    );
+    expect(() => (Weird as unknown as { mock: () => unknown }).mock()).toThrow(/cannot synthesize/);
   });
 });
 

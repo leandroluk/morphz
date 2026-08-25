@@ -161,7 +161,7 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   constructor is `new (input: unknown): object`. NO field-level TS type
   inference reaches any `morphz` consumer today (`user.name` isn't a
   recognized property on `class User extends Struct({name: Text()}, ...)
-  {}`). Undermines the "type-safe classes" core value prop. Never caught
+{}`). Undermines the "type-safe classes" core value prop. Never caught
   because `tsconfig.json` only includes `src/` (tests untypechecked) and
   every test so far only asserts runtime behavior. This is a large,
   cross-cutting retrofit (`Struct`/`Define`/every primitive need proper
@@ -170,6 +170,7 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
   decided by the user, not assumed. `jsdoc-generation`'s own integration
   test worked around it with a hand-written `.d.ts` fixture (still
   correctly validates `applyJsDoc`'s own mechanism).
+
 - [2026-08-25] `mock-fixtures` (v2 batch) complete. `.mock()`/
   `.mockMany()` on every `Struct`-produced class. Synthesis priority:
   overrides → examples → default → `Embed`/`Ref` recursive → `List` via

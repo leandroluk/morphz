@@ -35,7 +35,10 @@ import { Struct, Text } from "${CORE_DIST_INDEX}";
 export class Plain extends Struct({ name: Text({ description: "x" }) }, {}) {}
 `,
     );
-    writeFileSync(join(tmpDir, "fixture.d.ts"), `export declare class Plain {\n  name: string;\n}\n`);
+    writeFileSync(
+      join(tmpDir, "fixture.d.ts"),
+      `export declare class Plain {\n  name: string;\n}\n`,
+    );
 
     process.chdir(tmpDir);
 

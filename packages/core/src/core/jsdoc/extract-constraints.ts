@@ -44,7 +44,12 @@ export function extractFieldConstraints(schema: unknown): JsDocTag[] {
   const def = getDef(schema);
   if (!def) return [];
 
-  if (def.type === "optional" || def.type === "nullable" || def.type === "default" || def.type === "prefault") {
+  if (
+    def.type === "optional" ||
+    def.type === "nullable" ||
+    def.type === "default" ||
+    def.type === "prefault"
+  ) {
     return extractFieldConstraints(def.innerType);
   }
   if (def.type === "pipe") {

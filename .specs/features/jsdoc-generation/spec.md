@@ -83,6 +83,7 @@ extension, `jiti`-loaded config read at build time), `monorepo-architecture`
   JSDoc; the plugin is a separate, richer, interactive layer.
 
 ## Resolved (design phase)
+
 - Mechanism: `ts-morph` post-processor, confirmed via Context7
   (`ClassDeclaration`/`PropertyDeclaration.addJsDoc()` +
   `sourceFile.saveSync()`), run strictly AFTER the consumer's own

@@ -14,15 +14,16 @@ export interface FieldJsDoc {
  * assuming callers never pass one). Falls back to `fallbackLocale`, then
  * the first available key, then an empty string.
  */
-function resolveDescription(
-  description: unknown,
-  locale: string,
-  fallbackLocale?: string,
-): string {
+function resolveDescription(description: unknown, locale: string, fallbackLocale?: string): string {
   if (typeof description === "string") return description;
   if (description && typeof description === "object") {
     const map = description as Record<string, string>;
-    return map[locale] ?? (fallbackLocale ? map[fallbackLocale] : undefined) ?? Object.values(map)[0] ?? "";
+    return (
+      map[locale] ??
+      (fallbackLocale ? map[fallbackLocale] : undefined) ??
+      Object.values(map)[0] ??
+      ""
+    );
   }
   return "";
 }
@@ -42,7 +43,8 @@ export function buildFieldTags(
   const meta = descriptor.meta;
 
   if (meta.default !== undefined) {
-    const value = typeof meta.default === "function" ? (meta.default as () => unknown)() : meta.default;
+    const value =
+      typeof meta.default === "function" ? (meta.default as () => unknown)() : meta.default;
     tags.push({ tagName: "default", text: sanitizeExample(value) });
   }
   for (const example of meta.examples ?? []) {

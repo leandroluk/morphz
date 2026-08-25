@@ -837,21 +837,27 @@ Conforme o ecossistema e as necessidades de desenvolvimento evoluem, além dos p
 ### A. Escalares Fundamentais
 
 #### 1. `Boolean`
+
 Valores lógicos com suporte a coerção automática de querystrings e payloads (`"true"` $\rightarrow$ `true`, `"0"` $\rightarrow$ `false`):
+
 ```ts
 isActive: Boolean({ default: true, description: "Status de ativação da conta" }),
 isEmailVerified: Boolean({ default: false }),
 ```
 
 #### 2. `BigInt`
-Inteiros de 64 bits para identificadores grandes (*Snowflakes* do Discord/Twitter, IDs `BIGINT` do PostgreSQL, nano-timestamps):
+
+Inteiros de 64 bits para identificadores grandes (_Snowflakes_ do Discord/Twitter, IDs `BIGINT` do PostgreSQL, nano-timestamps):
+
 ```ts
 snowflakeId: BigInt({ min: 0n, description: "Identificador Snowflake único" }),
 balanceInAtomicUnits: BigInt({ min: 0n }),
 ```
 
 #### 3. `Decimal`
+
 Precisão numérica e financeira exata (evita erros de ponto flutuante do IEEE 754 e mapeia nativamente para colunas `DECIMAL` / `NUMERIC` de bancos de dados):
+
 ```ts
 price: Decimal({ precision: 10, scale: 2, min: "0.00", description: "Preço unitário em reais" }), // "150.50"
 interestRate: Decimal({ scale: 4, min: "0.0000", max: "1.0000" }), // "0.0525"
@@ -864,21 +870,27 @@ interestRate: Decimal({ scale: 4, min: "0.0000", max: "1.0000" }), // "0.0525"
 Evita o bug clássico de off-by-one day onde o objeto `Date` tradicional altera o dia do calendário devido ao fuso horário:
 
 #### 1. `DateOnly`
+
 Data pura no formato ISO 8601 (`"YYYY-MM-DD"`):
+
 ```ts
 birthDate: DateOnly({ description: "Data de nascimento do titular" }), // "1995-08-25"
 dueDate: DateOnly({ description: "Data de vencimento da fatura" }),
 ```
 
 #### 2. `TimeOnly`
+
 Horário puro sem componente de data (`"HH:mm"` ou `"HH:mm:ss"`):
+
 ```ts
 opensAt: TimeOnly({ description: "Horário de abertura do estabelecimento" }), // "08:30"
 closesAt: TimeOnly({ description: "Horário de fechamento" }), // "18:00"
 ```
 
 #### 3. `Duration`
+
 Durações temporais no formato ISO 8601 (`"PT15M"`, `"P1D"`) ou notações amigáveis (`"15m"`, `"2h"`, `"30d"`):
+
 ```ts
 sessionTtl: Duration({ default: "30d", description: "Tempo de expiração da sessão" }),
 retryInterval: Duration({ default: "5m" }),
@@ -889,19 +901,25 @@ retryInterval: Duration({ default: "5m" }),
 ### C. Identificadores Modernos de Alta Performance
 
 #### 1. `Ulid`
+
 Identificadores únicos lexicograficamente ordenáveis por tempo (128-bit codificado em Crockford Base32), ideais para índices de bancos de dados:
+
 ```ts
 id: Ulid({ default: () => ulid(), description: "Identificador ULID ordenável de #entityName" }),
 ```
 
 #### 2. `Nanoid`
+
 Identificadores curtos, seguros para URL e com alfabeto/tamanho configurável:
+
 ```ts
 shareCode: Nanoid({ length: 10, description: "Código de compartilhamento rápido" }),
 ```
 
 #### 3. `Cuid2`
+
 Identificadores seguros, horizontais e não sequenciais de próxima geração:
+
 ```ts
 publicToken: Cuid2({ description: "Token público seguro de #entityName" }),
 ```
@@ -911,7 +929,9 @@ publicToken: Cuid2({ description: "Token público seguro de #entityName" }),
 ### D. Web e Conectividade
 
 #### 1. `Url`
+
 Validação de URLs completas com filtros de protocolo e domínio:
+
 ```ts
 website: Optional(Url({ protocols: ["http:", "https:"], description: "Website institucional" })),
 webhookUrl: Url({ protocols: ["https:"], description: "URL de callback HTTPS" }),
@@ -922,7 +942,9 @@ webhookUrl: Url({ protocols: ["https:"], description: "URL de callback HTTPS" })
 ### E. Estruturas Flexíveis e Binários
 
 #### 1. `Json`
+
 Payloads flexíveis ou semi-estruturados que aceitam objetos e arrays arbitrários com tipagem genérica:
+
 ```ts
 metadata: Json<{ tags: string[]; priority?: number }>({
   default: () => ({ tags: [] }),
@@ -931,7 +953,9 @@ metadata: Json<{ tags: string[]; priority?: number }>({
 ```
 
 #### 2. `Record(KeyType, ValueType)`
+
 Dicionários chave-valor fortemente tipados tanto na chave quanto no valor:
+
 ```ts
 featureFlags: Record(Text(), Boolean(), {
   default: () => ({}),
@@ -940,14 +964,18 @@ featureFlags: Record(Text(), Boolean(), {
 ```
 
 #### 3. `Binary`
+
 Buffers de dados binários (`Uint8Array` ou `Buffer`) ou strings Base64 com validação de limite de tamanho em bytes:
+
 ```ts
 avatarFile: Binary({ maxBytes: 5 * 1024 * 1024, description: "Imagem de perfil (máx 5MB)" }),
 signatureHash: Binary({ exactBytes: 32 }),
 ```
 
 #### 4. `Tuple`
+
 Tuplas posicionais com tipos heterogêneos fixos (evita a necessidade de recorrer ao Zod cru):
+
 ```ts
 coordinates: Tuple([Number({ min: -90, max: 90 }), Number({ min: -180, max: 180 })], {
   description: "Coordenadas geográficas [latitude, longitude]",
@@ -955,7 +983,9 @@ coordinates: Tuple([Number({ min: -90, max: 90 }), Number({ min: -180, max: 180 
 ```
 
 #### 5. `SetOf`
+
 Coleção com unicidade garantida (sem elementos duplicados, desserializada como `Set<T>`):
+
 ```ts
 permissions: SetOf(Text(), {
   minSize: 1,
@@ -1010,7 +1040,7 @@ const user = User.parse({
 
 // 2. Leitura (get): Retorna a instância autêntica de ObjectId
 console.log(user.id instanceof ObjectId); // true
-console.log(user.id.getTimestamp());      // 2012-10-15T00:14:47.000Z
+console.log(user.id.getTimestamp()); // 2012-10-15T00:14:47.000Z
 
 // 3. Mutação controlada (set): Aceita ObjectId ou string compatível
 user.id = new ObjectId();
@@ -1042,6 +1072,7 @@ Para depuração de fluxos internos, compilação de schemas e resolução de me
 ### Ativação no Backend
 
 #### 1. Via Terminal ao Iniciar o Servidor:
+
 ```bash
 # Ativa todos os logs de todos os submódulos do morphz
 DEBUG=morphz:* npm run dev
@@ -1054,15 +1085,12 @@ DEBUG=morphz:*,-morphz:cache npm run dev
 ```
 
 #### 2. Via Arquivo `.env`:
+
 ```env
 DEBUG=morphz:*
 ```
 
 ### Comportamento e Performance (Zero Overhead)
 
-- **Em Produção:** Quando `DEBUG` não está definido ou não coincide com `morphz:*`, as funções de log retornam um *no-op* (`() => {}`), permitindo que a engine V8 do Node.js/Bun elimine completamente o custo de formatação de strings e I/O de console.
+- **Em Produção:** Quando `DEBUG` não está definido ou não coincide com `morphz:*`, as funções de log retornam um _no-op_ (`() => {}`), permitindo que a engine V8 do Node.js/Bun elimine completamente o custo de formatação de strings e I/O de console.
 - **Saída Formatada:** Quando ativo, emite logs com timestamps, identificador do namespace colorido e métricas de execução para diagnóstico em desenvolvimento.
-
-
-
-

@@ -68,10 +68,11 @@ the real validating constructor). Lives in `packages/core`.
   instances; wiring them into a real seed script is the consumer's job.
 
 ## Resolved
+
 - Regex-driven synthesis: uses `randexp` (new dependency in `packages/
-  core`) when a `Text`-based field has a `regex` but no `examples`/
+core`) when a `Text`-based field has a `regex` but no `examples`/
   `default` — REQ-002's priority order gets a step (e): `randexp(regex)
-  .gen()`. Only reached when (a)-(d) all miss. A field with neither
+.gen()`. Only reached when (a)-(d) all miss. A field with neither
   `examples` nor a synthesizable regex/format (e.g. a bare `refine`-only
   custom validator with no `regex`) still fails loud — `randexp` covers
   the regex case specifically, not every possible custom validation.
@@ -83,4 +84,5 @@ the real validating constructor). Lives in `packages/core`.
   doesn't address self-referencing entities in a mock context at all.
 
 ## Open Questions
+
 None blocking — both resolved above.
