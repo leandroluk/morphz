@@ -122,8 +122,8 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 - [ ] Execute `release-pipeline` T-001..T-004 — `vscode-extension` T-002
       (the manifest it depends on) is now DONE, unblocked. See
       `.specs/features/release-pipeline/tasks.md`.
-- [ ] Once both real accounts exist, swap placeholder `publisher:
-  "leandroluk"` for the real registered VSCode Marketplace publisher
+- [ ] Once both real accounts exist, swap placeholder publisher
+      `leandroluk` for the real registered VSCode Marketplace publisher
       ID + Open VSX namespace in `packages/vscode/package.json` and
       `release-pipeline`'s workflow — flagged, not forgotten.
 - [ ] `npm run build` shows a harmless static esbuild warning about
