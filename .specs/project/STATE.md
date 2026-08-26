@@ -64,7 +64,7 @@ core/package.json` gained `publishConfig: {access: "public"}`.
   re-confirmed by me: `npm publish --dry-run` in `packages/core` → real
   dry-run output shows `public access`, `morphz@0.1.0`, 25 files, 136.4
   kB. `npx vsce ls` in `packages/vscode` → clean, 4 files. `npx turbo run
-  test typecheck` monorepo-wide → 7/7 green, 282 tests unchanged. **Not
+test typecheck` monorepo-wide → 7/7 green, 282 tests unchanged. **Not
   verified** (documented limitation): an actual end-to-end tag-push
   publish, since `NPM_TOKEN`/`VSCE_PAT`/`OVSX_PAT` don't exist as real
   repo secrets yet — user needs to register the real VSCode Marketplace
