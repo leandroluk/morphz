@@ -1,5 +1,17 @@
 # Tasks: TypeScript Language Service Plugin
 
+**T-003/T-004/T-005 status: DONE (2026-08-25).** All 3 built in parallel
+(independent files), 18/18 cumulative pass against the REAL `morphz`
+package via `@typescript/vfs`. `features/hover.ts` (appends resolved
+description/regex/examples/origin onto the prior hover, never replaces),
+`features/completions.ts` (both `#label` and `FieldOf` second-arg
+contexts, merges into prior entries), `features/diagnostics.ts` (broken-
+-template + bad-post-hook-path checks, codes 900001/900002, appends to
+prior diagnostics). Every wrapper degrades to the prior/unmodified result
+on any internal error — confirmed via explicit "unrelated position"
+negative tests in each suite. Remaining: T-006 (locale cascade + wire all
+3 into the real `index.ts`, replacing the stub).
+
 **T-001/T-002 status: DONE (2026-08-25).** Test harness uses a REAL
 `node_modules/morphz` (pnpm workspace symlink), not a simplified virtual
 `.d.ts` — tests exercise the actual `morphz` package, can't silently drift

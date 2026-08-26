@@ -149,6 +149,16 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `ts-language-service-plugin` T-003/T-004/T-005 complete —
+  built in PARALLEL (3 independent DEV forks, separate files), 18/18
+  cumulative pass against the REAL `morphz` package. `features/hover.ts`
+  (enriches prior hover with resolved description/regex/examples/`Define`
+  origin), `features/completions.ts` (`#label` + `FieldOf` second-arg
+  contexts), `features/diagnostics.ts` (broken-template + bad-post-hook-
+  path checks). Every wrapper confirmed to degrade to the prior/
+  unmodified result on error or unrelated position — real negative tests,
+  not assumed. Only T-006 remains (locale cascade + wire into the real
+  `index.ts`, replacing the stub) to finish this feature.
 - [2026-08-25] `ts-language-service-plugin` T-001/T-002 complete —
   foundation for the whole plugin. Test harness resolves the REAL
   `node_modules/morphz` (pnpm workspace symlink), not a simplified

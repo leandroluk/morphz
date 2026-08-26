@@ -1,9 +1,5 @@
 import type * as TS from "typescript/lib/tsserverlibrary.js";
-import {
-  findAncestor,
-  findNodeAtPosition,
-  isStructCallExpression,
-} from "../ast-utils.js";
+import { findAncestor, findNodeAtPosition, isStructCallExpression } from "../ast-utils.js";
 import { resolveFieldInfo, type ResolvedFieldInfo } from "../resolve-field-info.js";
 
 /**
