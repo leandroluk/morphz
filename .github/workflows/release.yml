@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  PNPM_VERSION: "11.21.0"
+  NODE_VERSION: "22"
+
+jobs:
+  build-test:
+    name: Build, test, typecheck, version, package
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run build
+      - run: pnpm run test
+      - run: pnpm run typecheck
+
+      - name: Derive version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set packages/core version
+        working-directory: packages/core
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Set packages/vscode version
+        working-directory: packages/vscode
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Package .vsix
+        working-directory: packages/vscode
+        run: npx vsce package --no-dependencies
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core-package
+          path: |
+            packages/core/package.json
+            packages/core/dist/**
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-vsix
+          path: packages/vscode/*.vsix
+          retention-days: 7
+
+  publish-npm:
+    name: Publish morphz to npm
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify NPM_TOKEN is set
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "::error::NPM_TOKEN secret is not set — cannot publish to npm. See README.md's Release Pipeline section."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: core-package
+          path: packages/core
+
+      - name: npm publish
+        working-directory: packages/core
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-vsce:
+    name: Publish extension to VSCode Marketplace
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify VSCE_PAT is set
+        run: |
+          if [ -z "${{ secrets.VSCE_PAT }}" ]; then
+            echo "::error::VSCE_PAT secret is not set — cannot publish to the VSCode Marketplace. See README.md's Release Pipeline section."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: vscode-vsix
+          path: vsix
+
+      - name: vsce publish
+        run: npx --yes @vscode/vsce publish --packagePath vsix/*.vsix --pat "${{ secrets.VSCE_PAT }}"
+
+  publish-ovsx:
+    name: Publish extension to Open VSX
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify OVSX_PAT is set
+        run: |
+          if [ -z "${{ secrets.OVSX_PAT }}" ]; then
+            echo "::error::OVSX_PAT secret is not set — cannot publish to Open VSX. See README.md's Release Pipeline section."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: vscode-vsix
+          path: vsix
+
+      - name: ovsx publish
+        run: |
+          for f in vsix/*.vsix; do
+            npx --yes ovsx publish "$f" --pat "${{ secrets.OVSX_PAT }}"
+          done

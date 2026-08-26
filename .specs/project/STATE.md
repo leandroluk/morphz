@@ -39,6 +39,37 @@ package.json`'s `exports` only has `.`/`./register`/`./recipes`, no
 
 ## Progress (recent — older entries in STATE_ARCHIVE.md)
 
+- [2026-08-26] `release-pipeline` T-001..T-004 complete — **feature 100%
+  done, all 4 tasks. Both new features from this batch (`vscode-
+extension` + `release-pipeline`) are now fully shipped.** `packages/
+core/package.json` gained `publishConfig: {access: "public"}`.
+  `packages/vscode/package.json` already had `publisher`/`repository`
+  from `vscode-extension`, no edit needed. New
+  `.github/workflows/release.yml` — tag-triggered (`v*`), `build-test`
+  job gates everything via `needs:` (build/test/typecheck the whole
+  monorepo, derive version from `GITHUB_REF_NAME`, bump both
+  `package.json`s, package the `.vsix` ONCE, upload as 2 shared
+  artifacts), then `publish-npm`/`publish-vsce`/`publish-ovsx` each fail
+  loudly (`::error::`) if their secret is missing rather than silently
+  skipping. `.github/workflows/README.md` documents the 3 required
+  secrets. `actionlint` wasn't available in this environment — validated
+  the YAML structurally via Node's `yaml` package instead (temp
+  devDependency, removed after). **Real cleanup needed during my
+  independent re-verification**: the fork's removal of that temp `yaml`
+  dependency left a dangling peer resolution in `pnpm-lock.yaml`
+  (`tsup@8.5.1(...)(yaml@2.9.0)` — the package itself still physically
+  present in the pnpm store even though `package.json` no longer listed
+  it) — fixed via `git checkout -- pnpm-lock.yaml` + full `node_modules`
+  wipe + reinstall, confirmed zero trace remains. Gate, all independently
+  re-confirmed by me: `npm publish --dry-run` in `packages/core` → real
+  dry-run output shows `public access`, `morphz@0.1.0`, 25 files, 136.4
+  kB. `npx vsce ls` in `packages/vscode` → clean, 4 files. `npx turbo run
+  test typecheck` monorepo-wide → 7/7 green, 282 tests unchanged. **Not
+  verified** (documented limitation): an actual end-to-end tag-push
+  publish, since `NPM_TOKEN`/`VSCE_PAT`/`OVSX_PAT` don't exist as real
+  repo secrets yet — user needs to register the real VSCode Marketplace
+  publisher/Open VSX namespace (still placeholder `leandroluk`) and add
+  the 3 secrets before this pipeline can actually run.
 - [2026-08-26] `vscode-extension` T-001..T-005 complete — **feature 100%
   done, all 5 tasks.** T-001 (real prerequisite gap, not busywork): added
   `packages/core/package.json`'s missing `./ts-plugin` export subpath +
@@ -117,15 +148,19 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 
 ## Todos
 
-- [ ] **Immediate**: nothing from `vscode-extension` committed to git
-      yet — review + commit before starting `release-pipeline`.
-- [ ] Execute `release-pipeline` T-001..T-004 — `vscode-extension` T-002
-      (the manifest it depends on) is now DONE, unblocked. See
-      `.specs/features/release-pipeline/tasks.md`.
-- [ ] Once both real accounts exist, swap placeholder publisher
-      `leandroluk` for the real registered VSCode Marketplace publisher
-      ID + Open VSX namespace in `packages/vscode/package.json` and
-      `release-pipeline`'s workflow — flagged, not forgotten.
+- [ ] **Immediate**: nothing from `release-pipeline` committed to git yet
+      — review is done (this session), just needs the commit.
+- [ ] User action needed (not mine to do): register the real VSCode
+      Marketplace publisher ID + Open VSX namespace, then add
+      `NPM_TOKEN`/`VSCE_PAT`/`OVSX_PAT` as GitHub repo secrets — only
+      then swap placeholder publisher `leandroluk` for the real one in
+      `packages/vscode/package.json` and push a `v*` tag to actually
+      exercise `release-pipeline` end-to-end for the first time.
+- [ ] Both new features from this session's batch (`vscode-extension`,
+      `release-pipeline`) are code-complete — the v4 audit's remaining
+      gaps (`packages/vscode` real extension, CI publish) are now closed.
+      No large outstanding feature work identified — remaining Todos
+      below are all small/deferred items.
 - [ ] `npm run build` shows a harmless static esbuild warning about
       `import.meta` in the CJS output for `config.ts` — confirmed correct
       at runtime, not worth further chasing.
