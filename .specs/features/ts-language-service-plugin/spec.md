@@ -63,25 +63,21 @@ mirror it exactly to avoid the plugin and the runtime disagreeing).
 - `packages/vscode`'s marketplace extension — separate, optional,
   unscoped in this batch (per `monorepo-architecture`'s Out of Scope).
 
-## Open Questions
-
-- This is the single most novel/highest-effort item in the whole batch —
-  writing a real `tsserver` plugin requires deep familiarity with the TS
-  Compiler API (`ts.LanguageService` wrapping, `ts.Program`/`TypeChecker`
-  traversal, `SourceFile` AST node matching for `Define(...)`/`Struct(...)`
-  call expressions). Needs a dedicated Design pass with Context7 lookups
-  against the `typescript` package's LS plugin API before any Execute
-  work — flagging this explicitly rather than understating the scope.
-- Locale signal availability inside a bare `tsserver` plugin (no direct
-  access to `vscode.env.language` — that's VSCode-extension-API-only, not
-  exposed to a portable LS plugin) — needs confirming what's actually
-  readable; `Intl.DateTimeFormat().resolvedOptions().locale` (Node's own
-  OS locale) may be the only realistic host-agnostic signal, making
-  INSIGHT.md §11.D's "IDE locale" step effectively degrade to "OS locale"
-  for any host other than a VSCode-specific companion extension.
-- Should this feature be attempted at all in this batch, given its scope
-  vs. the other 5 items? Flagging for explicit build-order confirmation —
-  recommend building it LAST, after the smaller wins (`mock-fixtures`,
-  `data-masking`, `config-jsdoc-flag`) land, and treating it as its own
-  multi-session effort rather than a single DEV/QA fork pass like the
-  others.
+## Resolved (design phase, 2026-08-25)
+- Mechanism confirmed via Context7 against the OFFICIAL TypeScript wiki
+  ("Writing a Language Service Plugin", `/microsoft/typescript`): standard
+  `init({typescript}) → {create(info)}` factory, pass-through proxy over
+  `info.languageService` built via `Object.keys(...).apply(...)`, then
+  override `getQuickInfoAtPosition`/`getCompletionsAtPosition`/
+  `getSemanticDiagnostics` specifically — each ENRICHES/MERGES the prior
+  result, never replaces it wholesale.
+- Locale: confirmed `vscode.env.language` is unreachable from a bare
+  `tsserver` plugin process (VSCode-extension-API-only). Cascade:
+  `morphz.config.ts`'s `locale.default` (best-effort file read) →
+  `Intl.DateTimeFormat().resolvedOptions().locale` (Node's own OS locale)
+  → `'en-US'`.
+- Build-order: attempted now, per user's explicit go-ahead — see
+  `design.md` for the full architecture, including a testing strategy
+  using `@typescript/vfs`'s in-memory virtual TS environment (no real
+  editor/tsserver process needed to verify hover/completion/diagnostic
+  behavior in DEV/QA).
