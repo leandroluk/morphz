@@ -5,7 +5,7 @@
   "description": "morphz monorepo — packages/core (the morphz library), packages/ts-plugin, packages/vscode.",
   "scripts": {
     "prepare": "lefthook install",
-    "build": "turbo run build",
+    "build": "turbo run build && node packages/core/scripts/copy-ts-plugin.mjs",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "oxlint",

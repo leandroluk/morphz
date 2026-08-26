@@ -1,14 +1,53 @@
 {
   "name": "morphz-vscode",
   "displayName": "morphz",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Editor support for morphz (Struct/Define hover, autocomplete, diagnostics). Placeholder scaffold — no real extension code yet.",
+  "version": "0.0.1",
+  "description": "Editor support for morphz: activates the morphz TypeScript Language Service Plugin for Struct/Define hover, autocomplete, and diagnostics — zero tsconfig.json editing required.",
   "categories": [
+    "Linters",
     "Programming Languages"
   ],
+  "keywords": [
+    "intellisense",
+    "language-service-plugin",
+    "morphz",
+    "typescript",
+    "zod"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leandroluk/morphz.git",
+    "directory": "packages/vscode"
+  },
+  "publisher": "leandroluk",
   "main": "./dist/extension.js",
-  "activationEvents": [],
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "26.3.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "contributes": {
+    "typescriptServerPlugins": [
+      {
+        "name": "morphz",
+        "enableForWorkspaceTypeScriptVersions": true
+      }
+    ]
+  },
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
   "engines": {
     "vscode": "^1.90.0"
   }

@@ -19,8 +19,57 @@
 **Full history** (all 8 v1 features' Design decisions, v2/v3/v4 batch
 resolutions): see `STATE_ARCHIVE.md`.
 
+- [2026-08-25] Specify + Design + Tasks complete for 2 new features:
+  `vscode-extension` (real extension, thin `contributes.typescriptServerPlugins`
+  activator + status bar — no reimplemented language logic, that's
+  already `ts-language-service-plugin`'s job) and `release-pipeline`
+  (GitHub Actions, tag-triggered, publishes `morphz` to npm +
+  `packages/vscode` to BOTH VSCode Marketplace and Open VSX from the
+  same `.vsix`). User resolved 2 blocking decisions: publisher ID/Open
+  VSX namespace not yet registered → placeholder `leandroluk` used in
+  both features' manifests/workflow until user registers the real one;
+  publish target = real Marketplace + Open VSX via CI, not just local
+  `.vsix`. **Real prerequisite gap found during Specify**: `monorepo-
+architecture`'s original decision ("ts-plugin bundled into core's dist
+  as a subpath export") was never actually implemented — `packages/core/
+package.json`'s `exports` only has `.`/`./register`/`./recipes`, no
+  `./ts-plugin`. Captured as `vscode-extension` T-001, blocking
+  everything else in that feature (the extension's `contributes` entry
+  is non-functional without it).
+
 ## Progress (recent — older entries in STATE_ARCHIVE.md)
 
+- [2026-08-26] `vscode-extension` T-001..T-005 complete — **feature 100%
+  done, all 5 tasks.** T-001 (real prerequisite gap, not busywork): added
+  `packages/core/package.json`'s missing `./ts-plugin` export subpath +
+  `packages/core/scripts/copy-ts-plugin.mjs` (root `build` script chains
+  `turbo run build && node .../copy-ts-plugin.mjs` — no `turbo.json`
+  `dependsOn` edit needed since a scopeless `turbo run build` already
+  builds every package first). T-002..T-005: real manifest
+  (`contributes.typescriptServerPlugins`, `publisher: "leandroluk"`
+  placeholder), `extension.ts`/`status-bar.ts` (honest "best-effort
+  proxy" status bar — VSCode has no API to confirm a contributed TS
+  plugin actually loaded), `detect-morphz-dependency.ts` (pure, tested,
+  6/6), `esbuild.config.mjs` (CJS bundle, `vscode` external — confirmed
+  via real `require()` throwing `Cannot find module 'vscode'`),
+  `README.md`. **This was 2 forks**: the first died mid-T-001 to an
+  Anthropic session-limit reset (not a real failure) — I personally
+  re-verified its partial T-001 work before relaunching a second fork
+  for T-002..T-005, then independently re-ran every gate myself rather
+  than trusting the second fork's report (its first run died once
+  already, raising the bar for trust). One false alarm during my
+  re-verification: `tsc --noEmit` initially failed with `Cannot find
+  module 'vscode'` — a stale `node_modules` link state, fixed by a full
+  `pnpm install` after wiping `node_modules`, not a real code bug. Final
+  gate, all independently confirmed: `npx tsc --noEmit` clean, `npx
+  vitest run` 6/6, `npx vsce package` → real 7.31 KB `.vsix`, `npx turbo
+  run test typecheck` clean monorepo-wide (7/7 tasks, 282 tests total:
+  core 254 + ts-plugin 22 + vscode 6). **Not verified** (no automatable
+  path from a terminal-only environment): loading the extension in a
+  real VSCode Extension Development Host — documented as a known
+  limitation, not skipped silently. `release-pipeline` (T-001..T-004)
+  still pending — depends on this feature's T-002 manifest, which is now
+  done, so it's unblocked.
 - [2026-08-25] `ts-language-service-plugin` T-006 complete — **feature
   100% done, all 6 tasks.** Wired `resolve-locale.ts` + hover/completions/
   diagnostics into a real `index.ts` proxy over `info.languageService`.
@@ -68,12 +117,15 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 
 ## Todos
 
-- [ ] **Immediate**: `git add -A && git commit` the ts-plugin ESM→CJS
-      packaging fix + updated `tasks.md`/`STATE.md` — nothing from this
-      session's last work is committed yet.
-- [ ] `packages/vscode` — build a REAL extension (user confirmed not
-      optional, wants Tailwind-CSS-IntelliSense style). Not yet specced —
-      needs its own Design phase (Context7 against VSCode extension API).
+- [ ] **Immediate**: nothing from `vscode-extension` committed to git
+      yet — review + commit before starting `release-pipeline`.
+- [ ] Execute `release-pipeline` T-001..T-004 — `vscode-extension` T-002
+      (the manifest it depends on) is now DONE, unblocked. See
+      `.specs/features/release-pipeline/tasks.md`.
+- [ ] Once both real accounts exist, swap placeholder `publisher:
+    "leandroluk"` for the real registered VSCode Marketplace publisher
+      ID + Open VSX namespace in `packages/vscode/package.json` and
+      `release-pipeline`'s workflow — flagged, not forgotten.
 - [ ] `npm run build` shows a harmless static esbuild warning about
       `import.meta` in the CJS output for `config.ts` — confirmed correct
       at runtime, not worth further chasing.

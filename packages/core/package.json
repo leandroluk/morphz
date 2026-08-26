@@ -46,6 +46,10 @@
       "types": "./dist/recipes.d.ts",
       "import": "./dist/recipes.js",
       "require": "./dist/recipes.cjs"
+    },
+    "./ts-plugin": {
+      "types": "./dist/ts-plugin/index.d.ts",
+      "require": "./dist/ts-plugin/index.cjs"
     }
   },
   "scripts": {

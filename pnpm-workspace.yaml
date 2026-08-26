@@ -2,12 +2,16 @@ packages:
   - "packages/*"
 
 allowBuilds:
+  "@vscode/vsce-sign": true
   esbuild: true
+  keytar: true
   lefthook: true
 
 minimumReleaseAgeExclude:
   - "@types/node@26.3.0"
 
 onlyBuiltDependencies:
+  - "@vscode/vsce-sign"
   - esbuild
+  - keytar
   - lefthook
