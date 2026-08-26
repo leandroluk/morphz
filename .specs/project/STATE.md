@@ -149,6 +149,19 @@ Date()`. Resolved: `immutable` = write-once-at-creation, enforced by
 
 ## Progress
 
+- [2026-08-25] `ts-language-service-plugin` T-001/T-002 complete —
+  foundation for the whole plugin. Test harness resolves the REAL
+  `node_modules/morphz` (pnpm workspace symlink), not a simplified
+  virtual `.d.ts` — tests exercise the actual package. `ast-utils.ts`
+  (`findNodeAtPosition`, `isStructCallExpression`, `isDefineCallExpression`,
+  `getObjectLiteralProperty`) + `resolve-field-info.ts` (description/
+  regex/examples resolution through a `Define` chain, inline overrides
+  win) implemented + tested (7/7, against the real package). 1 real bug
+  fixed: `findNodeAtPosition`'s `forEachChild` walk wasn't actually
+  checking position range inside the callback. New devDependencies:
+  `@typescript/vfs`, `vitest` (packages/ts-plugin). Next: T-003
+  (hover)/T-004 (completions)/T-005 (diagnostics), independent of each
+  other now that T-001/T-002 land.
 - [2026-08-25] `struct-type-inference` COMPLETE (both passes) — **CRITICAL
   FINDING fully resolved.** Pass 2's coverage suite found 3 MORE real
   pre-existing type bugs (not introduced by Pass 1): `FieldOf<T>`'s `T`

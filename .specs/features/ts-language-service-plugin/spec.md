@@ -64,6 +64,7 @@ mirror it exactly to avoid the plugin and the runtime disagreeing).
   unscoped in this batch (per `monorepo-architecture`'s Out of Scope).
 
 ## Resolved (design phase, 2026-08-25)
+
 - Mechanism confirmed via Context7 against the OFFICIAL TypeScript wiki
   ("Writing a Language Service Plugin", `/microsoft/typescript`): standard
   `init({typescript}) → {create(info)}` factory, pass-through proxy over

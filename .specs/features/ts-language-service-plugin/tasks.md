@@ -1,6 +1,16 @@
 # Tasks: TypeScript Language Service Plugin
 
+**T-001/T-002 status: DONE (2026-08-25).** Test harness uses a REAL
+`node_modules/morphz` (pnpm workspace symlink), not a simplified virtual
+`.d.ts` — tests exercise the actual `morphz` package, can't silently drift
+from it. `ast-utils.ts`/`resolve-field-info.ts` implemented + tested
+(7/7, real Struct/Define recognition against the real package). Fixed a
+real bug in `findNodeAtPosition`: `forEachChild` was stopping at the
+first child regardless of whether the position actually fell inside it —
+fixed by validating the range inside the callback itself.
+
 ## T-001: Test harness + AST utilities
+
 - **REQ**: (infrastructure)
 - **What**: add `@typescript/vfs` (or equivalent) devDependency to
   `packages/ts-plugin`, build a small helper to create an in-memory
@@ -11,6 +21,7 @@
 - **Gate**: `npx vitest run -- ast-utils` (real virtual-project-backed tests)
 
 ## T-002: `resolve-field-info.ts`
+
 - **REQ**: REQ-002 (data layer)
 - **What**: given a field-declaration `PropertyAssignment` inside a
   `Struct(...)` call, resolve description/regex/format/`Define` origin
@@ -19,12 +30,14 @@
 - **Gate**: real virtual-project test with a `Define`+`Struct` fixture
 
 ## T-003: `getQuickInfoAtPosition` (hover)
+
 - **REQ**: REQ-002
 - **What**: `features/hover.ts`, wired into `index.ts`'s proxy.
 - **Depends on**: T-002
 - **Gate**: real hover test against the INSIGHT.md §11.A `Slug()`-style fixture
 
 ## T-004: `getCompletionsAtPosition`
+
 - **REQ**: REQ-003
 - **What**: `features/completions.ts` — both label-delimiter and
   `FieldOf` second-arg contexts.
@@ -32,6 +45,7 @@
 - **Gate**: real completion tests for both contexts
 
 ## T-005: `getSemanticDiagnostics`
+
 - **REQ**: REQ-004
 - **What**: `features/diagnostics.ts` — broken-template + bad-post-path checks.
 - **Depends on**: T-001
@@ -39,6 +53,7 @@
   negative (no false positive on a valid Struct)
 
 ## T-006: `resolve-locale.ts` + wire everything into `index.ts`
+
 - **REQ**: REQ-005, REQ-001
 - **What**: locale cascade per design.md. Replace the current stub
   `index.ts` with the real `init`/`create`, all 3 overrides wired, every
