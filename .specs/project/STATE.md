@@ -59,11 +59,11 @@ package.json`'s `exports` only has `.`/`./register`/`./recipes`, no
   than trusting the second fork's report (its first run died once
   already, raising the bar for trust). One false alarm during my
   re-verification: `tsc --noEmit` initially failed with `Cannot find
-  module 'vscode'` — a stale `node_modules` link state, fixed by a full
+module 'vscode'` — a stale `node_modules` link state, fixed by a full
   `pnpm install` after wiping `node_modules`, not a real code bug. Final
   gate, all independently confirmed: `npx tsc --noEmit` clean, `npx
-  vitest run` 6/6, `npx vsce package` → real 7.31 KB `.vsix`, `npx turbo
-  run test typecheck` clean monorepo-wide (7/7 tasks, 282 tests total:
+vitest run` 6/6, `npx vsce package` → real 7.31 KB `.vsix`, `npx turbo
+run test typecheck` clean monorepo-wide (7/7 tasks, 282 tests total:
   core 254 + ts-plugin 22 + vscode 6). **Not verified** (no automatable
   path from a terminal-only environment): loading the extension in a
   real VSCode Extension Development Host — documented as a known
@@ -123,7 +123,7 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
       (the manifest it depends on) is now DONE, unblocked. See
       `.specs/features/release-pipeline/tasks.md`.
 - [ ] Once both real accounts exist, swap placeholder `publisher:
-    "leandroluk"` for the real registered VSCode Marketplace publisher
+  "leandroluk"` for the real registered VSCode Marketplace publisher
       ID + Open VSX namespace in `packages/vscode/package.json` and
       `release-pipeline`'s workflow — flagged, not forgotten.
 - [ ] `npm run build` shows a harmless static esbuild warning about
