@@ -26,7 +26,7 @@ resolutions): see `STATE_ARCHIVE.md`.
   diagnostics into a real `index.ts` proxy over `info.languageService`.
   **Real packaging bug found by me (not a fork) reviewing the DEV's own
   report**, which flagged its own deviation from design.md's `export =
-  init`: package built ESM-only (`format: ["esm"]`, `module: "ESNext"`,
+init`: package built ESM-only (`format: ["esm"]`, `module: "ESNext"`,
   `export default init`) — `tsserver` loads plugins via Node's
   synchronous `require()`, so a real tsserver process would either throw
   `ERR_REQUIRE_ESM` or hand back `{default: init}` instead of the

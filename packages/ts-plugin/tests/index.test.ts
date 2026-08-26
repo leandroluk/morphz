@@ -35,7 +35,9 @@ function fakeInfo(languageService: ts.LanguageService): ts.server.PluginCreateIn
 describe("plugin init/create", () => {
   it("returns a PluginModule whose create() builds a working proxy language service", () => {
     const { languageService } = createTestEnv(SOURCE);
-    const pluginModule = init({ typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js") });
+    const pluginModule = init({
+      typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js"),
+    });
     expect(pluginModule.create).toBeTypeOf("function");
 
     const proxy = pluginModule.create(fakeInfo(languageService));
@@ -46,7 +48,9 @@ describe("plugin init/create", () => {
 
   it("passes through an untouched LS method unchanged (pure pass-through decorator)", () => {
     const { languageService, sourceFile } = createTestEnv(SOURCE);
-    const pluginModule = init({ typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js") });
+    const pluginModule = init({
+      typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js"),
+    });
     const proxy = pluginModule.create(fakeInfo(languageService));
 
     const prior = languageService.getSyntacticDiagnostics(sourceFile.fileName);
@@ -56,7 +60,9 @@ describe("plugin init/create", () => {
 
   it("enriches hover through the proxy end-to-end", () => {
     const { languageService, sourceFile } = createTestEnv(SOURCE);
-    const pluginModule = init({ typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js") });
+    const pluginModule = init({
+      typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js"),
+    });
     const proxy = pluginModule.create(fakeInfo(languageService));
 
     const pos = positionOf(SOURCE, "username: Slug()") + "username: ".length;
@@ -78,7 +84,9 @@ export class User extends Struct(
 ) {}
 `;
     const { languageService, sourceFile } = createTestEnv(badSource);
-    const pluginModule = init({ typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js") });
+    const pluginModule = init({
+      typescript: ts as unknown as typeof import("typescript/lib/tsserverlibrary.js"),
+    });
     const proxy = pluginModule.create(fakeInfo(languageService));
 
     const result = proxy.getSemanticDiagnostics(sourceFile.fileName);

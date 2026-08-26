@@ -86,13 +86,14 @@ object `{default: init}` instead of the callable `init` — silently
 breaking plugin activation. Invisible to all 22 unit tests because they
 call `create()` directly in-process, never exercising the actual
 module-loading step. Fixed:
+
 - `tsup.config.ts`: `format: ["cjs"]`, `outExtension: () => ({js: ".cjs"})`
   (tsup's default cjs extension is `.js`, not `.cjs` — needed explicit
   override to match `package.json`'s `main`).
 - `src/index.ts`: `export default init` → `export = init` (matches the
   official TS wiki's plugin-loading contract exactly).
 - `tsconfig.json`: `module: "ESNext"` → `"CommonJS"`, `moduleResolution:
-  "Bundler"` → `"Node10"` (required for `export =` syntax to compile).
+"Bundler"` → `"Node10"` (required for `export =` syntax to compile).
 - `package.json`: removed `"type": "module"`, `main` → `./dist/index.cjs`,
   `types` → `./dist/index.d.ts` (tsup's dts emission ignored the
   `outExtension.dts` override, kept plain `.d.ts` — matched `types` to
