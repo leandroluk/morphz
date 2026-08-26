@@ -72,7 +72,36 @@ fixed by validating the range inside the callback itself.
   override wrapped in try/catch degrading to the prior result on error.
 - **Depends on**: T-003, T-004, T-005
 - **Gate**: full `packages/ts-plugin` test suite + `npx tsc --noEmit`
+- **Status**: DONE (2026-08-25), with a packaging bug found and fixed
+  after the DEV fork's own report (self-reported deviation from
+  `export = init` per design.md, using `export default init` instead).
 
-**Total**: 6 tasks. T-001 unblocks everything — build order otherwise
-mostly parallel (T-003/T-004/T-005 are independent of each other once
-T-001/T-002 land).
+**Post-T-006 packaging bug (found by me, not a fork, 2026-08-25):**
+`tsserver` loads plugins via Node's synchronous `require()` (CommonJS).
+The package was building ESM-only (`tsup.config.ts` `format: ["esm"]`)
+with `tsconfig.json` `module: "ESNext"` and `export default init` in
+`src/index.ts`. In a real tsserver process this either throws
+`ERR_REQUIRE_ESM` or, with the default export, hands `require()` an
+object `{default: init}` instead of the callable `init` — silently
+breaking plugin activation. Invisible to all 22 unit tests because they
+call `create()` directly in-process, never exercising the actual
+module-loading step. Fixed:
+- `tsup.config.ts`: `format: ["cjs"]`, `outExtension: () => ({js: ".cjs"})`
+  (tsup's default cjs extension is `.js`, not `.cjs` — needed explicit
+  override to match `package.json`'s `main`).
+- `src/index.ts`: `export default init` → `export = init` (matches the
+  official TS wiki's plugin-loading contract exactly).
+- `tsconfig.json`: `module: "ESNext"` → `"CommonJS"`, `moduleResolution:
+  "Bundler"` → `"Node10"` (required for `export =` syntax to compile).
+- `package.json`: removed `"type": "module"`, `main` → `./dist/index.cjs`,
+  `types` → `./dist/index.d.ts` (tsup's dts emission ignored the
+  `outExtension.dts` override, kept plain `.d.ts` — matched `types` to
+  actual output rather than fighting the tool).
+- Verified with a real `require()` smoke test (not just unit tests):
+  `node -e "const p = require('./dist/index.cjs'); typeof p === 'function'"`
+  confirmed, plus calling `p({typescript:{}})` returns the `{create}`
+  module object as tsserver expects.
+
+**Total**: 6 tasks, all DONE. T-001 unblocks everything — build order
+otherwise mostly parallel (T-003/T-004/T-005 independent of each other
+once T-001/T-002 land).

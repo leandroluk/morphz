@@ -21,7 +21,8 @@ export class User extends Struct(
     const { languageService, sourceFile } = createTestEnv(SOURCE);
     const completions = wrapCompletions(fakeInfo(languageService), ts);
 
-    const pos = positionOf(SOURCE, 'description: "The name of #') + 'description: "The name of #'.length;
+    const pos =
+      positionOf(SOURCE, 'description: "The name of #') + 'description: "The name of #'.length;
     const result = completions(sourceFile.fileName, pos, {});
 
     expect(result).toBeDefined();
@@ -30,7 +31,7 @@ export class User extends Struct(
     expect(names).toContain("#module");
   });
 
-  it("suggests User's real field names inside FieldOf(User, \"|\")", () => {
+  it('suggests User\'s real field names inside FieldOf(User, "|")', () => {
     const SOURCE = `
 import { Struct, Text, FieldOf } from "morphz";
 

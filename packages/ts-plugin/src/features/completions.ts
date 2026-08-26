@@ -154,7 +154,11 @@ export function wrapCompletions(
         if (fieldOfInfo && fieldOfInfo.fieldNameArg.getStart(sourceFile) <= position) {
           const names = resolveStructFieldNames(ts, checker, fieldOfInfo.source);
           for (const name of names ?? []) {
-            newEntries.push({ name, kind: ts.ScriptElementKind.memberVariableElement, sortText: "0" });
+            newEntries.push({
+              name,
+              kind: ts.ScriptElementKind.memberVariableElement,
+              sortText: "0",
+            });
           }
         }
       }
