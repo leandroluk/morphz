@@ -67,9 +67,7 @@ describe("ast-utils: getObjectLiteralProperty", () => {
     const descProp = getObjectLiteralProperty(ts, info!.options!, "description");
     expect(descProp).toBeDefined();
     expect(ts.isStringLiteral(descProp!.initializer)).toBe(true);
-    expect((descProp!.initializer as ts.StringLiteral).text).toBe(
-      "Friendly slug of #entityName",
-    );
+    expect((descProp!.initializer as ts.StringLiteral).text).toBe("Friendly slug of #entityName");
   });
 
   it("returns undefined for a missing key", () => {

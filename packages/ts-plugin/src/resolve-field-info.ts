@@ -38,9 +38,15 @@ function readMetaFromOptions(
   options: TS.ObjectLiteralExpression,
 ): Pick<ResolvedFieldInfo, "description" | "regex" | "examples"> {
   return {
-    description: readStringLiteral(ts, getObjectLiteralProperty(ts, options, "description")?.initializer),
+    description: readStringLiteral(
+      ts,
+      getObjectLiteralProperty(ts, options, "description")?.initializer,
+    ),
     regex: readRegexLiteral(ts, getObjectLiteralProperty(ts, options, "regex")?.initializer),
-    examples: readStringArrayLiteral(ts, getObjectLiteralProperty(ts, options, "examples")?.initializer),
+    examples: readStringArrayLiteral(
+      ts,
+      getObjectLiteralProperty(ts, options, "examples")?.initializer,
+    ),
   };
 }
 

@@ -83,8 +83,7 @@ export function isStructCallExpression(
   const fieldsArg = node.arguments[0];
   if (!fieldsArg || !ts.isObjectLiteralExpression(fieldsArg)) return undefined;
   const optionsArg = node.arguments[1];
-  const options =
-    optionsArg && ts.isObjectLiteralExpression(optionsArg) ? optionsArg : undefined;
+  const options = optionsArg && ts.isObjectLiteralExpression(optionsArg) ? optionsArg : undefined;
   return { fields: fieldsArg, options };
 }
 
@@ -104,8 +103,7 @@ export function isDefineCallExpression(
   const baseType = node.arguments[0];
   if (!baseType) return undefined;
   const optionsArg = node.arguments[1];
-  const options =
-    optionsArg && ts.isObjectLiteralExpression(optionsArg) ? optionsArg : undefined;
+  const options = optionsArg && ts.isObjectLiteralExpression(optionsArg) ? optionsArg : undefined;
   return { baseType, options };
 }
 
