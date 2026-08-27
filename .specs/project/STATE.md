@@ -150,12 +150,14 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 
 - [ ] **Immediate**: nothing from `release-pipeline` committed to git yet
       — review is done (this session), just needs the commit.
-- [ ] User action needed (not mine to do): register the real VSCode
-      Marketplace publisher ID + Open VSX namespace, then add
-      `NPM_TOKEN`/`VSCE_PAT`/`OVSX_PAT` as GitHub repo secrets — only
-      then swap placeholder publisher `leandroluk` for the real one in
-      `packages/vscode/package.json` and push a `v*` tag to actually
-      exercise `release-pipeline` end-to-end for the first time.
+- [ ] User action needed (not mine to do): user confirmed (2026-08-26)
+      the VSCode Marketplace publisher ID + Open VSX namespace are now
+      both registered as `leandroluk` — matches the placeholder already
+      in `packages/vscode/package.json`/`release.yml`, so no code change
+      needed. Still missing: `NPM_TOKEN`/`VSCE_PAT`/`OVSX_PAT` as GitHub
+      repo secrets — user confirmed not added yet. Once those 3 exist,
+      push a `v*` tag to exercise `release-pipeline` end-to-end for the
+      first time (still fully unverified beyond structural checks).
 - [ ] Both new features from this session's batch (`vscode-extension`,
       `release-pipeline`) are code-complete — the v4 audit's remaining
       gaps (`packages/vscode` real extension, CI publish) are now closed.
