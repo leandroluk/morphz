@@ -55,11 +55,17 @@ Gomes`) exists at repo root AND is shipped inside every published
 
 ### Pipeline hardening (all in `.github/workflows/release.yml`)
 
-- REQ-007: `npm publish` runs with `--provenance`; the `publish-npm` job
-  has `permissions: id-token: write` (and `contents: read`). Publishing
-  `0.1.0` this way makes it the npm `latest`, superseding the existing
-  `0.0.1-alpha.0` that currently holds both `latest` and `alpha`
-  dist-tags.
+- REQ-007: `publish-npm` authenticates via **GitHub OIDC Trusted
+  Publishing** — no `NPM_TOKEN`, nothing to expire. Job keeps
+  `permissions: id-token: write` (+ `contents: read`), upgrades npm to
+  ≥ 11.5.1 (`npm install -g npm@latest`), and runs `npm publish --access
+  public`; provenance is attached automatically under OIDC. Requires a
+  one-time Trusted Publisher registration for `morphz` on npmjs.com
+  (repo + `release.yml`). Publishing `0.1.0` this way makes it npm
+  `latest`, superseding the existing `0.0.1-alpha.0` (which currently
+  holds both `latest` and `alpha` dist-tags).
+  _(Changed from an `NPM_TOKEN` secret at user request — a previously
+  issued token for another project had expired.)_
 - REQ-008: A `build-test` step runs `npm pack` (dry-run or real) for
   `packages/core` and asserts the tarball contains `README.md`,
   `LICENSE`, and a non-empty `dist/ts-plugin/` (`index.cjs` +

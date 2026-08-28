@@ -35,18 +35,34 @@ CHANGELOG for <version> [skip ci]`. Because the workflow only triggers
   itself does not contain that version's changelog entry — it lands one
   commit later on `main`.**
 
-### Required repo secrets
+### npm — no secret (OIDC Trusted Publishing)
 
-| Secret      | Used for                   | Where to generate it                                                                                                                                       |
-| ----------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NPM_TOKEN` | `npm publish` (`morphz`)   | npmjs.com → Access Tokens → Generate New Token → "Automation" type                                                                                         |
-| `VSCE_PAT`  | VSCode Marketplace publish | dev.azure.com → User settings → Personal Access Tokens → scope "Marketplace (Manage)", under the Azure DevOps org tied to the `leandroluk` publisher       |
-| `OVSX_PAT`  | Open VSX publish           | open-vsx.org → Settings → Access Tokens (requires a namespace matching the extension's `publisher`, registered separately from the VSCode Marketplace one) |
+`publish-npm` uses **GitHub OIDC**, not an `NPM_TOKEN`. The job requests
+an `id-token`, npm verifies it, and publishes — nothing to rotate, nothing
+to expire. Provenance is attached automatically.
+
+One-time setup on npmjs.com (owner of `morphz`):
+
+> Package `morphz` → **Settings** → **Trusted Publishers** → **GitHub Actions** →
+> organization/user `leandroluk`, repository `morphz`, workflow file
+> `release.yml`. Leave "Environment" blank (the job uses none).
+
+Until that is configured, `npm publish` fails with an auth error. The
+workflow already upgrades npm to a version new enough for OIDC
+(`npm install -g npm@latest` — Node 22 ships npm 10.x, OIDC needs ≥ 11.5.1).
+
+### Required repo secrets (extension publishing only)
+
+| Secret     | Used for                   | Where to generate it                                                                                                                                       |
+| ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `VSCE_PAT` | VSCode Marketplace publish | dev.azure.com → User settings → Personal Access Tokens → scope "Marketplace (Manage)", under the Azure DevOps org tied to the `leandroluk` publisher        |
+| `OVSX_PAT` | Open VSX publish           | open-vsx.org → Settings → Access Tokens (requires a namespace matching the extension's `publisher`, registered separately from the VSCode Marketplace one)  |
 
 Add each under the repo's Settings → Secrets and variables → Actions.
 Missing a secret doesn't silently skip its job — the relevant
 `publish-*` job fails immediately with a clear `::error::` message
-naming which secret is missing.
+naming which secret is missing. (npm has no such check — OIDC either
+authenticates or the publish step fails outright.)
 
 ### Version source of truth
 

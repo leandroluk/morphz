@@ -112,23 +112,22 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           registry-url: https://registry.npmjs.org
 
-      - name: Verify NPM_TOKEN is set
-        run: |
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "::error::NPM_TOKEN secret is not set — cannot publish to npm. See .github/workflows/README.md."
-            exit 1
-          fi
+      # OIDC trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.x.
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
 
       - uses: actions/download-artifact@v4
         with:
           name: core-package
           path: packages/core
 
-      - name: npm publish
+      # No NPM_TOKEN: authenticates via GitHub OIDC. Requires `morphz` to have
+      # this repo + workflow registered as a Trusted Publisher on npmjs.com
+      # (package Settings -> Trusted Publishers -> GitHub Actions).
+      # Provenance is attached automatically under OIDC.
+      - name: npm publish (OIDC trusted publishing)
         working-directory: packages/core
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
   publish-vsce:
     name: Publish extension to VSCode Marketplace

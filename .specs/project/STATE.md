@@ -104,11 +104,17 @@ changelog` byte-reproducible on re-run; `release.yml` parses.
     so git-cliff output stays canonical (oxfmt was stripping the trailing
     blank line, breaking reproducibility).
   - **NOT verified** (documented limitation, carried from
-    `release-pipeline`): end-to-end tag-push publish — `NPM_TOKEN` /
-    `VSCE_PAT` / `OVSX_PAT` still don't exist as repo secrets. npm
-    provenance attestation only confirmable on a real publish from
-    `main`. After secrets exist: `git tag v0.1.0 && git push origin
-v0.1.0` is the only remaining step.
+    `release-pipeline`): end-to-end tag-push publish. npm OIDC auth +
+    provenance only confirmable on a real publish from `main`; extension
+    publish needs `VSCE_PAT` / `OVSX_PAT` repo secrets.
+  - [2026-08-28] `publish-npm` switched `NPM_TOKEN` → **GitHub OIDC
+    Trusted Publishing** (user's npm token from another project had
+    expired). No secret, no expiry. Job upgrades npm to ≥ 11.5.1, then
+    `npm publish --access public`; provenance automatic. One-time setup:
+    register `morphz` as a Trusted Publisher on npmjs.com
+    (`leandroluk`/`morphz`/`release.yml`). README + spec REQ-007 updated;
+    YAML re-parses, job asserts clean (id-token: write, zero NPM_TOKEN /
+    NODE_AUTH_TOKEN refs).
 
 - [2026-08-26] `release-pipeline` T-001..T-004 complete — **feature 100%
   done, all 4 tasks. Both new features from this batch (`vscode-
@@ -222,12 +228,15 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 - [x] `release-readiness` — **100% complete (2026-08-28)**, all 10 tasks,
       committed. Repo is release-ready. See
       `.specs/features/release-readiness/{spec,design,tasks}.md`.
-- [ ] **User action to actually release**: add `NPM_TOKEN` / `VSCE_PAT` /
-      `OVSX_PAT` as GitHub repo secrets (Settings → Secrets and variables
-      → Actions — generation steps in `.github/workflows/README.md`),
-      then `git tag v0.1.0 && git push origin v0.1.0`. That is the only
-      remaining step; the pipeline is fully un-exercised end-to-end until
-      then.
+- [ ] **User action to actually release**:
+      1. npm: register `morphz` as a **Trusted Publisher** on npmjs.com
+         (Package → Settings → Trusted Publishers → GitHub Actions →
+         `leandroluk`/`morphz`/`release.yml`). No `NPM_TOKEN` — publish-npm
+         switched to GitHub OIDC (2026-08-28, user's prior token expired).
+      2. Extension: add `VSCE_PAT` + `OVSX_PAT` as repo secrets (steps in
+         `.github/workflows/README.md`).
+      3. `git tag v0.1.0 && git push origin v0.1.0`.
+      Pipeline fully un-exercised end-to-end until then.
 - [ ] User action needed (not mine to do): user confirmed (2026-08-26)
       the VSCode Marketplace publisher ID + Open VSX namespace are now
       both registered as `leandroluk` — matches the placeholder already
