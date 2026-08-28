@@ -159,6 +159,19 @@ site shipped. Two post-release API-evolution items, shipped together in one
     `logStruct` warn on mangled 1-2 char names. See
     `.specs/features/default-entity-name/spec.md`.
 
+## v6 batch — DX tooling (2026-08-28)
+
+20. **init-command** — SPECIFIED (2026-08-28), Design pending. `npx morphz
+init`: writes `morphz.config.ts` (commented defaults), adds
+    `morphz/ts-plugin` to `tsconfig.json`, warns if `zod@^4` missing,
+    prints next steps. New CJS bin (`dist/cli.cjs`) as a tsup entry,
+    `"bin"` in `packages/core/package.json`, zero new runtime deps,
+    non-interactive. Also `morphz --help` / `--version`. Depends on
+    `project-config` (config shape/filenames) + `release-readiness` (adds
+    `dist/cli.cjs` to the tarball assertion). 4 Design open questions
+    (headline: JSONC tsconfig handling — bundle `jsonc-parser`, in-repo
+    stripper, or print-only). See `.specs/features/init-command/spec.md`.
+
 ## Resolved decisions
 
 - `Timestamp` = `DateTime` + `default: () => new Date()` baked in. Same
