@@ -228,14 +228,11 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 - [x] `release-readiness` — **100% complete (2026-08-28)**, all 10 tasks,
       committed. Repo is release-ready. See
       `.specs/features/release-readiness/{spec,design,tasks}.md`.
-- [ ] **User action to actually release**:
-      1. npm: register `morphz` as a **Trusted Publisher** on npmjs.com
-         (Package → Settings → Trusted Publishers → GitHub Actions →
-         `leandroluk`/`morphz`/`release.yml`). No `NPM_TOKEN` — publish-npm
-         switched to GitHub OIDC (2026-08-28, user's prior token expired).
-      2. Extension: add `VSCE_PAT` + `OVSX_PAT` as repo secrets (steps in
-         `.github/workflows/README.md`).
-      3. `git tag v0.1.0 && git push origin v0.1.0`.
+- [ ] **User action to actually release**: 1. npm: register `morphz` as a **Trusted Publisher** on npmjs.com
+      (Package → Settings → Trusted Publishers → GitHub Actions →
+      `leandroluk`/`morphz`/`release.yml`). No `NPM_TOKEN` — publish-npm
+      switched to GitHub OIDC (2026-08-28, user's prior token expired). 2. Extension: add `VSCE_PAT` + `OVSX_PAT` as repo secrets (steps in
+      `.github/workflows/README.md`). 3. `git tag v0.1.0 && git push origin v0.1.0`.
       Pipeline fully un-exercised end-to-end until then.
 - [ ] User action needed (not mine to do): user confirmed (2026-08-26)
       the VSCode Marketplace publisher ID + Open VSX namespace are now

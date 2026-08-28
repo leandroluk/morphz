@@ -54,9 +54,9 @@ workflow already upgrades npm to a version new enough for OIDC
 ### Required repo secrets (extension publishing only)
 
 | Secret     | Used for                   | Where to generate it                                                                                                                                       |
-| ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `VSCE_PAT` | VSCode Marketplace publish | dev.azure.com → User settings → Personal Access Tokens → scope "Marketplace (Manage)", under the Azure DevOps org tied to the `leandroluk` publisher        |
-| `OVSX_PAT` | Open VSX publish           | open-vsx.org → Settings → Access Tokens (requires a namespace matching the extension's `publisher`, registered separately from the VSCode Marketplace one)  |
+| ---------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VSCE_PAT` | VSCode Marketplace publish | dev.azure.com → User settings → Personal Access Tokens → scope "Marketplace (Manage)", under the Azure DevOps org tied to the `leandroluk` publisher       |
+| `OVSX_PAT` | Open VSX publish           | open-vsx.org → Settings → Access Tokens (requires a namespace matching the extension's `publisher`, registered separately from the VSCode Marketplace one) |
 
 Add each under the repo's Settings → Secrets and variables → Actions.
 Missing a secret doesn't silently skip its job — the relevant

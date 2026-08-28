@@ -59,7 +59,7 @@ Gomes`) exists at repo root AND is shipped inside every published
   Publishing** — no `NPM_TOKEN`, nothing to expire. Job keeps
   `permissions: id-token: write` (+ `contents: read`), upgrades npm to
   ≥ 11.5.1 (`npm install -g npm@latest`), and runs `npm publish --access
-  public`; provenance is attached automatically under OIDC. Requires a
+public`; provenance is attached automatically under OIDC. Requires a
   one-time Trusted Publisher registration for `morphz` on npmjs.com
   (repo + `release.yml`). Publishing `0.1.0` this way makes it npm
   `latest`, superseding the existing `0.0.1-alpha.0` (which currently
