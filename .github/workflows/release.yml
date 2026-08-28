@@ -33,6 +33,24 @@ jobs:
       - run: pnpm run test
       - run: pnpm run typecheck
 
+      - name: Assert npm tarball contents (README, LICENSE, ts-plugin subpath)
+        working-directory: packages/core
+        run: |
+          npm pack --dry-run --json > pack.json
+          node -e '
+            const j = JSON.parse(require("fs").readFileSync("./pack.json", "utf8"));
+            const pkg = Array.isArray(j) ? j[0] : Object.values(j)[0];
+            const files = pkg.files.map(f => f.path);
+            const required = ["README.md", "LICENSE", "dist/ts-plugin/index.cjs", "dist/ts-plugin/index.d.ts"];
+            const missing = required.filter(r => !files.includes(r));
+            if (missing.length) {
+              console.log("::error::npm tarball is missing required entries: " + missing.join(", "));
+              process.exit(1);
+            }
+            console.log("npm tarball ok: " + required.join(", ") + " all present");
+          '
+          rm pack.json
+
       - name: Derive version from tag
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -49,11 +67,27 @@ jobs:
         working-directory: packages/vscode
         run: npx vsce package --no-dependencies
 
+      - name: Assert .vsix contents (README, LICENSE; no src, no sourcemaps)
+        working-directory: packages/vscode
+        run: |
+          vsix=$(ls *.vsix)
+          entries=$(unzip -Z1 "$vsix")
+          echo "$entries"
+          fail=0
+          # vsce lowercases the readme entry and renames LICENSE -> LICENSE.txt
+          echo "$entries" | grep -qiE '^extension/readme\.md$'      || { echo "::error::.vsix missing the readme"; fail=1; }
+          echo "$entries" | grep -qiE '^extension/license(\.txt)?$' || { echo "::error::.vsix missing the LICENSE"; fail=1; }
+          if echo "$entries" | grep -q "extension/src/"; then echo "::error::.vsix contains extension/src/ — .vscodeignore regression"; fail=1; fi
+          if echo "$entries" | grep -qE '\.map$'; then echo "::error::.vsix contains sourcemaps — .vscodeignore regression"; fail=1; fi
+          exit $fail
+
       - uses: actions/upload-artifact@v4
         with:
           name: core-package
           path: |
             packages/core/package.json
+            packages/core/README.md
+            packages/core/LICENSE
             packages/core/dist/**
           retention-days: 7
 
@@ -67,6 +101,9 @@ jobs:
     name: Publish morphz to npm
     needs: build-test
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -78,7 +115,7 @@ jobs:
       - name: Verify NPM_TOKEN is set
         run: |
           if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "::error::NPM_TOKEN secret is not set — cannot publish to npm. See README.md's Release Pipeline section."
+            echo "::error::NPM_TOKEN secret is not set — cannot publish to npm. See .github/workflows/README.md."
             exit 1
           fi
 
@@ -89,7 +126,7 @@ jobs:
 
       - name: npm publish
         working-directory: packages/core
-        run: npm publish
+        run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -101,7 +138,7 @@ jobs:
       - name: Verify VSCE_PAT is set
         run: |
           if [ -z "${{ secrets.VSCE_PAT }}" ]; then
-            echo "::error::VSCE_PAT secret is not set — cannot publish to the VSCode Marketplace. See README.md's Release Pipeline section."
+            echo "::error::VSCE_PAT secret is not set — cannot publish to the VSCode Marketplace. See .github/workflows/README.md."
             exit 1
           fi
 
@@ -121,7 +158,7 @@ jobs:
       - name: Verify OVSX_PAT is set
         run: |
           if [ -z "${{ secrets.OVSX_PAT }}" ]; then
-            echo "::error::OVSX_PAT secret is not set — cannot publish to Open VSX. See README.md's Release Pipeline section."
+            echo "::error::OVSX_PAT secret is not set — cannot publish to Open VSX. See .github/workflows/README.md."
             exit 1
           fi
 
@@ -135,3 +172,64 @@ jobs:
           for f in vsix/*.vsix; do
             npx --yes ovsx publish "$f" --pat "${{ secrets.OVSX_PAT }}"
           done
+
+  github-release:
+    name: Create GitHub Release
+    needs: [build-test, publish-npm, publish-vsce, publish-ovsx]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Render changelog section for this tag
+        id: cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip all
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: vscode-vsix
+          path: vsix
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ needs.build-test.outputs.version }}
+          body: ${{ steps.cliff.outputs.content }}
+          files: vsix/*.vsix
+
+  changelog-commit:
+    name: Commit regenerated CHANGELOG to main
+    needs: [build-test, github-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Regenerate CHANGELOG.md
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --tag ${{ github.ref_name }} -o CHANGELOG.md
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "CHANGELOG.md unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "chore(release): update CHANGELOG for ${{ needs.build-test.outputs.version }} [skip ci]"
+          git push origin main

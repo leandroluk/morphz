@@ -30,9 +30,9 @@ exist).
   commits `CHANGELOG.md` with message
   `chore(release): update CHANGELOG for <version> [skip ci]`, pushes to
   `main` using the default `GITHUB_TOKEN` (`permissions: contents:
-  write`). **No trigger loop**: the workflow's `on:` is `push.tags:
-  ['v*']` only — a branch push to `main` cannot re-trigger it. `[skip
-  ci]` is belt-and-suspenders for any future `on: push` addition.
+write`). **No trigger loop**: the workflow's `on:` is `push.tags:
+['v*']` only — a branch push to `main` cannot re-trigger it. `[skip
+ci]` is belt-and-suspenders for any future `on: push` addition.
   Consequence: the tagged commit itself does NOT contain that tag's
   changelog entry; the entry lands one commit later on `main`. Acceptable
   for a solo linear repo — documented in `.github/workflows/README.md`.
@@ -47,15 +47,16 @@ exist).
 
 ## New files
 
-| File | Responsibility |
-|---|---|
-| `README.md` (root) | GitHub landing: pitch, package table, monorepo layout, dev commands, "Releasing" section |
+| File                      | Responsibility                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| `README.md` (root)        | GitHub landing: pitch, package table, monorepo layout, dev commands, "Releasing" section          |
 | `packages/core/README.md` | npm page: what/why, install, minimal `Struct`+`Define` example (from INSIGHT.md §1–8), repo links |
-| `LICENSE` (root) | MIT, `Copyright (c) 2026 Leandro Santiago Gomes` |
-| `CHANGELOG.md` (root) | git-cliff output; first entry `0.1.0` covering all history |
-| `cliff.toml` (root) | git-cliff config — commit grouping, filters, Keep-a-Changelog-ish template |
+| `LICENSE` (root)          | MIT, `Copyright (c) 2026 Leandro Santiago Gomes`                                                  |
+| `CHANGELOG.md` (root)     | git-cliff output; first entry `0.1.0` covering all history                                        |
+| `cliff.toml` (root)       | git-cliff config — commit grouping, filters, Keep-a-Changelog-ish template                        |
 
 `LICENSE` shipping into artifacts:
+
 - npm (`packages/core`): npm auto-includes a `LICENSE` file from the
   **package** directory, not the repo root. `files: ["dist"]` does not
   cover it, but npm's built-in LICENSE/README inclusion does — **only if
@@ -74,12 +75,12 @@ exist).
 
 ## Modified files
 
-| File | Change | Risk |
-|---|---|---|
-| `package.json` (root) | + `git-cliff` devDep; + `changelog` / `changelog:latest` scripts | none — additive |
-| `.github/workflows/release.yml` | see "Workflow changes" | medium — only path to prod publish; mitigated by REQ-011 local verification |
-| `.github/workflows/README.md` | document CHANGELOG write-back + GitHub Release + provenance | none |
-| `packages/core/package.json` | none expected — confirm via `npm pack` that README/LICENSE appear without a `files` edit | low |
+| File                            | Change                                                                                   | Risk                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `package.json` (root)           | + `git-cliff` devDep; + `changelog` / `changelog:latest` scripts                         | none — additive                                                             |
+| `.github/workflows/release.yml` | see "Workflow changes"                                                                   | medium — only path to prod publish; mitigated by REQ-011 local verification |
+| `.github/workflows/README.md`   | document CHANGELOG write-back + GitHub Release + provenance                              | none                                                                        |
+| `packages/core/package.json`    | none expected — confirm via `npm pack` that README/LICENSE appear without a `files` edit | low                                                                         |
 
 `tsup.config.ts` (`clean: true`, `sourcemap: true`) — unchanged.
 Sourcemaps stay in the tarball (standard for a debuggable lib).
@@ -98,24 +99,24 @@ Existing jobs: `build-test` → (`publish-npm`, `publish-vsce`,
      `extension/README.md` + `extension/LICENSE` present, assert no
      `extension/src/` and no `*.map`. (REQ-010)
 2. **`publish-npm`** — add `permissions: { id-token: write, contents:
-   read }`; change `npm publish` → `npm publish --provenance`. (REQ-007)
+read }`; change `npm publish` → `npm publish --provenance`. (REQ-007)
 3. **new job `github-release`** — `needs: [publish-npm, publish-vsce,
-   publish-ovsx]`, `permissions: { contents: write }`:
+publish-ovsx]`, `permissions: { contents: write }`:
    - `actions/checkout@v4` with `fetch-depth: 0` (git-cliff needs full
      history + tags)
    - `orhun/git-cliff-action@v4` with `args: --latest --strip header`,
      output captured to a file
    - `download-artifact` the `vscode-vsix`
    - `softprops/action-gh-release@v2` (or `gh release create`): `tag:
-     ${{ github.ref_name }}`, `name: ${{ needs.build-test.outputs.version
-     }}`, `body_path:` the rendered file, `files: *.vsix`. (REQ-009)
+${{ github.ref_name }}`, `name: ${{ needs.build-test.outputs.version
+}}`, `body_path:` the rendered file, `files: *.vsix`. (REQ-009)
 4. **new job `changelog-commit`** — `needs: [github-release]`,
    `permissions: { contents: write }`:
    - `actions/checkout@v4` `ref: main`, `fetch-depth: 0`
    - `orhun/git-cliff-action@v4` `args: --tag ${{ ... version }} -o
-     CHANGELOG.md`
+CHANGELOG.md`
    - if `CHANGELOG.md` changed: `git commit -m "chore(release): update
-     CHANGELOG for <version> [skip ci]"` + `git push origin main`
+CHANGELOG for <version> [skip ci]"` + `git push origin main`
    - uses default `GITHUB_TOKEN`; `git config user.name/email` to the
      github-actions bot.
 
@@ -127,7 +128,7 @@ never shipped.
 
 - `[changelog]` — Keep-a-Changelog-ish header; `trim = true`.
 - `[git]` — `conventional_commits = true`, `filter_unconventional =
-  false`, `protect_breaking_commits = true`.
+false`, `protect_breaking_commits = true`.
 - `commit_parsers` — map `feat`→"Features", `fix`→"Bug Fixes",
   `docs`→"Documentation", `perf`→"Performance", `refactor`→"Refactor";
   `style|chore|ci|build|test` → `skip = true` (except `chore(release)`
@@ -164,7 +165,7 @@ never shipped.
   the Release-PR gate is worth revisiting at 1.0).
 - Three committed `LICENSE` copies over symlink/copy-script — MIT text is
   static and tiny; fewer moving parts.
-- CHANGELOG entry for tag N lands on `main` one commit *after* the tag
+- CHANGELOG entry for tag N lands on `main` one commit _after_ the tag
   (CI write-back). Accepted for a solo linear repo; the alternative
   (human runs `pnpm changelog` pre-tag) was rejected by the user in
   favour of zero manual steps.

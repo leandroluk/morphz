@@ -3,6 +3,7 @@ tests/**
 .vscode/**
 .turbo/**
 *.map
+**/*.map
 tsconfig.json
 esbuild.config.mjs
 vitest.config.ts

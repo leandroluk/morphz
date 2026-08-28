@@ -65,6 +65,29 @@ package.json`'s `exports` only has `.`/`./register`/`./recipes`, no
   generated `git-cliff --tag v0.1.0`, one `## [0.1.0]` section, Features/
   Bug Fixes/Documentation groups, no style/chore noise). Next: Wave C
   (T-006..T-009 release.yml).
+- [2026-08-28] `release-readiness` Wave C done — `release.yml` hardened:
+  T-006 (`build-test` now asserts npm tarball has README/LICENSE/
+  `dist/ts-plugin/{index.cjs,index.d.ts}` + `.vsix` has readme/license
+  and no `src/`/`*.map`), T-007 (`publish-npm`: `permissions.id-token:
+  write` + `npm publish --provenance`), T-008 (new `github-release` job,
+  needs all 3 publishes, git-cliff render → `softprops/action-gh-release`
+  with `.vsix` asset), T-009 (new `changelog-commit` job, needs
+  github-release, git-cliff `--tag` → commit `CHANGELOG.md` to `main`
+  with `[skip ci]`; `.github/workflows/README.md` updated w/ job graph +
+  provenance + "entry lands one commit after the tag" note).
+  - SPEC_DEVIATION (REQ-010): `.vscodeignore` only had `*.map`
+    (top-level) — real sourcemap leak in `dist/extension.js.map`; fixed
+    by adding `**/*.map`. Also `.vsix` ships `LICENSE.txt` (vsce renames)
+    + lowercase `readme.md` — assertion made case-insensitive + accepts
+    `.txt`.
+  - SPEC_DEVIATION (REQ-008): `npm pack --json` output shape differs by
+    npm version (object keyed by pkg name on npm 11 vs `[{}]` array on
+    npm 10) — assertion handles both. `core-package` artifact `path:`
+    gained explicit `README.md` + `LICENSE` (self-contained artifact).
+  - Verified locally (no secrets): YAML parses (js-yaml — no actionlint/
+    docker available), all 14 job-structure assertions pass, `npm pack`
+    + `vsce package` content assertions green, `git-cliff --latest`
+    renders. Next: T-010 full verification.
 
 - [2026-08-26] `release-pipeline` T-001..T-004 complete — **feature 100%
   done, all 4 tasks. Both new features from this batch (`vscode-

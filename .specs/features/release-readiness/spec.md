@@ -29,7 +29,7 @@ path).
   `morphz` is, install, a minimal `Struct` + `Define` example, links to
   the repo. Derived from `INSIGHT.md` §1–8, not invented.
 - REQ-002: A `LICENSE` file (MIT, `Copyright (c) 2026 Leandro Santiago
-  Gomes`) exists at repo root AND is shipped inside every published
+Gomes`) exists at repo root AND is shipped inside every published
   artifact: `packages/core` npm tarball and `packages/vscode` `.vsix`.
   `packages/core/package.json` / `packages/vscode/package.json` already
   declare `"license": "MIT"`; the files must back that claim.
@@ -69,9 +69,12 @@ path).
   job creates a GitHub Release for the tag: title = the version, body =
   the git-cliff-rendered section for that tag, with the built `.vsix`
   attached as a release asset. Needs `permissions: contents: write`.
-- REQ-010: `vsce package` step verifies the `.vsix` contains `README.md`
-  + `LICENSE` and does NOT contain `src/**` or `*.map`
-  (`.vscodeignore` already excludes those — this is a regression guard).
+- REQ-010: `vsce package` step verifies the `.vsix` contains the readme
+  (`extension/readme.md` — vsce lowercases it) and the license
+  (`extension/LICENSE.txt` — vsce renames `LICENSE`), and does NOT
+  contain `src/**` or any `*.map`. NOTE: `.vscodeignore` originally only
+  had top-level `*.map`; `dist/extension.js.map` leaked — fixed by adding
+  `**/*.map` (SPEC_DEVIATION, recorded in STATE.md).
 
 ### Verification (no secrets required)
 
@@ -129,7 +132,7 @@ path).
   `CHANGELOG.md` back to `main` (needs `contents: write` + a bot push on
   a tag build, which is slightly awkward), or is the committed
   `CHANGELOG.md` updated by the human just before tagging and CI only
-  *renders* the section for the Release body (no write-back)? Leaning
+  _renders_ the section for the Release body (no write-back)? Leaning
   toward: human runs `pnpm changelog` before tagging (updates the file in
   the same commit that bumps nothing — the tag is on that commit); CI
   only renders `--latest` for the Release body. Simpler, no bot push.
