@@ -24,6 +24,7 @@ class UsageError extends Error {}
 interface InitFlags {
   force: boolean;
   tsconfig: boolean;
+  deps: boolean;
   configExt: ConfigExt;
   pm?: PackageManager;
 }
@@ -44,7 +45,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     throw new UsageError(`unknown command: ${first}`);
   }
 
-  const flags: InitFlags = { force: false, tsconfig: true, configExt: "ts" };
+  const flags: InitFlags = { force: false, tsconfig: true, deps: true, configExt: "ts" };
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i];
     switch (arg) {
@@ -56,6 +57,9 @@ export function parseArgs(argv: string[]): ParsedArgs {
         break;
       case "--no-tsconfig":
         flags.tsconfig = false;
+        break;
+      case "--no-deps":
+        flags.deps = false;
         break;
       case "--config-ext": {
         const val = rest[++i];
@@ -104,6 +108,7 @@ Commands
 Flags (init)
   --force                  Overwrite an existing morphz.config.*
   --no-tsconfig            Don't touch tsconfig.json
+  --no-deps                Don't add morphz / zod to package.json
   --config-ext <ext>       Config file extension: ts (default), js, mjs, cjs
   --pm <name>              Package manager for hints: npm, pnpm, yarn, bun
                            (auto-detected from the lockfile by default)
@@ -285,47 +290,108 @@ export function zodRangeSatisfiesV4(range: string): boolean {
   return trimmed === "4" || trimmed.startsWith("4.");
 }
 
-function readNearestPackageJson(
-  cwd: string,
-): { dir: string; json: Record<string, unknown> } | undefined {
-  let dir = cwd;
-  for (;;) {
-    const candidate = join(dir, "package.json");
-    if (existsSync(candidate)) {
-      try {
-        return {
-          dir,
-          json: JSON.parse(readFileSync(candidate, "utf8")) as Record<string, unknown>,
-        };
-      } catch {
-        return undefined;
-      }
-    }
-    const parent = dirname(dir);
-    if (parent === dir) return undefined;
-    dir = parent;
-  }
+// ── dependencies ─────────────────────────────────────────────────────────
+
+/** All declared deps across the three fields, name → range. */
+function collectDeps(pkg: Record<string, unknown>): Record<string, string> {
+  return {
+    ...(pkg.dependencies as Record<string, string> | undefined),
+    ...(pkg.devDependencies as Record<string, string> | undefined),
+    ...(pkg.peerDependencies as Record<string, string> | undefined),
+  };
 }
 
-export function checkZod(cwd: string, pm: PackageManager): Outcome {
-  const install = `${pmAddCommand(pm)} zod`;
-  const found = readNearestPackageJson(cwd);
-  if (!found) {
-    return { target: "zod", action: "warn", reason: `no package.json found — run: ${install}` };
+/**
+ * `1.2.3` → `^1.2.3`. `0.0.0` is `readVersion`'s "couldn't read" sentinel,
+ * and anything non-semver falls back to `latest`.
+ */
+function selfRange(version: string): string {
+  return version !== "0.0.0" && /^\d+\.\d+\.\d+/.test(version) ? `^${version}` : "latest";
+}
+
+export interface EnsureDepsResult {
+  outcome: Outcome;
+  changed: boolean;
+}
+
+/**
+ * Guarantees `morphz` and `zod` are in the project's `package.json`
+ * `dependencies` — a plain JSON edit, no package manager is ever run
+ * (spec REQ-005). Operates on `cwd` only (never walks up: adding deps to a
+ * parent/root `package.json` in a monorepo would be surprising).
+ */
+export function ensureDeps(cwd: string, selfVersion: string, pm: PackageManager): EnsureDepsResult {
+  const path = join(cwd, "package.json");
+  if (!existsSync(path)) {
+    return {
+      changed: false,
+      outcome: {
+        target: "package.json",
+        action: "warn",
+        reason: `not found in ${cwd} — run \`${pm} init\` first`,
+      },
+    };
   }
-  const deps = {
-    ...(found.json.dependencies as Record<string, string> | undefined),
-    ...(found.json.devDependencies as Record<string, string> | undefined),
-    ...(found.json.peerDependencies as Record<string, string> | undefined),
-  };
-  const range = deps.zod;
-  if (range && zodRangeSatisfiesV4(range)) {
-    return { target: "zod", action: "ok", reason: `${range} present` };
+
+  let text = readFileSync(path, "utf8");
+  const errors: ParseError[] = [];
+  const pkg = parse(text, errors, { allowEmptyContent: false }) as
+    | Record<string, unknown>
+    | undefined;
+  if (errors.length > 0 || !pkg) {
+    return {
+      changed: false,
+      outcome: { target: "package.json", action: "warn", reason: "could not parse" },
+    };
+  }
+
+  const declared = collectDeps(pkg);
+  const wanted: Array<[string, string]> = [
+    ["morphz", selfRange(selfVersion)],
+    ["zod", "^4"],
+  ];
+  const added: string[] = [];
+  let zodMismatch = false;
+
+  for (const [name, range] of wanted) {
+    const existing = declared[name];
+    if (existing) {
+      if (name === "zod" && !zodRangeSatisfiesV4(existing)) zodMismatch = true;
+      continue;
+    }
+    const edits = modify(text, ["dependencies", name], range, {
+      formattingOptions: { insertSpaces: true, tabSize: 2 },
+    });
+    text = applyEdits(text, edits);
+    added.push(`${name}@${range}`);
+  }
+
+  if (added.length > 0) writeFileSync(path, text, "utf8");
+
+  if (added.length > 0) {
+    const note = zodMismatch ? " — existing zod is not v4" : "";
+    return {
+      changed: true,
+      outcome: {
+        target: "package.json",
+        action: "updated",
+        reason: `added ${added.join(", ")}${note}`,
+      },
+    };
+  }
+  if (zodMismatch) {
+    return {
+      changed: false,
+      outcome: {
+        target: "package.json",
+        action: "warn",
+        reason: `zod is present but not ^4 — run: ${pmAddCommand(pm)} zod@^4`,
+      },
+    };
   }
   return {
-    target: "zod",
-    action: "warn",
-    reason: `zod@^4 is a required peer dependency — run: ${install}`,
+    changed: false,
+    outcome: { target: "package.json", action: "ok", reason: "morphz, zod present" },
   };
 }
 
@@ -337,17 +403,22 @@ const SNIPPET = `  {
     }
   }`;
 
-function printSummary(outcomes: Outcome[], printSnippet: boolean): void {
+interface SummaryOpts {
+  printSnippet: boolean;
+  installHint?: string;
+}
+
+function printSummary(outcomes: Outcome[], opts: SummaryOpts): void {
   const lines = ["", "morphz init", ""];
   for (const o of outcomes) {
     lines.push(`  ${o.action.padEnd(8)} ${o.target}${o.reason ? `  (${o.reason})` : ""}`);
   }
-  if (printSnippet) {
+  if (opts.printSnippet) {
     lines.push("", "  add this to tsconfig.json manually:", SNIPPET);
   }
+  lines.push("", "next steps");
+  if (opts.installHint) lines.push(`  • run: ${opts.installHint}`);
   lines.push(
-    "",
-    "next steps",
     "  • install the morphz editor extension (VS Marketplace / Open VSX),",
     "    or rely on the tsconfig.json plugin",
     `  • docs: ${DOCS_URL}`,
@@ -362,8 +433,19 @@ export function runInit(cwd: string, flags: InitFlags): void {
   const pm = flags.pm ?? detectPackageManager(cwd);
   const config = writeConfig(cwd, flags.configExt, flags.force);
   const tsconfig = patchTsconfig(cwd, flags.tsconfig);
-  const zod = checkZod(cwd, pm);
-  printSummary([config, tsconfig, zod], Boolean(tsconfig.printSnippet));
+
+  const outcomes: Outcome[] = [config, tsconfig];
+  let installHint: string | undefined;
+
+  if (flags.deps) {
+    const deps = ensureDeps(cwd, readVersion(), pm);
+    outcomes.push(deps.outcome);
+    if (deps.changed) installHint = `${pm} install`;
+  } else {
+    outcomes.push({ target: "package.json", action: "skipped", reason: "--no-deps" });
+  }
+
+  printSummary(outcomes, { printSnippet: Boolean(tsconfig.printSnippet), installHint });
 }
 
 // ── entrypoint ───────────────────────────────────────────────────────────

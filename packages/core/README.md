@@ -11,13 +11,14 @@ messages, and JSON-Schema-safe date codecs.
 ## Install
 
 ```sh
-pnpm add morphz zod
 npx morphz init
+pnpm install
 ```
 
-`zod@^4` is a peer dependency — bring your own. `npx morphz init` writes a
-`morphz.config.ts` and wires `morphz/ts-plugin` into your `tsconfig.json`
-(`npx morphz --help` for flags).
+`npx morphz init` writes a `morphz.config.ts`, wires `morphz/ts-plugin`
+into your `tsconfig.json`, and adds `morphz` + `zod@^4` to `package.json`
+`dependencies` (a JSON edit — run your package manager's install after).
+`zod@^4` is a peer dependency. `npx morphz --help` for flags.
 
 ## Quick example
 

@@ -41,7 +41,7 @@ Non-interactive (flags only), zero new runtime dependencies, CJS bin.
   `morphz.config.*`:
   - creates `morphz.config.ts` at `process.cwd()` with the template below,
   - patches `./tsconfig.json` if present (REQ-004),
-  - runs the `zod` check (REQ-005),
+  - ensures `morphz` + `zod` in `./package.json` (REQ-005),
   - prints the summary (REQ-006),
   - exits `0`.
 - REQ-003: `morphz.config.ts` template — valid TypeScript, matches the
@@ -88,19 +88,26 @@ overwrite)`, still run REQ-004/005/006, exit `0`.
     open question** (Q1). Baseline guarantee: the command MUST NOT produce
     an invalid `tsconfig.json`; when in doubt it prints instead of writes.
   - `--no-tsconfig` skips this step entirely.
-- REQ-005: `zod` check. Read the nearest `package.json` (cwd upward),
-  inspect `dependencies` + `devDependencies` + `peerDependencies` for
-  `zod`. Missing, or a range that cannot satisfy `^4` → print a warning
-  line (`zod@^4 is a required peer dependency — run: <pm> zod`). Never runs
-  a package manager. Not finding a `package.json` at all → warn once,
-  continue. This check never changes the exit code.
+- REQ-005: `package.json` dependencies. Read `./package.json` (**cwd only**
+  — never walks up; writing deps to a parent/root `package.json` in a
+  monorepo is surprising). For each of `morphz` (range `^<CLI version>`,
+  or `latest` if the version is unreadable / `0.0.0`) and `zod` (`^4`):
+  if the name is already declared in `dependencies` ∪ `devDependencies` ∪
+  `peerDependencies`, leave it as-is; otherwise add it to `dependencies`
+  via a `jsonc-parser` surgical edit (formatting / key order preserved).
+  Writes the file only if something was added. An existing `zod` that
+  isn't `^4`-satisfying is left untouched with a warning note.
+  **Never runs a package manager** — when something was added, the summary
+  leads with `run: <pm> install`. No `./package.json` → `warn`
+  (`run \`<pm> init\` first`), config still written. Unparseable → `warn`.
+This step never changes the exit code. `--no-deps` skips it.
 - REQ-005a: Package-manager detection (added post-spec, 2026-08-28). The
-  install command in REQ-005's warning is tailored to the project's PM,
-  detected by walking up from `cwd` for a lockfile (`pnpm-lock.yaml`→pnpm,
-  `yarn.lock`→yarn, `bun.lock[b]`→bun,
+  `<pm>` in REQ-005's `install` hint (and the `<pm> init` / `<pm> add
+zod@^4` notes) is detected by walking up from `cwd` for a lockfile
+  (`pnpm-lock.yaml`→pnpm, `yarn.lock`→yarn, `bun.lock[b]`→bun,
   `package-lock.json`/`npm-shrinkwrap.json`→npm), then the `packageManager`
   field (corepack) of the nearest `package.json`, else `npm`.
-  `--pm <npm|pnpm|yarn|bun>` overrides. Command mapping: `npm i`,
+  `--pm <npm|pnpm|yarn|bun>` overrides. `add`-command mapping: `npm i`,
   everything else `<pm> add`. Detection only, no prompt — matches the
   flags-only design.
 - REQ-006: Summary output — one block, plain text, listing exactly what was

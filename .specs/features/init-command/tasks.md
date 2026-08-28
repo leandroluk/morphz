@@ -3,6 +3,23 @@
 Feature: `.specs/features/init-command/`. Design resolved all 4 QQs.
 **All tasks DONE 2026-08-28.** T-001..T-007 complete; gate green.
 
+## T-009 — ensure morphz + zod in package.json (follow-up, 2026-08-28)
+
+- [x] `ensureDeps(cwd, selfVersion, pm)` — cwd-only `package.json`, adds
+      `morphz` (`^<version>` / `latest`) + `zod` (`^4`) to `dependencies` via
+      jsonc `modify`/`applyEdits` if absent from any dep field; leaves
+      existing entries; warns on a non-v4 `zod`; `warn` + `<pm> init` hint
+      when no `package.json`. Never runs a PM. `selfRange()` maps the
+      `0.0.0` sentinel + non-semver to `latest`.
+- [x] `--no-deps` flag; `runInit` leads next-steps with `run: <pm>
+install` when `ensureDeps` changed the file. Dropped the standalone
+      `checkZod` / `readNearestPackageJson` (folded in).
+- [x] Tests: `tests/init-command/ensure-deps.test.ts` (7) + integration
+      rewritten (12). 45 init-command, 333 monorepo-wide.
+- [x] Docs: `docs/README.md` Get started (`npx morphz init` first, then
+      install; `--no-deps`) + monorepo section (`--no-deps` at root);
+      `packages/core/README.md`.
+
 ## T-008 — package-manager detection (follow-up, 2026-08-28)
 
 - [x] `detectPackageManager(cwd)` — lockfile walk-up

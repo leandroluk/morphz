@@ -125,22 +125,27 @@ reuse of a field's rules across entities, and `z.date()` breaks
 ## Get started
 
 ```bash
-pnpm add morphz zod
 npx morphz init
+pnpm install
 ```
 
-`zod@^4` is a peer dependency. `npx morphz init` scaffolds the project:
+`npx morphz init` scaffolds the project — you don't need to install anything
+first:
 
 - writes a `morphz.config.ts` with commented defaults (the whole file is
   optional — see [Config file](#config-file))
 - adds `{ "name": "morphz/ts-plugin" }` to your `tsconfig.json`
   `compilerOptions.plugins`
-- warns if `zod@^4` isn't installed
+- adds `morphz` and `zod@^4` to your `package.json` `dependencies` (a plain
+  JSON edit — it never runs a package manager, hence the `pnpm install`
+  above)
+
+The install command in the summary matches your lockfile
+(`pnpm` / `yarn` / `bun` / `npm`).
 
 Flags: `--force` (overwrite an existing config), `--no-tsconfig`,
-`--config-ext <ts|js|mjs|cjs>`, `--pm <npm|pnpm|yarn|bun>` (the package
-manager used in printed hints — auto-detected from the lockfile otherwise).
-`npx morphz --help` for the full list.
+`--no-deps` (leave `package.json` alone), `--config-ext <ts|js|mjs|cjs>`,
+`--pm <npm|pnpm|yarn|bun>`. `npx morphz --help` for the full list.
 
 ### In a monorepo
 
@@ -155,19 +160,16 @@ Two facts make the setup straightforward anyway:
 So, for a Turborepo / pnpm-workspaces layout:
 
 ```bash
-# once, at the repo root — the shared config, nothing else touched
-npx morphz init --no-tsconfig
+# once, at the repo root — just the shared config
+npx morphz init --no-tsconfig --no-deps
 
-# in each package that imports morphz — add only the plugin line
-cd packages/api && npx morphz init --no-tsconfig=false --force
-#   …or just paste { "name": "morphz/ts-plugin" } into that package's
-#   tsconfig.json compilerOptions.plugins by hand
+# in each package that imports morphz — the plugin line + its own deps
+cd packages/api && npx morphz init --force
 ```
 
-The `zod` check reads the nearest `package.json` up the tree; if `zod` is a
-dependency of the consuming package but you run `init` at the root, the
-warning may fire even though `zod` is installed — it is only a nudge, safe
-to ignore.
+`init` only edits the `package.json` in the directory you run it from
+(never a parent), so at the root use `--no-deps` and add `morphz` / `zod`
+to whichever workspace packages actually import it.
 
 ### tsconfig.json — the manual equivalent
 

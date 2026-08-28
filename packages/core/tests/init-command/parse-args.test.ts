@@ -20,16 +20,25 @@ describe("parseArgs", () => {
   it("bare init → default flags", () => {
     expect(parseArgs(["init"])).toEqual({
       command: "init",
-      flags: { force: false, tsconfig: true, configExt: "ts" },
+      flags: { force: false, tsconfig: true, deps: true, configExt: "ts" },
     });
   });
 
   it("init with every flag", () => {
     expect(
-      parseArgs(["init", "--force", "--no-tsconfig", "--config-ext", "mjs", "--pm", "pnpm"]),
+      parseArgs([
+        "init",
+        "--force",
+        "--no-tsconfig",
+        "--no-deps",
+        "--config-ext",
+        "mjs",
+        "--pm",
+        "pnpm",
+      ]),
     ).toEqual({
       command: "init",
-      flags: { force: true, tsconfig: false, configExt: "mjs", pm: "pnpm" },
+      flags: { force: true, tsconfig: false, deps: false, configExt: "mjs", pm: "pnpm" },
     });
   });
 
