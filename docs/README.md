@@ -395,17 +395,32 @@ admin instanceof AdminUser; // true
 admin instanceof User; // true — polymorphism preserved
 
 // B. DTO derivations — independent classes (instanceof does NOT hold back to the source)
-export class CreatePostDto extends Post.omit("id", "createdAt", "updatedAt", "deletedAt") {}
-export class UpdateUserDto extends User.pick("name", "address").partial() {}
+//    .omit() / .pick() take a mask object — Zod v4's own shape.
+export class CreatePostDto extends Post.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+}) {}
+export class UpdateUserDto extends User.pick({ name: true, address: true }).partial() {}
 
 // C. immutable fields (id, createdAt) are rejected by update DTOs already —
 //    you only strip what isn't part of the public surface
-export class PatchUserDto extends User.omit("password").partial() {}
+export class PatchUserDto extends User.omit({ password: true }).partial() {}
+
+// D. selective partial — only the masked fields become optional
+export class ReplaceUserDto extends User.omit({ password: true }).partial({ address: true }) {}
+
+// reusable mask, typed against the shape:
+import type { Mask } from "morphz";
+const SERVER_FIELDS = { id: true, createdAt: true, updatedAt: true } satisfies Mask<UpdateUserDto>;
 ```
 
 `.extend()` produces a genuine `class extends`, so constructor, `static parse` /
 `safeParse` and `.toJSON()` are inherited. `.omit()` / `.pick()` / `.partial()`
-build independent classes — `instanceof` the source does not hold.
+build independent classes — `instanceof` the source does not hold. All three take
+a **mask object** (`{ field: true }`), matching Zod v4 — the pre-`0.2` variadic
+(`.omit("id", "createdAt")`) and array (`.omit(["id"])`) forms were removed.
 
 ## i18n error messages
 
@@ -473,7 +488,9 @@ import { defineConfig } from "morphz";
 
 export default defineConfig({
   labels: {
-    // auto-derive entityName from the class name
+    // OPTIONAL — overrides the default. `entityName` already falls back to
+    // the bare class name; supply a function only to reshape it, e.g. strip
+    // an `Entity` / `Model` suffix:
     entityName: (ctx) => ctx.className.replace(/(Entity|Model)$/, ""),
   },
   template: {
@@ -486,6 +503,18 @@ export default defineConfig({
   jsdoc: true, // propagate semantic metadata into generated types for IDE hover
 });
 ```
+
+### `entityName` resolution
+
+`#entityName` in a description template resolves, in order:
+
+1. an explicit `labels: { entityName: "User" }` on the `Struct` — always wins
+2. a `config.labels.entityName(ctx)` function, if you defined one
+3. **the bare class name** — the zero-config default (`class User` → `"User"`),
+   resolved lazily on the first `parse()` / `new` so subclass names are correct
+
+The whole config file is optional. Bundlers that mangle class names are the one
+caveat — set `labels.entityName` explicitly on those Structs.
 
 ## Primitives reference
 

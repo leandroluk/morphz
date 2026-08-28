@@ -25,6 +25,14 @@ export type InferShape<Fields extends Record<string, FieldDescriptor<any>>> = {
   [K in keyof Fields]: Fields[K] extends FieldDescriptor<infer T> ? T : never;
 };
 
+/**
+ * A `{ [K in keyof Shape]?: true }` selection object — Zod v4's own mask
+ * shape, taken by `.omit()` / `.pick()` / `.partial()` (mask-object-derivation).
+ * Exported so consumers can build reusable masks:
+ * `const SERVER_FIELDS = { id: true, createdAt: true } satisfies Mask<UserShape>`.
+ */
+export type Mask<Shape> = { [K in keyof Shape]?: true };
+
 export interface StructOptions {
   labels?: Record<string, string>;
   description?: string;
@@ -92,20 +100,35 @@ export interface BuildStructClassParams {
 }
 
 /**
- * Resolves the pending auto-derived `entityName` (config-gaps), once, on
- * first construction — `className` is only reliably known by now (`class X
+ * Resolves the pending auto-derived `entityName`, once, on first
+ * construction — `className` is only reliably known by now (`class X
  * extends Struct(...) {}` binds `X.name` synchronously before any `new
  * X()`/`X.parse()` could ever run). No-op if not pending. Mutates `meta` in
  * place — every other reader of `STRUCT_META` (i18n, toJSON, FieldOf,
  * Union, ...) reads it live, so the patch propagates for free.
+ *
+ * The default deriver (`default-entity-name`) is the identity —
+ * `entityName` falls back to the bare class name so `#entityName` templates
+ * work with zero config. A `config.labels.entityName` function overrides it;
+ * an explicit `labels.entityName` on the `Struct` short-circuits this
+ * entirely (never pending). Exported so `.omit()`/`.pick()`/`.partial()` can
+ * pin the source's name before copying its labels onto a derived class.
  */
-function resolveEntityNameIfPending(meta: StructMeta, className: string): void {
+export function resolveEntityNameIfPending(meta: StructMeta, className: string): void {
   if (!meta.pendingEntityNameDerivation) return;
-  const deriver = getConfig().labels?.entityName;
+  const deriver = getConfig().labels?.entityName ?? ((ctx: { className: string }) => ctx.className);
   meta.pendingEntityNameDerivation = false;
-  if (typeof deriver !== "function") return;
 
   const entityName = deriver({ className });
+  // Anonymous class / mangled-away name — nothing meaningful to interpolate.
+  if (!entityName) return;
+  if (entityName.length <= 2) {
+    logStruct(
+      "entityName %o looks minified for %o — set labels.entityName explicitly",
+      entityName,
+      className,
+    );
+  }
   const newLabels = { ...meta.labels, entityName };
   const delimiter = meta.templateDelimiter ?? "#";
   const newFields: Record<string, FieldDescriptor> = {};
@@ -267,8 +290,10 @@ export function Struct<Fields extends Record<string, FieldDescriptor<any>>>(
   const delimiter = options.templateDelimiter ?? getConfig().template?.delimiter ?? "#";
   const { rawObjectSchema, resolvedFields } = buildRawObjectSchema(fields, labels, delimiter);
   const hooks: StructHooks = { pre: options.pre, post: options.post };
-  const entityNameDeriver = getConfig().labels?.entityName;
-  const pendingEntityNameDerivation = !labels.entityName && typeof entityNameDeriver === "function";
+  // Pending unless the caller pinned `entityName` outright — the deriver
+  // (config override or the identity default) runs lazily on first
+  // construction, when the real subclass name is known (default-entity-name).
+  const pendingEntityNameDerivation = !labels.entityName;
 
   return buildStructClass({
     rawObjectSchema,
@@ -330,9 +355,23 @@ export interface StructConstructor<Shape = unknown> {
     this: T,
     newFields: NewFields,
   ): StructConstructor<Omit<InstanceType<T>, keyof NewFields> & InferShape<NewFields>>;
-  omit<K extends keyof Shape>(...names: K[] | [K[]]): StructConstructor<Omit<Shape, K>>;
-  pick<K extends keyof Shape>(...names: K[] | [K[]]): StructConstructor<Pick<Shape, K>>;
+  /**
+   * Derive a DTO class with the masked fields removed. Takes Zod v4's own
+   * mask shape — `.omit({ id: true, createdAt: true })` (mask-object-derivation;
+   * the variadic / array forms were removed in 0.2).
+   */
+  omit<M extends Mask<Shape>>(mask: M): StructConstructor<Omit<Shape, keyof M>>;
+  /** Derive a DTO class keeping ONLY the masked fields. `.pick({ name: true })`. */
+  pick<M extends Mask<Shape>>(mask: M): StructConstructor<Pick<Shape, keyof M & keyof Shape>>;
+  /** Every remaining field becomes optional. */
   partial(): StructConstructor<Partial<Shape>>;
+  /**
+   * Only the masked fields become optional, the rest keep their optionality.
+   * `.partial({ name: true })` (Zod v4 selective `.partial(mask)`).
+   */
+  partial<M extends Mask<Shape>>(
+    mask: M,
+  ): StructConstructor<Omit<Shape, keyof M> & Partial<Pick<Shape, keyof M & keyof Shape>>>;
   mock<T extends abstract new (input: unknown) => unknown>(
     this: T,
     overrides?: Partial<InstanceType<T>>,

@@ -111,14 +111,14 @@ describe("struct-type-inference: .extend()/.omit()/.pick()/.partial() shapes", (
     expectTypeOf(admin).toHaveProperty("canExecute");
   });
 
-  class CreatePostDto extends User.omit("email") {}
+  class CreatePostDto extends User.omit({ email: true }) {}
   it(".omit() removes the named field from the inferred shape", () => {
     const dto = CreatePostDto.parse({ name: "ab" });
     expectTypeOf(dto.name).toEqualTypeOf<string>();
     expectTypeOf(dto).not.toHaveProperty("email");
   });
 
-  class UpdateUserDto extends User.pick("name").partial() {}
+  class UpdateUserDto extends User.pick({ name: true }).partial() {}
   it(".pick().partial() keeps only the picked field, made optional", () => {
     const dto = UpdateUserDto.parse({});
     expectTypeOf(dto.name).toEqualTypeOf<string | undefined>();

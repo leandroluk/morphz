@@ -1,5 +1,13 @@
 # Spec: Class Extensibility (`.extend()`, `.omit()`, `.pick()`, `.partial()`)
 
+> **AMENDED 2026-08-28 by `mask-object-derivation`.** REQ-003/REQ-004/REQ-005
+> below describe the ORIGINAL variadic (`.omit("id", "createdAt")`) / single-
+> array (`.omit(["id"])`) argument form. That form was REMOVED in `morphz`
+> 0.2 — `.omit()` / `.pick()` / `.partial()` now take a Zod-v4-style **mask
+> object** (`.omit({ id: true })`), and `.partial(mask?)` gained a selective
+> form. The "Resolved (design phase)" note about supporting both forms is
+> superseded. See `.specs/features/mask-object-derivation/`.
+
 ## Summary
 
 `Struct`-derived classes support real class extension: `.extend(newFields)`

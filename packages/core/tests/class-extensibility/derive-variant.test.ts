@@ -20,9 +20,9 @@ const User = Struct(
   { labels: { entityName: "User" } },
 ) as unknown as {
   new (input: unknown): UserShape;
-  omit(...names: string[] | [string[]]): unknown;
-  pick(...names: string[] | [string[]]): unknown;
-  partial(): unknown;
+  omit(mask: Record<string, true>): unknown;
+  pick(mask: Record<string, true>): unknown;
+  partial(mask?: Record<string, true>): unknown;
 };
 
 const validInput = {
@@ -33,8 +33,8 @@ const validInput = {
 };
 
 describe("omit", () => {
-  it("variadic form removes the named fields and is NOT instanceof the source", () => {
-    const CreateUserDto = User.omit("id") as unknown as {
+  it("removes the masked fields and is NOT instanceof the source", () => {
+    const CreateUserDto = User.omit({ id: true }) as unknown as {
       new (input: unknown): { name: string; email: string; password: string };
     };
     const dto = new CreateUserDto({
@@ -46,18 +46,27 @@ describe("omit", () => {
     expect(dto).not.toBeInstanceOf(User as unknown as new (input: unknown) => unknown);
   });
 
-  it("single-array form removes the same fields as the variadic form", () => {
-    const A = User.omit("id", "password") as unknown as { new (input: unknown): object };
-    const B = User.omit(["id", "password"]) as unknown as { new (input: unknown): object };
+  it("removes every masked field", () => {
+    const A = User.omit({ id: true, password: true }) as unknown as {
+      new (input: unknown): object;
+    };
     const a = new A({ name: "Ada", email: "ada@example.com" });
-    const b = new B({ name: "Ada", email: "ada@example.com" });
-    expect(a).toEqual(b);
+    expect(a).toEqual({ name: "Ada", email: "ada@example.com" });
+  });
+
+  it("throws a migration error when given the removed variadic / array form", () => {
+    // @ts-expect-error — old API, deliberately calling wrong at runtime
+    expect(() => User.omit("id", "password")).toThrow(/mask object/);
+    // @ts-expect-error — old API
+    expect(() => User.omit(["id"])).toThrow(/mask object/);
   });
 });
 
 describe("pick", () => {
-  it("keeps only the named fields", () => {
-    const NameOnly = User.pick("name") as unknown as { new (input: unknown): { name: string } };
+  it("keeps only the masked fields", () => {
+    const NameOnly = User.pick({ name: true }) as unknown as {
+      new (input: unknown): { name: string };
+    };
     const instance = new NameOnly({ name: "Ada" });
     expect(instance.name).toBe("Ada");
     expect((instance as unknown as { email?: string }).email).toBeUndefined();
@@ -65,16 +74,28 @@ describe("pick", () => {
 });
 
 describe("partial", () => {
-  it("makes every remaining field optional", () => {
-    const Partial_ = User.pick("name", "email").partial() as unknown as {
+  it("makes every remaining field optional with no mask", () => {
+    const Partial_ = User.pick({ name: true, email: true }).partial() as unknown as {
       new (input: unknown): { name?: string; email?: string };
     };
     expect(() => new Partial_({})).not.toThrow();
   });
+
+  it("with a mask, makes ONLY the masked fields optional", () => {
+    const SelPartial = User.omit({ id: true, password: true }).partial({
+      email: true,
+    }) as unknown as {
+      new (input: unknown): { name: string; email?: string };
+    };
+    // email masked -> optional
+    expect(() => new SelPartial({ name: "Ada" })).not.toThrow();
+    // name NOT masked -> still required
+    expect(() => new SelPartial({ email: "ada@example.com" })).toThrow();
+  });
 });
 
 describe("immutable enforcement on derived variants", () => {
-  const PatchUserDto = User.omit("password").partial() as unknown as {
+  const PatchUserDto = User.omit({ password: true }).partial() as unknown as {
     new (input: unknown): { id?: string; name?: string; email?: string };
   };
 
@@ -89,7 +110,7 @@ describe("immutable enforcement on derived variants", () => {
 
 describe("chaining across the derived family", () => {
   it("pick().partial() works and both static methods are available", () => {
-    const Chained = User.pick("name", "email").partial() as unknown as {
+    const Chained = User.pick({ name: true, email: true }).partial() as unknown as {
       new (input: unknown): { name?: string };
     };
     expect(new Chained({ name: "Ada" }).name).toBe("Ada");

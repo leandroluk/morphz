@@ -1,6 +1,17 @@
 # Spec: Mask-Object Derivation (`.omit()` / `.pick()` / `.partial()` API)
 
-**Status: SPECIFIED (2026-08-28).** Design + Tasks phases pending.
+**Status: DONE (2026-08-28).** Implemented + tested (260 core tests green,
+288 monorepo-wide). Shipped alongside `default-entity-name` in the same
+commit. Open questions resolved by user:
+
+- Q1 → **yes**, Zod v4 `ZodObject.partial(mask)` keeps the selective
+  semantics (verified via Context7: `/colinhacks/zod`). `morphz` delegates
+  straight to it.
+- Q2 → **explicit throw.** `assertMask()` raises a `TypeError` with a
+  migration hint if given a string/array (old form).
+- Q3 → **`feat!` → `0.2.0`.** Confirmed.
+- Q4 → **export `Mask<Shape>` publicly** — `export type { Mask }` from
+  `src/index.ts`. Consumers can `{ ... } satisfies Mask<Shape>`.
 
 ## Summary
 

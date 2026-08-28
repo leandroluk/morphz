@@ -94,7 +94,7 @@ describe("struct-type-inference: full INSIGHT.md-style User/Post", () => {
     expectTypeOf(post.status).toEqualTypeOf<"DRAFT" | "PUBLISHED" | "ARCHIVED">();
   });
 
-  class PatchUserDto extends User.omit("password").partial() {}
+  class PatchUserDto extends User.omit({ password: true }).partial() {}
   it("real PatchUserDto: all remaining fields optional, password gone", () => {
     const dto = PatchUserDto.parse({});
     expectTypeOf(dto.name).toEqualTypeOf<string | undefined>();
@@ -120,7 +120,7 @@ describe("struct-type-inference: mockMany + triple chaining", () => {
     expectTypeOf(batch[0]).toEqualTypeOf<User | undefined>();
   });
 
-  class UpdateUserWithBioDto extends User.pick("name", "email")
+  class UpdateUserWithBioDto extends User.pick({ name: true, email: true })
     .partial()
     .extend({
       bio: Text({ min: 1 }),

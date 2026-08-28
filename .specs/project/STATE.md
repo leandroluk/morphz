@@ -5,16 +5,28 @@
 
 ## Decisions (recent — older entries in STATE_ARCHIVE.md)
 
-- [2026-08-28] `mask-object-derivation` SPECIFIED (11 REQs). Breaking change
-  to `class-extensibility`'s `.omit()`/`.pick()`/`.partial()`: drop the
-  variadic + single-array argument forms, replace with a Zod-v4-style mask
-  object (`.omit({ id: true })`). Also adds selective `.partial(mask?)`.
-  User picked the clean-break option (no dual-form overload, no deprecation
-  window) — adoption is ~zero at `v0.1.0`, migration is a one-line
-  find-replace. Supersedes the `class-extensibility` spec/design "both
-  forms supported" resolution. `feat!` → git-cliff bumps `0.1.0` → `0.2.0`
-  (Q3 in spec, to confirm at Design). Design + Tasks phases pending. See
-  `.specs/features/mask-object-derivation/spec.md`.
+- [2026-08-28] `mask-object-derivation` + `default-entity-name` SHIPPED
+  together (one `feat!` commit → `0.2.0`). 260 core tests + 22 ts-plugin +
+  6 vscode green, `turbo run typecheck` 4/4.
+  - **mask-object-derivation**: `.omit()`/`.pick()`/`.partial()` dropped the
+    variadic + single-array forms for a Zod-v4 mask object
+    (`.omit({ id: true })`); `.partial(mask?)` selective form added;
+    `Mask<Shape>` exported from `src/index.ts`; `assertMask()` throws a
+    `TypeError` migration hint on the old form. All 4 open questions
+    resolved by user (Zod v4 keeps `.partial(mask)` — Context7-verified;
+    explicit throw; `feat!`→0.2.0; export `Mask`). `class-extensibility`
+    spec/design got a superseding banner.
+  - **default-entity-name**: `#entityName` now defaults to the bare class
+    name with zero config (`resolveEntityNameIfPending` deriver falls back
+    to identity; `pendingEntityNameDerivation = !labels.entityName`).
+    Explicit `labels.entityName` > `config.labels.entityName` > class name.
+    DTOs pin the source's resolved name at derive time. `logStruct` warn on
+    mangled ≤2-char names, no hard fail. Was a real footgun — shipped
+    `morphz/recipes` emitted literal `#entityName` text without a config
+    deriver.
+  - Docs updated: `docs/README.md` (DTO section + `Mask` example + selective
+    partial + `entityName` resolution order + "config is optional"),
+    `docs/examples/user-post.md`, `INSIGHT.md` §8 + §9.
 - [2026-08-28] Release actually happened. `v0.1.0` tagged + pushed;
   `release.yml` ran green after two fixes: npm Trusted Publisher had to be
   registered on npmjs.com (`leandroluk`/`morphz`/`release.yml`, "Allow npm
@@ -261,9 +273,8 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 - [ ] Enable GitHub Pages for the new `docs/` site (source `main` `/docs`,
       → `https://leandroluk.github.io/morphz`). Mirrors `dynamoose-typed`
       (`build_type: legacy`, branch + `/docs` path). Not yet done.
-- [ ] `mask-object-derivation` — Design + Tasks phases pending. Breaking
-      API change, resolve spec Q1-Q4 at Design (esp. Q1: does Zod v4
-      `ZodObject.partial()` still take a mask arg — verify via Context7).
+- [x] `mask-object-derivation` + `default-entity-name` — DONE (2026-08-28),
+      one `feat!` commit. Next tag will be `0.2.0` (git-cliff `--bump`).
 - [ ] Both new features from this session's batch (`vscode-extension`,
       `release-pipeline`) are code-complete — the v4 audit's remaining
       gaps (`packages/vscode` real extension, CI publish) are now closed.

@@ -41,7 +41,7 @@ describe("morphz/recipes — full-entity integration", () => {
       { id: PrimaryKey(), name: Text({ min: 2 }) },
       { labels: { entityName: "User" } },
     ) {}
-    const PatchUserDto = User.omit("name").partial();
+    const PatchUserDto = User.omit({ name: true }).partial();
     const validUserId = (User.parse({ name: "ab" }) as { id: string }).id;
 
     expect(() => PatchUserDto.parse({ id: validUserId })).toThrow();

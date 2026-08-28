@@ -1,5 +1,17 @@
 # Design: Class Extensibility (`.extend()`, `.omit()`, `.pick()`, `.partial()`)
 
+> **AMENDED 2026-08-28 by `mask-object-derivation`.** The `.omit(...names)` /
+> `.pick(...names)` sections and the Decision Log entry "Supports both
+> variadic and single-array-argument forms" reflect the ORIGINAL API. As of
+> `morphz` 0.2 those methods take a **mask object** (`.omit({ id: true })`,
+> Zod v4's own shape) — no variadic, no array. `.partial(mask?)` also gained
+> a selective form (only masked keys become optional). Runtime:
+> `derive-variant.ts` now normalizes the mask via `cleanMask()` and guards
+> non-object args with a `TypeError` migration hint. Everything else in this
+> design (independent class, `stripImmutable`, no-`instanceof`-source,
+> `buildStructClass` reuse) is UNCHANGED. See
+> `.specs/features/mask-object-derivation/`.
+
 ## Architecture Overview
 
 Two genuinely different mechanisms, chosen per-method based on whether the

@@ -455,13 +455,22 @@ console.log(admin instanceof AdminUser); // true
 console.log(admin instanceof User); // true (polimorfismo preservado!)
 console.log(admin.canExecute("DELETE")); // true
 
-// B. Derivação de DTOs para APIs:
-export class CreatePostDto extends Post.omit("id", "createdAt", "updatedAt", "deletedAt") {}
-export class UpdateUserDto extends User.pick("name", "address").partial() {}
+// B. Derivação de DTOs para APIs (mask object — mesma forma do Zod v4;
+//    as formas variádica/array foram removidas na 0.2):
+export class CreatePostDto extends Post.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+}) {}
+export class UpdateUserDto extends User.pick({ name: true, address: true }).partial() {}
 
 // C. Update real: `immutable` já barra campos como `id`/`createdAt` sem precisar
 // listar tudo manualmente — só precisa tirar o que não faz parte da superfície pública
-export class PatchUserDto extends User.omit("password").partial() {}
+export class PatchUserDto extends User.omit({ password: true }).partial() {}
+
+// D. partial seletivo — só os campos do mask viram opcionais
+export class ReplaceUserDto extends User.omit({ password: true }).partial({ address: true }) {}
 ```
 
 ---
@@ -475,9 +484,11 @@ Configurações e convenções aplicadas em nível de monorepo/projeto:
 import { defineConfig } from "morphz";
 
 export default defineConfig({
-  // Transformação automática de labels por padrão
+  // OPCIONAL — `entityName` já cai por padrão no nome da classe (`class User`
+  // -> "User"), resolvido lazy na 1ª construção. Um deriver aqui só serve pra
+  // RESHAPE (ex: remover sufixo `Entity`/`Model`). `labels.entityName`
+  // explícito no próprio `Struct` sempre vence os dois.
   labels: {
-    // Injeta `entityName` automaticamente a partir do nome da classe
     entityName: (ctx) => ctx.className.replace(/(Entity|Model)$/, ""),
   },
 

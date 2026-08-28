@@ -188,17 +188,17 @@ app.post("/users", (req, res) => {
 ## DTOs
 
 ```ts
-// create: strip server-owned fields
-export class CreateUserDto extends User.omit(
-  "id",
-  "createdAt",
-  "updatedAt",
-  "deletedAt",
-  "posts",
-) {}
+// create: strip server-owned fields — .omit() takes a mask object
+export class CreateUserDto extends User.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+  posts: true,
+}) {}
 
 // patch: immutable id/createdAt are already rejected — only drop the secret
-export class PatchUserDto extends User.omit("password").partial() {}
+export class PatchUserDto extends User.omit({ password: true }).partial() {}
 
 // admin variant: real subclass, transitive instanceof
 export class AdminUser extends User.extend({

@@ -138,17 +138,26 @@ separately.
 ## v5 batch — post-release API polish (2026-08-28)
 
 `v0.1.0` is released (npm + VS Marketplace + Open VSX), `docs/` Docsify
-site shipped. First post-release API-evolution item:
+site shipped. Two post-release API-evolution items, shipped together in one
+`feat!` commit → `0.2.0`:
 
-18. **mask-object-derivation** — `.omit()`/`.pick()`/`.partial()` swap
-    their variadic / single-array argument for a Zod-v4-style mask object
-    (`.omit({ id: true })`), and `.partial(mask?)` gains selective form.
-    Breaking (clean break, no overload — user's call), taken now while
-    adoption is ~zero. `feat!` → `0.1.0` → `0.2.0`. Touches
-    `class-extensibility` (owns the methods) + `struct-type-inference`
-    (owns the `StructConstructor<Shape>` interface) + all in-repo call
-    sites + docs + `INSIGHT.md` §8. Specified 2026-08-28; Design + Tasks
-    pending. See `.specs/features/mask-object-derivation/spec.md`.
+18. **mask-object-derivation** — DONE. `.omit()`/`.pick()`/`.partial()`
+    dropped the variadic / single-array argument for a Zod-v4-style mask
+    object (`.omit({ id: true })`); `.partial(mask?)` gained a selective
+    form; `Mask<Shape>` exported publicly; `assertMask()` throws a
+    migration `TypeError` on the old form. Touched `class-extensibility`
+    (superseding banner on spec/design) + `struct-type-inference` (the
+    `StructConstructor<Shape>` interface) + 4 test files + docs +
+    `INSIGHT.md` §8. See `.specs/features/mask-object-derivation/`.
+19. **default-entity-name** — DONE. `#entityName` now defaults to the bare
+    class name with zero config (was: only resolved if a
+    `config.labels.entityName` deriver existed → shipped recipes emitted
+    broken `#entityName` text out of the box). Identity deriver as the
+    fallback; explicit `labels.entityName` and a config deriver still win
+    in that order; lazy resolution + `.extend()` subclass-name behavior
+    from `config-gaps` unchanged; DTOs pin the source's resolved name;
+    `logStruct` warn on mangled 1-2 char names. See
+    `.specs/features/default-entity-name/spec.md`.
 
 ## Resolved decisions
 

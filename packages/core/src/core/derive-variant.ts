@@ -1,16 +1,31 @@
 import { z } from "zod";
 import type { FieldDescriptor } from "./field-descriptor.js";
 import { STRUCT_META } from "./struct-meta.js";
-import { buildStructClass, type StructConstructor } from "./struct.js";
+import { buildStructClass, resolveEntityNameIfPending, type StructConstructor } from "./struct.js";
 
-function normalizeNames(names: string[] | [string[]]): string[] {
-  return names.length === 1 && Array.isArray(names[0]) ? names[0] : (names as string[]);
+/**
+ * Runtime guard for the mask-object API (`mask-object-derivation`). The
+ * variadic / single-array forms were removed — a string or array argument
+ * here is almost always old call-site code, so fail with a migration hint
+ * rather than letting Zod throw an opaque error two frames down.
+ */
+function assertMask(
+  mask: unknown,
+  method: "omit" | "pick" | "partial",
+): asserts mask is Record<string, true> {
+  if (mask === null || typeof mask !== "object" || Array.isArray(mask)) {
+    throw new TypeError(
+      `${method}() expects a mask object, e.g. .${method}({ id: true }) — the variadic ` +
+        `.${method}("id", "createdAt") / array .${method}(["id"]) forms were removed in morphz 0.2.`,
+    );
+  }
 }
 
-function toMask(names: string[]): Record<string, true> {
-  const mask: Record<string, true> = {};
-  for (const name of names) mask[name] = true;
-  return mask;
+/** Keeps only own-enumerable keys whose value is literally `true`. */
+function cleanMask(mask: Record<string, unknown>): Record<string, true> {
+  const out: Record<string, true> = {};
+  for (const [k, v] of Object.entries(mask)) if (v === true) out[k] = true;
+  return out;
 }
 
 /**
@@ -37,16 +52,20 @@ type DeriveMode = "omit" | "pick";
 function deriveVariant(
   source: StructConstructor,
   transform: (schema: z.ZodObject) => z.ZodObject,
-  names: string[],
+  keys: string[],
   mode: DeriveMode,
 ): StructConstructor {
+  // Pin the source's entityName (default-entity-name) before its labels are
+  // copied onto the derived class, so a DTO built from a zero-config Struct
+  // still interpolates against the SOURCE's name where it's already known.
+  resolveEntityNameIfPending(source[STRUCT_META], source.name);
   const sourceMeta = source[STRUCT_META];
-  const nameSet = new Set(names);
+  const keySet = new Set(keys);
 
   const newFields: Record<string, FieldDescriptor> =
     mode === "omit"
-      ? Object.fromEntries(Object.entries(sourceMeta.fields).filter(([k]) => !nameSet.has(k)))
-      : Object.fromEntries(Object.entries(sourceMeta.fields).filter(([k]) => nameSet.has(k)));
+      ? Object.fromEntries(Object.entries(sourceMeta.fields).filter(([k]) => !keySet.has(k)))
+      : Object.fromEntries(Object.entries(sourceMeta.fields).filter(([k]) => keySet.has(k)));
 
   let newRawObjectSchema = transform(sourceMeta.rawObjectSchema);
   newRawObjectSchema = stripImmutable(newRawObjectSchema, newFields);
@@ -64,19 +83,25 @@ function deriveVariant(
   });
 }
 
-function omit(this: StructConstructor, ...names: string[] | [string[]]): StructConstructor {
-  const flat = normalizeNames(names);
-  return deriveVariant(this, (schema) => schema.omit(toMask(flat)), flat, "omit");
+function omit(this: StructConstructor, mask: Record<string, true>): StructConstructor {
+  assertMask(mask, "omit");
+  const clean = cleanMask(mask);
+  return deriveVariant(this, (schema) => schema.omit(clean), Object.keys(clean), "omit");
 }
 
-function pick(this: StructConstructor, ...names: string[] | [string[]]): StructConstructor {
-  const flat = normalizeNames(names);
-  return deriveVariant(this, (schema) => schema.pick(toMask(flat)), flat, "pick");
+function pick(this: StructConstructor, mask: Record<string, true>): StructConstructor {
+  assertMask(mask, "pick");
+  const clean = cleanMask(mask);
+  return deriveVariant(this, (schema) => schema.pick(clean), Object.keys(clean), "pick");
 }
 
-function partial(this: StructConstructor): StructConstructor {
+function partial(this: StructConstructor, mask?: Record<string, true>): StructConstructor {
+  if (mask !== undefined) assertMask(mask, "partial");
+  resolveEntityNameIfPending(this[STRUCT_META], this.name);
   const meta = this[STRUCT_META];
-  const newRawObjectSchema = stripImmutable(meta.rawObjectSchema.partial(), meta.fields);
+  const clean = mask ? cleanMask(mask) : undefined;
+  const partialed = clean ? meta.rawObjectSchema.partial(clean) : meta.rawObjectSchema.partial();
+  const newRawObjectSchema = stripImmutable(partialed, meta.fields);
   return buildStructClass({
     rawObjectSchema: newRawObjectSchema,
     hooks: meta.hooks,

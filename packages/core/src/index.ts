@@ -44,7 +44,7 @@ export { Struct } from "./core/struct.js";
 export { Embed } from "./core/embed.js";
 export { STRUCT_META } from "./core/struct-meta.js";
 export type { StructMeta, StructConstructorLike } from "./core/struct-meta.js";
-export type { StructConstructor } from "./core/struct.js";
+export type { StructConstructor, Mask } from "./core/struct.js";
 
 export { Literal } from "./core/literal.js";
 export { Ref } from "./core/ref.js";
