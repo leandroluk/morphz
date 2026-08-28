@@ -140,6 +140,33 @@ npx morphz init
 Flags: `--force` (overwrite an existing config), `--no-tsconfig`,
 `--config-ext <ts|js|mjs|cjs>`. `npx morphz --help` for the full list.
 
+### In a monorepo
+
+`init` operates on the current directory only — it is not workspace-aware.
+Two facts make the setup straightforward anyway:
+
+- **Config discovery walks upward.** A single `morphz.config.*` at the repo
+  root is picked up by every package below it.
+- **The `tsconfig.json` plugin must live in the tsconfig each package
+  actually uses** — `plugins` is not reliably inherited through `extends`.
+
+So, for a Turborepo / pnpm-workspaces layout:
+
+```bash
+# once, at the repo root — the shared config, nothing else touched
+npx morphz init --no-tsconfig
+
+# in each package that imports morphz — add only the plugin line
+cd packages/api && npx morphz init --no-tsconfig=false --force
+#   …or just paste { "name": "morphz/ts-plugin" } into that package's
+#   tsconfig.json compilerOptions.plugins by hand
+```
+
+The `zod` check reads the nearest `package.json` up the tree; if `zod` is a
+dependency of the consuming package but you run `init` at the root, the
+warning may fire even though `zod` is installed — it is only a nudge, safe
+to ignore.
+
 ### tsconfig.json — the manual equivalent
 
 `morphz` uses the class-fields / decorators-free `Struct(...)` form, so no
