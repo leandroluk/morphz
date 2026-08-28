@@ -3,6 +3,7 @@
   - [Why this exists](README.md#why-this-exists)
   - [Features](README.md#features)
   - [Requirements](README.md#requirements)
+  - [Editor support](README.md#editor-support)
 
 - **Guides**
   - [Get started](README.md#get-started)
@@ -18,7 +19,7 @@
   - [Mocks and fixtures](guides/mocking.md)
   - [Masking PII / LGPD](guides/masking-pii.md)
   - [Property interceptors](guides/property-interceptors.md)
-  - [Editor tooling](guides/editor-tooling.md)
+  - [Editor extensions & tooling](guides/editor-tooling.md)
   - [Debug namespaces](guides/debug-namespaces.md)
 
 - **Reference**

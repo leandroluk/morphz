@@ -5,7 +5,52 @@ runs inside the `tsserver` process your editor already hosts — no extra Node
 daemon, no separate LSP server. It reuses the AST and type-checker state
 TypeScript keeps in memory.
 
-## Enable it
+There are two ways to activate it: a one-line `tsconfig.json` entry that works in
+**any** editor, or the **morphz editor extension**, which does it for you.
+
+## Editor extensions
+
+The extension is published under a single ID — `leandroluk.morphz-vscode` — to
+two registries, covering every VS Code-family editor:
+
+| Registry                                                                                                  | Install from                                                               | Editors it serves                                                        |
+| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=leandroluk.morphz-vscode) | VS Code — Extensions view, search **morphz**                               | Visual Studio Code (stable & Insiders)                                   |
+| [Open VSX](https://open-vsx.org/extension/leandroluk/morphz-vscode)                                       | Cursor / VSCodium / Windsurf / Gitpod — Extensions view, search **morphz** | Cursor, VSCodium, Windsurf, Gitpod, Eclipse Theia, any Open VSX consumer |
+
+Both registries serve the same `.vsix`, built and published from one CI job on
+every release — versions never diverge.
+
+### What you get
+
+The extension is a thin **activation layer**. On any workspace that has `morphz`
+in its `package.json`, it registers `morphz/ts-plugin` through VS Code's standard
+`contributes.typescriptServerPlugins` hook — the same mechanism Vue Language
+Features and the Angular Language Service use — so the plugin loads inside the
+editor's own `tsserver`. Nothing to configure, no `tsconfig.json` edit, no
+background process. Uninstalling the extension fully removes the behavior.
+
+All the language features below (hover, completions, diagnostics, i18n) come from
+the plugin, not the extension — they are identical whether you activate via the
+extension or the `tsconfig.json` entry.
+
+### Requirements
+
+- `morphz` listed in the project's `package.json` (`dependencies` or
+  `devDependencies`) — the extension no-ops in unrelated workspaces.
+- The editor must use the **workspace** TypeScript version. VS Code-family
+  editors do this automatically when the project has a `typescript` dependency;
+  if prompted, pick _"Use Workspace Version"_ (command palette → _TypeScript:
+  Select TypeScript Version_).
+
+### Status bar
+
+A **morphz** item appears in the status bar when the open file's workspace looks
+like a `morphz` consumer. It is a best-effort _"should be active"_ signal — VS
+Code exposes no API to confirm a contributed `tsserver` plugin actually loaded,
+so it is not a hard guarantee.
+
+## Enable it without the extension
 
 ### Any editor / plain `tsc`
 
@@ -18,15 +63,12 @@ TypeScript keeps in memory.
 }
 ```
 
-VS Code additionally needs the workspace TypeScript version selected
-("TypeScript: Select TypeScript Version" → "Use Workspace Version").
+Works anywhere `tsserver` runs — Neovim (`typescript-tools` / `tsserver`),
+WebStorm / other JetBrains IDEs, Sublime (LSP-typescript), plain `tsc`. VS Code
+still needs the workspace TypeScript version selected (see Requirements above).
 
-### VS Code / Cursor — zero-config
-
-Install the **morphz** extension (`morphz-vscode`) from the
-[VS Marketplace](https://marketplace.visualstudio.com/items?itemName=leandroluk.morphz-vscode)
-or [Open VSX](https://open-vsx.org/extension/leandroluk/morphz-vscode). It
-activates `morphz/ts-plugin` with no `tsconfig.json` edit.
+Use this instead of the extension when your editor has no Open VSX / Marketplace
+access, or when you want the plugin active in CI type-checks too.
 
 ## What the plugin does
 

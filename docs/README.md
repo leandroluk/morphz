@@ -145,9 +145,32 @@ pnpm add morphz zod
 }
 ```
 
-VS Code / Cursor users can instead install the **morphz** extension
-(`morphz-vscode`) from the VS Marketplace or Open VSX — it activates the plugin
-with no `tsconfig.json` edit.
+VS Code-family editors can skip the `tsconfig.json` entry and install the
+extension instead — see below.
+
+## Editor support
+
+`morphz` bundles a **TypeScript Language Service Plugin** (`morphz/ts-plugin`)
+that gives you, right inside `Struct` / `Define` declarations:
+
+- **Hover** — the resolved description, `regex` / `format` and `examples` for a
+  field, pulled through its whole `Define` origin chain, with `#label` templates
+  already interpolated
+- **Completions** — `#label` template references, and the real field keys of the
+  target entity inside `FieldOf(User, "…")`
+- **Diagnostics** — broken template references and invalid `post`-hook
+  `ctx.addIssue({ path })` targets, in the Problems panel
+
+Two ways to turn it on:
+
+|                             | How                                                                                                                                                                                               | Editors                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Extension** (zero-config) | Install **morphz** from the [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=leandroluk.morphz-vscode) or [Open VSX](https://open-vsx.org/extension/leandroluk/morphz-vscode) | VS Code, Cursor, VSCodium, Windsurf, Gitpod, Theia            |
+| **`tsconfig.json`**         | `"plugins": [{ "name": "morphz/ts-plugin" }]`                                                                                                                                                     | any `tsserver` host — Neovim, JetBrains, Sublime, plain `tsc` |
+
+Both routes load the same plugin inside your editor's existing `tsserver` — no
+extra language server, no background process. Full details, i18n behavior and the
+`jsdoc: true` fallback are in the [Editor tooling guide](guides/editor-tooling.md).
 
 ## Meta-types with Define
 
