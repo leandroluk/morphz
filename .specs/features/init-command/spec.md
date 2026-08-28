@@ -1,6 +1,9 @@
 # Spec: `morphz init` — Project Scaffolding Command
 
-**Status: SPECIFIED (2026-08-28).** Design + Tasks phases pending.
+**Status: DONE (2026-08-28).** Implemented + tested — 26 new `init-command`
+tests, 314 monorepo-wide green, `turbo run typecheck` 4/4. All 4 open
+questions resolved in `design.md` (jsonc-parser bundled into `cli.cjs`
+only — verified zero leak into `index.cjs`).
 
 ## Summary
 

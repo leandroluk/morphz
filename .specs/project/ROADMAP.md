@@ -161,16 +161,16 @@ site shipped. Two post-release API-evolution items, shipped together in one
 
 ## v6 batch — DX tooling (2026-08-28)
 
-20. **init-command** — SPECIFIED (2026-08-28), Design pending. `npx morphz
-init`: writes `morphz.config.ts` (commented defaults), adds
-    `morphz/ts-plugin` to `tsconfig.json`, warns if `zod@^4` missing,
-    prints next steps. New CJS bin (`dist/cli.cjs`) as a tsup entry,
-    `"bin"` in `packages/core/package.json`, zero new runtime deps,
-    non-interactive. Also `morphz --help` / `--version`. Depends on
-    `project-config` (config shape/filenames) + `release-readiness` (adds
-    `dist/cli.cjs` to the tarball assertion). 4 Design open questions
-    (headline: JSONC tsconfig handling — bundle `jsonc-parser`, in-repo
-    stripper, or print-only). See `.specs/features/init-command/spec.md`.
+20. **init-command** — DONE (2026-08-28). `npx morphz init`: writes
+    `morphz.config.<ext>` (commented defaults), adds `morphz/ts-plugin` to
+    `tsconfig.json` via a surgical `jsonc-parser` edit (comments +
+    formatting preserved; prints a manual snippet on parse failure), warns
+    if `zod@^4` missing, prints a summary. `morphz --help` / `--version` /
+    no-args→help. New `src/cli.ts` → `dist/cli.cjs` tsup entry + `"bin"` in
+    `packages/core/package.json`. `jsonc-parser` is a **devDependency
+    bundled into `cli.cjs` only** (verified zero leak into `index.cjs`) —
+    runtime deps unchanged. `release.yml` tarball assertion gains
+    `dist/cli.cjs`. 26 new tests. See `.specs/features/init-command/`.
 
 ## Resolved decisions
 

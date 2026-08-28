@@ -41,7 +41,7 @@ jobs:
             const j = JSON.parse(require("fs").readFileSync("./pack.json", "utf8"));
             const pkg = Array.isArray(j) ? j[0] : Object.values(j)[0];
             const files = pkg.files.map(f => f.path);
-            const required = ["README.md", "LICENSE", "dist/ts-plugin/index.cjs", "dist/ts-plugin/index.d.ts"];
+            const required = ["README.md", "LICENSE", "dist/ts-plugin/index.cjs", "dist/ts-plugin/index.d.ts", "dist/cli.cjs"];
             const missing = required.filter(r => !files.includes(r));
             if (missing.length) {
               console.log("::error::npm tarball is missing required entries: " + missing.join(", "));

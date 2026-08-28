@@ -126,15 +126,24 @@ reuse of a field's rules across entities, and `z.date()` breaks
 
 ```bash
 pnpm add morphz zod
+npx morphz init
 ```
 
-`zod@^4` is a peer dependency.
+`zod@^4` is a peer dependency. `npx morphz init` scaffolds the project:
 
-### tsconfig.json
+- writes a `morphz.config.ts` with commented defaults (the whole file is
+  optional — see [Config file](#config-file))
+- adds `{ "name": "morphz/ts-plugin" }` to your `tsconfig.json`
+  `compilerOptions.plugins`
+- warns if `zod@^4` isn't installed
+
+Flags: `--force` (overwrite an existing config), `--no-tsconfig`,
+`--config-ext <ts|js|mjs|cjs>`. `npx morphz --help` for the full list.
+
+### tsconfig.json — the manual equivalent
 
 `morphz` uses the class-fields / decorators-free `Struct(...)` form, so no
-`experimentalDecorators` flag is required. To enable schema-driven hover in plain
-`tsc` / editors, add the bundled plugin:
+`experimentalDecorators` flag is required. What `init` adds, by hand:
 
 ```json
 {
@@ -145,8 +154,8 @@ pnpm add morphz zod
 }
 ```
 
-VS Code-family editors can skip the `tsconfig.json` entry and install the
-extension instead — see below.
+VS Code-family editors can skip the `tsconfig.json` entry entirely and install
+the extension instead — see below.
 
 ## Editor support
 

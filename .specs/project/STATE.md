@@ -5,15 +5,19 @@
 
 ## Decisions (recent — older entries in STATE_ARCHIVE.md)
 
-- [2026-08-28] `init-command` SPECIFIED (12 REQs, 4 Design QQs). `npx
-morphz init` — writes commented `morphz.config.ts`, patches
-  `tsconfig.json` `plugins`, warns on missing `zod@^4`, prints next steps.
-  New CJS bin as a tsup entry (`dist/cli.cjs` + `"bin"` in core
-  package.json), zero new runtime deps, flags-only (no TUI). Headline
-  Design QQ: JSONC `tsconfig.json` handling — bundle `jsonc-parser` into
-  the CLI, ship an in-repo comment stripper, or never mutate (print the
-  snippet). `release.yml` tarball assertion gains `dist/cli.cjs`. Design +
-  Tasks pending. See `.specs/features/init-command/spec.md`.
+- [2026-08-28] `init-command` DONE — spec + design + tasks + impl in one
+  pass. `npx morphz init` writes `morphz.config.<ext>`, surgically patches
+  `tsconfig.json` `plugins` (jsonc-parser `modify`/`applyEdits` —
+  comments/layout kept; a genuine parse error prints a paste snippet and
+  leaves the file alone), warns on missing `zod@^4`, prints a summary.
+  `morphz --help`/`--version`, no-args→help, exit codes 0/1/2. New
+  `packages/core/src/cli.ts` → `dist/cli.cjs` tsup entry (shebang
+  preserved) + `"bin"`. `jsonc-parser` added as a **devDependency bundled
+  into `cli.cjs` only** (`grep parseTree dist/index.cjs` == 0 — runtime
+  deps unchanged). `release.yml` asserts `dist/cli.cjs` in the tarball. 26
+  new tests, 314 monorepo-wide green. Docs updated (`docs/README.md` Get
+  started leads with `npx morphz init`, editor-tooling guide, core README).
+  See `.specs/features/init-command/`.
 - [2026-08-28] `v0.2.0` RELEASED. `release.yml` ran green end-to-end (all 6
   jobs) off the `v0.2.0` tag — `morphz@0.2.0` live on npm (`latest`, OIDC +
   provenance), extension `0.0.1` on VS Marketplace + Open VSX, GitHub
@@ -293,10 +297,8 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
       (`build_type: legacy`, branch + `/docs` path). Not yet done.
 - [x] `mask-object-derivation` + `default-entity-name` — DONE (2026-08-28),
       `v0.2.0` released end-to-end (npm + VS Marketplace + Open VSX).
-- [ ] `init-command` — SPECIFIED (2026-08-28). Next: Design phase —
-      resolve the 4 QQs (esp. Q1: JSONC tsconfig strategy). Then Tasks,
-      then Execute (new `src/cli.ts` + tsup `cli` entry + `"bin"` +
-      tarball assertion + tests + docs).
+- [x] `init-command` — DONE (2026-08-28). Ships in the next tagged
+      release (`dist/cli.cjs` bin + tarball assertion). No follow-up.
 - [ ] Both new features from this session's batch (`vscode-extension`,
       `release-pipeline`) are code-complete — the v4 audit's remaining
       gaps (`packages/vscode` real extension, CI publish) are now closed.

@@ -54,6 +54,8 @@ so it is not a hard guarantee.
 
 ### Any editor / plain `tsc`
 
+`npx morphz init` adds this for you; by hand it is:
+
 ```json
 // tsconfig.json
 {

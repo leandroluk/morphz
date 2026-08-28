@@ -34,7 +34,8 @@ export interface MorphzConfig {
   jsdoc?: boolean;
 }
 
-const CONFIG_FILENAMES = [
+/** Config file names searched, in priority order. Shared with the `morphz init` CLI. */
+export const CONFIG_FILENAMES = [
   "morphz.config.ts",
   "morphz.config.js",
   "morphz.config.mjs",
