@@ -11,8 +11,8 @@
     "lint": "oxlint",
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
-    "changelog": "git-cliff -o CHANGELOG.md",
-    "changelog:latest": "git-cliff --latest --strip header"
+    "changelog": "git-cliff --bump -o CHANGELOG.md",
+    "changelog:latest": "git-cliff --bump --strip header"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",

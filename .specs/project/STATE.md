@@ -88,6 +88,27 @@ write` + `npm publish --provenance`), T-008 (new `github-release` job,
     docker available), all 14 job-structure assertions pass, `npm pack`
     - `vsce package` content assertions green, `git-cliff --latest`
       renders. Next: T-010 full verification.
+- [2026-08-28] `release-readiness` T-010 done — **feature 100% complete,
+  all 10 tasks.** Full local verification, no secrets: `pnpm build/test/
+  typecheck` → 282 tests green (core 254 + ts-plugin 22 + vscode 6);
+  real `npm pack` tarball (29 files, `morphz-0.1.0.tgz`) inspected —
+  `README.md` + `LICENSE` + `dist/ts-plugin/{index.cjs,index.d.ts}` all
+  present; real `vsce package` (`morphz-vscode-0.0.1.vsix`, 6 files) —
+  `readme.md` + `LICENSE.txt` present, no `src/` / `.map`; `pnpm
+  changelog` byte-reproducible on re-run; `release.yml` parses.
+  - Extra fix during T-010: `pnpm changelog` script → `git-cliff --bump`
+    (auto-computes next version from commits — no hardcoded `--tag`),
+    `cliff.toml` `tag_pattern` relaxed to `v?[0-9]*` so `--bump`'s
+    unprefixed `0.1.0` passes its own check, template trailing newline
+    trimmed, and `CHANGELOG.md` added to `.oxfmtrc.json` `ignorePatterns`
+    so git-cliff output stays canonical (oxfmt was stripping the trailing
+    blank line, breaking reproducibility).
+  - **NOT verified** (documented limitation, carried from
+    `release-pipeline`): end-to-end tag-push publish — `NPM_TOKEN` /
+    `VSCE_PAT` / `OVSX_PAT` still don't exist as repo secrets. npm
+    provenance attestation only confirmable on a real publish from
+    `main`. After secrets exist: `git tag v0.1.0 && git push origin
+    v0.1.0` is the only remaining step.
 
 - [2026-08-26] `release-pipeline` T-001..T-004 complete — **feature 100%
   done, all 4 tasks. Both new features from this batch (`vscode-
@@ -198,20 +219,15 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 
 ## Todos
 
-- [ ] **Active**: `release-readiness` — spec + design + tasks done
-      (2026-08-28). 10 tasks, 3 waves (A: LICENSE/READMEs, B: git-cliff,
-      C: release.yml). Next: Execute. See
+- [x] `release-readiness` — **100% complete (2026-08-28)**, all 10 tasks,
+      committed. Repo is release-ready. See
       `.specs/features/release-readiness/{spec,design,tasks}.md`.
-  - [ ] T-001 MIT LICENSE x3 [PA]
-  - [ ] T-002 packages/core/README.md [PA]
-  - [ ] T-003 root README.md [PA]
-  - [ ] T-004 git-cliff config + tooling [PB]
-  - [ ] T-005 generate CHANGELOG.md 0.1.0 (dep T-004)
-  - [ ] T-006 release.yml npm pack + vsix assertions (dep T-001,T-002)
-  - [ ] T-007 publish-npm --provenance
-  - [ ] T-008 github-release job (dep T-007)
-  - [ ] T-009 changelog-commit job + workflows/README (dep T-008)
-  - [ ] T-010 full local verification (dep T-001..T-009)
+- [ ] **User action to actually release**: add `NPM_TOKEN` / `VSCE_PAT` /
+      `OVSX_PAT` as GitHub repo secrets (Settings → Secrets and variables
+      → Actions — generation steps in `.github/workflows/README.md`),
+      then `git tag v0.1.0 && git push origin v0.1.0`. That is the only
+      remaining step; the pipeline is fully un-exercised end-to-end until
+      then.
 - [ ] User action needed (not mine to do): user confirmed (2026-08-26)
       the VSCode Marketplace publisher ID + Open VSX namespace are now
       both registered as `leandroluk` — matches the placeholder already

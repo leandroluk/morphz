@@ -169,7 +169,7 @@ CHANGELOG.md`; configure `git` user to the actions bot; if
   parses; `actionlint` clean or structural parse clean.
 - **Gate**: `node -e "const y=require('yaml').parse(require('fs').readFileSync('.github/workflows/release.yml','utf8'));const j=y.jobs['changelog-commit'];if(!j||j.needs.indexOf('github-release')<0)process.exit(1);console.log('ok')" && grep -q 'provenance' .github/workflows/README.md`
 
-## T-010: full local release-readiness verification
+## T-010: full local release-readiness verification  ✅
 
 - **REQ**: REQ-011 (+ REQ-001/002/003 shipped-artifact check)
 - **What**: End-to-end dry check, no secrets: `pnpm install` clean; `pnpm
