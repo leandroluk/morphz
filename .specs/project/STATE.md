@@ -5,6 +5,18 @@
 
 ## Decisions (recent — older entries in STATE_ARCHIVE.md)
 
+- [2026-08-28] `release-readiness` specified (11 REQs, Medium/Complex).
+  Extends `release-pipeline` — keeps tag-triggered + version-from-tag,
+  does NOT adopt semantic-release/release-please (evaluated; git-cliff
+  chosen for changelog, release-please noted as post-1.0 path). Scope:
+  README x2 (root + core), LICENSE (MIT, 2026 Leandro), CHANGELOG via
+  git-cliff from Conventional Commits, `release.yml` hardening
+  (--provenance + id-token, npm pack assertion for README/LICENSE/
+  dist/ts-plugin, GitHub Release job w/ .vsix asset, .vsix content
+  guard). First real tag = `v0.1.0` (supersedes npm `0.0.1-alpha.0`
+  which currently holds both latest+alpha dist-tags). 3 open questions
+  for Design (changelog write-back vs render-only, git-cliff delivery,
+  tag HEAD vs release branch).
 - [2026-08-25] `struct-type-inference` fully resolved the CRITICAL FINDING
   (`Struct()` not generic → zero consumer TS inference). See Progress.
 - [2026-08-25] User confirmed `packages/vscode` is NOT optional — wants a
@@ -38,6 +50,14 @@ package.json`'s `exports` only has `.`/`./register`/`./recipes`, no
   is non-functional without it).
 
 ## Progress (recent — older entries in STATE_ARCHIVE.md)
+
+- [2026-08-28] `release-readiness` Wave A done — T-001 (MIT `LICENSE` at
+  root + `packages/core` + `packages/vscode`, byte-identical), T-002
+  (`packages/core/README.md` — npm page, `Struct`/`Define` example
+  verified against real `src/index.ts` exports), T-003 (root
+  `README.md` — package table, monorepo layout, Releasing section).
+  Gates: `diff` empty x2, no placeholders, tag-trigger + morphz-vscode +
+  Releasing present. Next: Wave B (T-004/T-005 git-cliff).
 
 - [2026-08-26] `release-pipeline` T-001..T-004 complete — **feature 100%
   done, all 4 tasks. Both new features from this batch (`vscode-
@@ -148,8 +168,20 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 
 ## Todos
 
-- [ ] **Immediate**: nothing from `release-pipeline` committed to git yet
-      — review is done (this session), just needs the commit.
+- [ ] **Active**: `release-readiness` — spec + design + tasks done
+      (2026-08-28). 10 tasks, 3 waves (A: LICENSE/READMEs, B: git-cliff,
+      C: release.yml). Next: Execute. See
+      `.specs/features/release-readiness/{spec,design,tasks}.md`.
+  - [ ] T-001 MIT LICENSE x3 [PA]
+  - [ ] T-002 packages/core/README.md [PA]
+  - [ ] T-003 root README.md [PA]
+  - [ ] T-004 git-cliff config + tooling [PB]
+  - [ ] T-005 generate CHANGELOG.md 0.1.0 (dep T-004)
+  - [ ] T-006 release.yml npm pack + vsix assertions (dep T-001,T-002)
+  - [ ] T-007 publish-npm --provenance
+  - [ ] T-008 github-release job (dep T-007)
+  - [ ] T-009 changelog-commit job + workflows/README (dep T-008)
+  - [ ] T-010 full local verification (dep T-001..T-009)
 - [ ] User action needed (not mine to do): user confirmed (2026-08-26)
       the VSCode Marketplace publisher ID + Open VSX namespace are now
       both registered as `leandroluk` — matches the placeholder already
