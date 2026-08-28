@@ -12,17 +12,17 @@ and `.partial()` on `Struct`-derived classes with a **mask object** —
 Today:
 
 ```ts
-User.omit("id", "createdAt")          // variadic
-User.omit(["id", "createdAt"])        // single array
-User.pick("name", "email").partial()  // variadic
+User.omit("id", "createdAt"); // variadic
+User.omit(["id", "createdAt"]); // single array
+User.pick("name", "email").partial(); // variadic
 ```
 
 After:
 
 ```ts
-User.omit({ id: true, createdAt: true })
-User.pick({ name: true, email: true }).partial()
-User.partial({ name: true })          // NEW — selective partial
+User.omit({ id: true, createdAt: true });
+User.pick({ name: true, email: true }).partial();
+User.partial({ name: true }); // NEW — selective partial
 ```
 
 Motivation: `morphz`'s guiding principle is "Zod + an OO/class type-safety
@@ -69,7 +69,7 @@ true })`) is mechanical. No deprecation window, no dual-form overload
 - REQ-006: `immutable`-field enforcement (`class-extensibility` REQ-006 /
   `stripImmutable`) is unaffected — still applied unconditionally by all
   three methods regardless of argument form. A `PatchUserDto extends
-  User.omit({ password: true }).partial()` still rejects a write to
+User.omit({ password: true }).partial()` still rejects a write to
   `id` / `createdAt`.
 - REQ-007: `.extend(newFields)` is NOT touched — it already takes a field
   RECORD (`Record<string, FieldDescriptor>`), not a name list, and its
@@ -141,7 +141,7 @@ interface the new signatures slot into).
   `0.2.0` batch).
 - Q4: `Mask<Shape>` helper — export it publicly (`import type { Mask }`) so
   consumers can build reusable masks (`const SERVER_FIELDS = { id: true,
-  createdAt: true } satisfies Mask<UserShape>`), or keep it internal?
+createdAt: true } satisfies Mask<UserShape>`), or keep it internal?
 
 ## Rejected Alternatives
 

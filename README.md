@@ -73,7 +73,7 @@ export class User extends Struct(
 
 const user = User.parse({ name: "John Doe", email: "john@example.com" });
 user instanceof User; // true
-user.isAdmin();       // false — a domain method on the instance
+user.isAdmin(); // false — a domain method on the instance
 ```
 
 Full walkthrough in the [documentation](https://leandroluk.github.io/morphz).
@@ -103,18 +103,18 @@ docs/            # Docsify documentation site — published to GitHub Pages
 The full docs live in [`docs/`](docs) as a [Docsify](https://docsify.js.org/)
 site, published to **<https://leandroluk.github.io/morphz>**.
 
-| Section | Contents |
-| ------- | -------- |
-| [Home](docs/README.md) | why it exists, features, get started, primitives reference |
-| [Meta-types with Define](docs/README.md#meta-types-with-define) | reusable field factories, `refine`, description templates |
-| [Structs and label propagation](docs/README.md#structs-and-label-propagation) | entity classes, cascading `#labels`, `pre` / `post` hooks |
-| [References — Ref and FieldOf](docs/README.md#references--ref-and-fieldof) | lazy relations and scalar foreign keys |
-| [Lifecycle](docs/README.md#lifecycle--parse-instantiate-serialize) | parse, instantiate, serialize |
-| [DTOs and class extension](docs/README.md#dtos-and-class-extension) | `.extend()` / `.pick()` / `.omit()` / `.partial()` |
-| [i18n error messages](docs/README.md#i18n-error-messages) | `(path, code)` override mechanism |
-| [Dates by construction](docs/README.md#dates-by-construction) | `z.codec` primitives, JSON-Schema-safe |
-| [Guides](docs/guides/mocking.md) | mocking, PII masking, property interceptors, editor tooling, debug namespaces |
-| [Example](docs/examples/user-post.md) | end-to-end User + Post walkthrough |
+| Section                                                                       | Contents                                                                      |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Home](docs/README.md)                                                        | why it exists, features, get started, primitives reference                    |
+| [Meta-types with Define](docs/README.md#meta-types-with-define)               | reusable field factories, `refine`, description templates                     |
+| [Structs and label propagation](docs/README.md#structs-and-label-propagation) | entity classes, cascading `#labels`, `pre` / `post` hooks                     |
+| [References — Ref and FieldOf](docs/README.md#references--ref-and-fieldof)    | lazy relations and scalar foreign keys                                        |
+| [Lifecycle](docs/README.md#lifecycle--parse-instantiate-serialize)            | parse, instantiate, serialize                                                 |
+| [DTOs and class extension](docs/README.md#dtos-and-class-extension)           | `.extend()` / `.pick()` / `.omit()` / `.partial()`                            |
+| [i18n error messages](docs/README.md#i18n-error-messages)                     | `(path, code)` override mechanism                                             |
+| [Dates by construction](docs/README.md#dates-by-construction)                 | `z.codec` primitives, JSON-Schema-safe                                        |
+| [Guides](docs/guides/mocking.md)                                              | mocking, PII masking, property interceptors, editor tooling, debug namespaces |
+| [Example](docs/examples/user-post.md)                                         | end-to-end User + Post walkthrough                                            |
 
 Preview the site locally:
 
