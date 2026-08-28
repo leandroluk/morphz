@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>morphz — icon proposals</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        font:
+          14px/1.5 -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: #181818;
+        color: #ccc;
+      }
+      h1 {
+        color: #2dd4bf;
+        font-size: 20px;
+        margin: 0 0 4px;
+      }
+      p.sub {
+        color: #888;
+        margin: 0 0 28px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+      .card {
+        background: #1f1f1f;
+        border: 1px solid #2d2d2d;
+        border-radius: 10px;
+        padding: 18px 20px;
+        flex: 1 1 300px;
+      }
+      .card h2 {
+        font-size: 14px;
+        margin: 0 0 2px;
+        color: #eee;
+      }
+      .card .desc {
+        color: #888;
+        font-size: 12.5px;
+        margin: 0 0 14px;
+      }
+      .sizes {
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .sizes figure {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .sizes figcaption {
+        font-size: 11px;
+        color: #666;
+      }
+      .bg-dark,
+      .bg-light {
+        padding: 14px;
+        border-radius: 8px;
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .bg-dark {
+        background: #0f0f0f;
+      }
+      .bg-light {
+        background: #f4f4f5;
+      }
+      .bg-light figcaption {
+        color: #999;
+      }
+      .ide {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        background: #252526;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 8px 12px;
+        width: max-content;
+      }
+      .ide img {
+        width: 16px;
+        height: 16px;
+      }
+      .ide span {
+        font-size: 13px;
+        color: #ddd;
+      }
+      .mono-demo {
+        color: #858585;
+      }
+      .mono-demo.active {
+        color: #2dd4bf;
+      }
+      code {
+        background: #2d2d2d;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>morphz — propostas de ícone</h1>
+    <p class="sub">
+      Família visual do Zod (gema facetada) em teal. Alvo: extensão VS Code / activity bar /
+      favicon. Renderiza a 16px.
+    </p>
+
+    <!-- reference -->
+    <div class="card" style="max-width: 420px; margin-bottom: 28px">
+      <h2>Zod (referência)</h2>
+      <p class="desc">Gema azul facetada, sem letra. É a silhueta que estamos ecoando.</p>
+      <div class="bg-dark">
+        <svg viewBox="0 0 32 32" width="64" height="64">
+          <polygon points="10,6 22,6 23,13 9,13" fill="#4f7fd0" />
+          <polygon points="10,6 9,13 4,13" fill="#6b97e0" />
+          <polygon points="22,6 28,13 23,13" fill="#3a63b0" />
+          <polygon points="4,13 16,13 16,27" fill="#2d5399" />
+          <polygon points="28,13 16,13 16,27" fill="#1f3d78" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- 1 -->
+      <div class="card">
+        <h2>1 · <code>mz-gem</code> — gema limpa</h2>
+        <p class="desc">
+          Corte de diamante 5 facetas, iluminação canto sup-esq. Sem letra. Mais próxima do Zod, só
+          troca azul→teal. Aposta principal.
+        </p>
+        <div class="bg-dark">
+          <figure>
+            <img src="mz-gem.svg" width="16" height="16" />
+            <figcaption>16</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-gem.svg" width="24" height="24" />
+            <figcaption>24</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-gem.svg" width="48" height="48" />
+            <figcaption>48</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-gem.svg" width="96" height="96" />
+            <figcaption>96</figcaption>
+          </figure>
+        </div>
+        <div class="bg-light" style="margin-top: 10px">
+          <figure>
+            <img src="mz-gem.svg" width="16" height="16" />
+            <figcaption>16</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-gem.svg" width="48" height="48" />
+            <figcaption>48</figcaption>
+          </figure>
+        </div>
+        <div class="ide"><img src="mz-gem.svg" /><span>morphz.config.ts</span></div>
+      </div>
+
+      <!-- 2 -->
+      <div class="card">
+        <h2>2 · <code>mz-m</code> — gema com M</h2>
+        <p class="desc">
+          Silhueta chapada + um M branco cujos traços seguem as linhas de faceta (não é letra colada
+          por cima). Mais "marca", menos genérico.
+        </p>
+        <div class="bg-dark">
+          <figure>
+            <img src="mz-m.svg" width="16" height="16" />
+            <figcaption>16</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-m.svg" width="24" height="24" />
+            <figcaption>24</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-m.svg" width="48" height="48" />
+            <figcaption>48</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-m.svg" width="96" height="96" />
+            <figcaption>96</figcaption>
+          </figure>
+        </div>
+        <div class="bg-light" style="margin-top: 10px">
+          <figure>
+            <img src="mz-m.svg" width="16" height="16" />
+            <figcaption>16</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-m.svg" width="48" height="48" />
+            <figcaption>48</figcaption>
+          </figure>
+        </div>
+        <div class="ide"><img src="mz-m.svg" /><span>morphz.config.ts</span></div>
+      </div>
+
+      <!-- 3 -->
+      <div class="card">
+        <h2>3 · <code>mz-shift</code> — gema em transformação</h2>
+        <p class="desc">
+          Estado "fantasma" atrás + gema resolvida na frente. Conta a ideia de <em>morph</em> /
+          transformação de tipo. Pode ficar ruidosa a 16px.
+        </p>
+        <div class="bg-dark">
+          <figure>
+            <img src="mz-shift.svg" width="16" height="16" />
+            <figcaption>16</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-shift.svg" width="24" height="24" />
+            <figcaption>24</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-shift.svg" width="48" height="48" />
+            <figcaption>48</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-shift.svg" width="96" height="96" />
+            <figcaption>96</figcaption>
+          </figure>
+        </div>
+        <div class="bg-light" style="margin-top: 10px">
+          <figure>
+            <img src="mz-shift.svg" width="16" height="16" />
+            <figcaption>16</figcaption>
+          </figure>
+          <figure>
+            <img src="mz-shift.svg" width="48" height="48" />
+            <figcaption>48</figcaption>
+          </figure>
+        </div>
+        <div class="ide"><img src="mz-shift.svg" /><span>morphz.config.ts</span></div>
+      </div>
+
+      <!-- 4 -->
+      <div class="card">
+        <h2>4 · <code>mz-mono</code> — traço, 1 cor</h2>
+        <p class="desc">
+          Só contorno + linhas de faceta, <code>currentColor</code>. Pra activity bar / gutter, onde
+          o VS Code exige monocromático que herda o tema.
+        </p>
+        <div
+          style="
+            display: flex;
+            gap: 24px;
+            align-items: flex-end;
+            background: #0f0f0f;
+            padding: 14px;
+            border-radius: 8px;
+          "
+        >
+          <figure
+            style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px"
+          >
+            <div style="color: #858585" class="_m16"></div>
+            <figcaption style="font-size: 11px; color: #666">16 · idle</figcaption>
+          </figure>
+          <figure
+            style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px"
+          >
+            <div style="color: #2dd4bf" class="_m24"></div>
+            <figcaption style="font-size: 11px; color: #666">24 · active</figcaption>
+          </figure>
+          <figure
+            style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px"
+          >
+            <div style="color: #e5e5e5" class="_m48"></div>
+            <figcaption style="font-size: 11px; color: #666">48</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <p class="sub">
+      Ficheiros: <code>docs/assets/mz-gem.svg</code> · <code>mz-m.svg</code> ·
+      <code>mz-shift.svg</code> · <code>mz-mono.svg</code>. Os <code>icon_*.svg</code> antigos podem
+      ser apagados.
+    </p>
+
+    <script>
+      // inline the mono SVG so currentColor works via the wrapper's color
+      fetch("mz-mono.svg")
+        .then((r) => r.text())
+        .then((txt) => {
+          for (const [cls, size] of [
+            ["_m16", 16],
+            ["_m24", 24],
+            ["_m48", 48],
+          ]) {
+            document.querySelectorAll("." + cls).forEach((el) => {
+              el.innerHTML = txt.replace(
+                'width="32" height="32"',
+                `width="${size}" height="${size}"`,
+              );
+            });
+          }
+        });
+    </script>
+  </body>
+</html>

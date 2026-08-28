@@ -48,6 +48,11 @@
     "onLanguage:typescript",
     "onLanguage:typescriptreact"
   ],
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#0d9488",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.90.0"
   }

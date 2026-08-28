@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>morphz — monochrome</title>
+  <g fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="10,6 22,6 28,13 16,27 4,13"/>
+    <path d="M4 13 H28 M10 6 L9 13 M22 6 L23 13 M16 13 V27"/>
+  </g>
+</svg>
