@@ -57,10 +57,11 @@ along the way: `Struct()` isn't generic over `fields`, so no `morphz`
 consumer gets ANY field-level TS type inference today. Flagged to user,
 not yet scheduled as its own feature — see `STATE.md`.
 
-`docs/` root directory: explicitly deferred per user request ("no futuro
-incluir") — noted here as a planned future addition, no feature spec
-written, no placeholder created. Revisit once there's real content
-(generated API docs? hand-written guides?) to decide its actual shape.
+`docs/` root directory: SHIPPED 2026-08-28 (was deferred). Docsify site
+(theme-simple, teal accent), hand-written — `README.md` + `_sidebar.md` +
+`guides/` + `examples/`, mirrors the `dynamoose-typed` docs layout. No
+feature spec (hand-authored content, not generated). GitHub Pages enable
+still pending (see STATE Todos).
 
 ## v3 batch — INSIGHT.md §15-17 (2026-08-25)
 
@@ -133,6 +134,21 @@ This batch tackles #1 and #2 (small/medium, both resolved and ready for
 Execute). #3/#4 (the real TS tooling) and #5 (generics retrofit) remain
 explicitly deferred — large, separate efforts, user to prioritize
 separately.
+
+## v5 batch — post-release API polish (2026-08-28)
+
+`v0.1.0` is released (npm + VS Marketplace + Open VSX), `docs/` Docsify
+site shipped. First post-release API-evolution item:
+
+18. **mask-object-derivation** — `.omit()`/`.pick()`/`.partial()` swap
+    their variadic / single-array argument for a Zod-v4-style mask object
+    (`.omit({ id: true })`), and `.partial(mask?)` gains selective form.
+    Breaking (clean break, no overload — user's call), taken now while
+    adoption is ~zero. `feat!` → `0.1.0` → `0.2.0`. Touches
+    `class-extensibility` (owns the methods) + `struct-type-inference`
+    (owns the `StructConstructor<Shape>` interface) + all in-repo call
+    sites + docs + `INSIGHT.md` §8. Specified 2026-08-28; Design + Tasks
+    pending. See `.specs/features/mask-object-derivation/spec.md`.
 
 ## Resolved decisions
 

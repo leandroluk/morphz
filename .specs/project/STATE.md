@@ -5,6 +5,30 @@
 
 ## Decisions (recent — older entries in STATE_ARCHIVE.md)
 
+- [2026-08-28] `mask-object-derivation` SPECIFIED (11 REQs). Breaking change
+  to `class-extensibility`'s `.omit()`/`.pick()`/`.partial()`: drop the
+  variadic + single-array argument forms, replace with a Zod-v4-style mask
+  object (`.omit({ id: true })`). Also adds selective `.partial(mask?)`.
+  User picked the clean-break option (no dual-form overload, no deprecation
+  window) — adoption is ~zero at `v0.1.0`, migration is a one-line
+  find-replace. Supersedes the `class-extensibility` spec/design "both
+  forms supported" resolution. `feat!` → git-cliff bumps `0.1.0` → `0.2.0`
+  (Q3 in spec, to confirm at Design). Design + Tasks phases pending. See
+  `.specs/features/mask-object-derivation/spec.md`.
+- [2026-08-28] Release actually happened. `v0.1.0` tagged + pushed;
+  `release.yml` ran green after two fixes: npm Trusted Publisher had to be
+  registered on npmjs.com (`leandroluk`/`morphz`/`release.yml`, "Allow npm
+  publish" scope) — first run 404'd without it; `VSCE_PAT` + `OVSX_PAT`
+  added as repo secrets. `morphz@0.1.0` live on npm (OIDC + provenance),
+  extension live on VS Marketplace + Open VSX, GitHub Release created,
+  `CHANGELOG.md` committed back to `main`.
+- [2026-08-28] `docs/` shipped (previously deferred). Docsify site under
+  `docs/` (theme-simple, teal accent), mirrors the `dynamoose-typed`
+  layout: `README.md` + `_sidebar.md` + `guides/` (mocking, PII masking,
+  property interceptors, editor tooling, debug namespaces) + `examples/
+user-post.md`. Root `README.md` got a badge row + a "Read the
+  Documentation" link + a docs index table. Not yet published to GitHub
+  Pages (user to enable `main` `/docs` source).
 - [2026-08-28] `release-readiness` specified (11 REQs, Medium/Complex).
   Extends `release-pipeline` — keeps tag-triggered + version-from-tag,
   does NOT adopt semantic-release/release-please (evaluated; git-cliff
@@ -228,20 +252,18 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 - [x] `release-readiness` — **100% complete (2026-08-28)**, all 10 tasks,
       committed. Repo is release-ready. See
       `.specs/features/release-readiness/{spec,design,tasks}.md`.
-- [ ] **User action to actually release**: 1. npm: register `morphz` as a **Trusted Publisher** on npmjs.com
-      (Package → Settings → Trusted Publishers → GitHub Actions →
-      `leandroluk`/`morphz`/`release.yml`). No `NPM_TOKEN` — publish-npm
-      switched to GitHub OIDC (2026-08-28, user's prior token expired). 2. Extension: add `VSCE_PAT` + `OVSX_PAT` as repo secrets (steps in
-      `.github/workflows/README.md`). 3. `git tag v0.1.0 && git push origin v0.1.0`.
-      Pipeline fully un-exercised end-to-end until then.
-- [ ] User action needed (not mine to do): user confirmed (2026-08-26)
-      the VSCode Marketplace publisher ID + Open VSX namespace are now
-      both registered as `leandroluk` — matches the placeholder already
-      in `packages/vscode/package.json`/`release.yml`, so no code change
-      needed. Still missing: `NPM_TOKEN`/`VSCE_PAT`/`OVSX_PAT` as GitHub
-      repo secrets — user confirmed not added yet. Once those 3 exist,
-      push a `v*` tag to exercise `release-pipeline` end-to-end for the
-      first time (still fully unverified beyond structural checks).
+- [x] **Release done (2026-08-28)**: npm Trusted Publisher registered
+      (`leandroluk`/`morphz`/`release.yml`), `VSCE_PAT` + `OVSX_PAT` repo
+      secrets added, `v0.1.0` tagged + pushed. `release.yml` ran green
+      end-to-end — `morphz@0.1.0` on npm (OIDC + provenance), extension on
+      VS Marketplace + Open VSX, GitHub Release + CHANGELOG write-back all
+      succeeded. Pipeline now exercised for real.
+- [ ] Enable GitHub Pages for the new `docs/` site (source `main` `/docs`,
+      → `https://leandroluk.github.io/morphz`). Mirrors `dynamoose-typed`
+      (`build_type: legacy`, branch + `/docs` path). Not yet done.
+- [ ] `mask-object-derivation` — Design + Tasks phases pending. Breaking
+      API change, resolve spec Q1-Q4 at Design (esp. Q1: does Zod v4
+      `ZodObject.partial()` still take a mask arg — verify via Context7).
 - [ ] Both new features from this session's batch (`vscode-extension`,
       `release-pipeline`) are code-complete — the v4 audit's remaining
       gaps (`packages/vscode` real extension, CI publish) are now closed.
@@ -253,9 +275,8 @@ diagnostics}.ts` all built + tested (18/18), every wrapper confirmed to
 - [ ] Remaining low-priority open question per spec.md (description
       precedence between field-level/entity-level/Define-template on
       `struct-entities`) — never surfaced as a real issue, safe to leave.
-- [ ] Not yet done: npm publish (package name `morphz` availability
-      unconfirmed), README, CHANGELOG, CI config, `docs/` root (explicitly
-      deferred per user request) — code-complete but not "released".
+- [x] npm publish / README / CHANGELOG / CI / `docs/` root — all shipped
+      (2026-08-28). `morphz@0.1.0` released; `docs/` Docsify site added.
 - [ ] `.specs/graph/` never built (was greenfield at spec time, real
       codebase now exists) — consider `graph-spec-design .` so future
       sessions' Rule #1 has something to use instead of Degraded Mode.
