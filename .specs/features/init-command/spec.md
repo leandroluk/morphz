@@ -89,11 +89,20 @@ overwrite)`, still run REQ-004/005/006, exit `0`.
     an invalid `tsconfig.json`; when in doubt it prints instead of writes.
   - `--no-tsconfig` skips this step entirely.
 - REQ-005: `zod` check. Read the nearest `package.json` (cwd upward),
-  inspect `dependencies` + `devDependencies` for `zod`. Missing, or a range
-  that cannot satisfy `^4` → print a warning line (`zod@^4 is a required
-peer dependency — run: npm i zod`). Never runs a package manager. Not
-  finding a `package.json` at all → warn once, continue. This check never
-  changes the exit code.
+  inspect `dependencies` + `devDependencies` + `peerDependencies` for
+  `zod`. Missing, or a range that cannot satisfy `^4` → print a warning
+  line (`zod@^4 is a required peer dependency — run: <pm> zod`). Never runs
+  a package manager. Not finding a `package.json` at all → warn once,
+  continue. This check never changes the exit code.
+- REQ-005a: Package-manager detection (added post-spec, 2026-08-28). The
+  install command in REQ-005's warning is tailored to the project's PM,
+  detected by walking up from `cwd` for a lockfile (`pnpm-lock.yaml`→pnpm,
+  `yarn.lock`→yarn, `bun.lock[b]`→bun,
+  `package-lock.json`/`npm-shrinkwrap.json`→npm), then the `packageManager`
+  field (corepack) of the nearest `package.json`, else `npm`.
+  `--pm <npm|pnpm|yarn|bun>` overrides. Command mapping: `npm i`,
+  everything else `<pm> add`. Detection only, no prompt — matches the
+  flags-only design.
 - REQ-006: Summary output — one block, plain text, listing exactly what was
   created / changed / skipped, then 2-3 next steps: (a) install the **morphz**
   editor extension (VS Marketplace / Open VSX) or rely on the `tsconfig.json`

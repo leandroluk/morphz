@@ -29,6 +29,20 @@ describe("runInit (integration)", () => {
     ...o,
   });
 
+  it("zod warning uses the detected package manager", () => {
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "app" }));
+    writeFileSync(join(dir, "pnpm-lock.yaml"), "");
+    runInit(dir, flags());
+    expect(out).toMatch(/run: pnpm add zod/);
+  });
+
+  it("--pm overrides detection", () => {
+    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "app" }));
+    writeFileSync(join(dir, "yarn.lock"), "");
+    runInit(dir, flags({ pm: "bun" }));
+    expect(out).toMatch(/run: bun add zod/);
+  });
+
   it("clean dir: writes config, patches tsconfig, warns on missing zod", () => {
     writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "app" }));
     writeFileSync(join(dir, "tsconfig.json"), `{\n  "compilerOptions": { "strict": true }\n}\n`);

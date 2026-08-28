@@ -25,10 +25,17 @@ describe("parseArgs", () => {
   });
 
   it("init with every flag", () => {
-    expect(parseArgs(["init", "--force", "--no-tsconfig", "--config-ext", "mjs"])).toEqual({
+    expect(
+      parseArgs(["init", "--force", "--no-tsconfig", "--config-ext", "mjs", "--pm", "pnpm"]),
+    ).toEqual({
       command: "init",
-      flags: { force: true, tsconfig: false, configExt: "mjs" },
+      flags: { force: true, tsconfig: false, configExt: "mjs", pm: "pnpm" },
     });
+  });
+
+  it("bad --pm value → throws", () => {
+    expect(() => parseArgs(["init", "--pm", "cargo"])).toThrow(/--pm/);
+    expect(() => parseArgs(["init", "--pm"])).toThrow(/--pm/);
   });
 
   it("unknown command → throws", () => {

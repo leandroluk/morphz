@@ -3,6 +3,18 @@
 Feature: `.specs/features/init-command/`. Design resolved all 4 QQs.
 **All tasks DONE 2026-08-28.** T-001..T-007 complete; gate green.
 
+## T-008 — package-manager detection (follow-up, 2026-08-28)
+
+- [x] `detectPackageManager(cwd)` — lockfile walk-up
+      (pnpm/yarn/bun/npm) → corepack `packageManager` field → `npm`.
+      `pmAddCommand(pm)` → `npm i` / `<pm> add`.
+- [x] `--pm <npm|pnpm|yarn|bun>` flag; `checkZod(cwd, pm)` uses the mapped
+      install command in its warning.
+- [x] Tests: `tests/init-command/detect-pm.test.ts` (6) + 2 integration
+      cases (detected vs `--pm` override). 35 init-command tests, 323
+      monorepo-wide.
+- [x] Docs: `--pm` in `docs/README.md` flag list + `--help` text.
+
 ## T-001 — config filename export + tsup/bin wiring
 
 - `packages/core/src/core/config.ts`: `export const CONFIG_FILENAMES`

@@ -138,7 +138,9 @@ npx morphz init
 - warns if `zod@^4` isn't installed
 
 Flags: `--force` (overwrite an existing config), `--no-tsconfig`,
-`--config-ext <ts|js|mjs|cjs>`. `npx morphz --help` for the full list.
+`--config-ext <ts|js|mjs|cjs>`, `--pm <npm|pnpm|yarn|bun>` (the package
+manager used in printed hints — auto-detected from the lockfile otherwise).
+`npx morphz --help` for the full list.
 
 ### In a monorepo
 

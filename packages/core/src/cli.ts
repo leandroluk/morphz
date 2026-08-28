@@ -14,6 +14,9 @@ const DOCS_URL = "https://leandroluk.github.io/morphz";
 const CONFIG_EXTS = ["ts", "js", "mjs", "cjs"] as const;
 type ConfigExt = (typeof CONFIG_EXTS)[number];
 
+const PACKAGE_MANAGERS = ["npm", "pnpm", "yarn", "bun"] as const;
+type PackageManager = (typeof PACKAGE_MANAGERS)[number];
+
 class UsageError extends Error {}
 
 // ── arg parsing ──────────────────────────────────────────────────────────
@@ -22,6 +25,7 @@ interface InitFlags {
   force: boolean;
   tsconfig: boolean;
   configExt: ConfigExt;
+  pm?: PackageManager;
 }
 
 type ParsedArgs =
@@ -61,6 +65,14 @@ export function parseArgs(argv: string[]): ParsedArgs {
         flags.configExt = val as ConfigExt;
         break;
       }
+      case "--pm": {
+        const val = rest[++i];
+        if (!val || !PACKAGE_MANAGERS.includes(val as PackageManager)) {
+          throw new UsageError(`--pm must be one of: ${PACKAGE_MANAGERS.join(", ")}`);
+        }
+        flags.pm = val as PackageManager;
+        break;
+      }
       default:
         throw new UsageError(`unknown flag: ${arg}`);
     }
@@ -93,6 +105,8 @@ Flags (init)
   --force                  Overwrite an existing morphz.config.*
   --no-tsconfig            Don't touch tsconfig.json
   --config-ext <ext>       Config file extension: ts (default), js, mjs, cjs
+  --pm <name>              Package manager for hints: npm, pnpm, yarn, bun
+                           (auto-detected from the lockfile by default)
 
   -h, --help               Show this help
   -v, --version            Print the morphz version
@@ -214,6 +228,51 @@ export function patchTsconfig(cwd: string, enabled: boolean): Outcome & { printS
   return { target: "tsconfig.json", action: "updated", reason: `added ${PLUGIN_NAME}` };
 }
 
+// ── package manager detection ────────────────────────────────────────────
+
+const LOCKFILES: Record<string, PackageManager> = {
+  "pnpm-lock.yaml": "pnpm",
+  "yarn.lock": "yarn",
+  "bun.lockb": "bun",
+  "bun.lock": "bun",
+  "package-lock.json": "npm",
+  "npm-shrinkwrap.json": "npm",
+};
+
+/**
+ * Walk up from `cwd` looking for a lockfile, then fall back to the
+ * `packageManager` field (corepack) of the nearest `package.json`.
+ * Defaults to `npm` when nothing is found.
+ */
+export function detectPackageManager(cwd: string): PackageManager {
+  let dir = cwd;
+  for (;;) {
+    for (const [file, pm] of Object.entries(LOCKFILES)) {
+      if (existsSync(join(dir, file))) return pm;
+    }
+    const pkgPath = join(dir, "package.json");
+    if (existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { packageManager?: string };
+        const name = pkg.packageManager?.split("@")[0];
+        if (name && PACKAGE_MANAGERS.includes(name as PackageManager)) {
+          return name as PackageManager;
+        }
+      } catch {
+        /* ignore a malformed package.json here — the zod check reports it */
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) return "npm";
+    dir = parent;
+  }
+}
+
+/** `pnpm add` / `yarn add` / `bun add` / `npm i` */
+export function pmAddCommand(pm: PackageManager): string {
+  return pm === "npm" ? "npm i" : `${pm} add`;
+}
+
 // ── zod check ────────────────────────────────────────────────────────────
 
 export function zodRangeSatisfiesV4(range: string): boolean {
@@ -248,10 +307,11 @@ function readNearestPackageJson(
   }
 }
 
-export function checkZod(cwd: string): Outcome {
+export function checkZod(cwd: string, pm: PackageManager): Outcome {
+  const install = `${pmAddCommand(pm)} zod`;
   const found = readNearestPackageJson(cwd);
   if (!found) {
-    return { target: "zod", action: "warn", reason: "no package.json found — run: npm i zod" };
+    return { target: "zod", action: "warn", reason: `no package.json found — run: ${install}` };
   }
   const deps = {
     ...(found.json.dependencies as Record<string, string> | undefined),
@@ -265,7 +325,7 @@ export function checkZod(cwd: string): Outcome {
   return {
     target: "zod",
     action: "warn",
-    reason: "zod@^4 is a required peer dependency — run: npm i zod",
+    reason: `zod@^4 is a required peer dependency — run: ${install}`,
   };
 }
 
@@ -299,9 +359,10 @@ function printSummary(outcomes: Outcome[], printSnippet: boolean): void {
 // ── init command ─────────────────────────────────────────────────────────
 
 export function runInit(cwd: string, flags: InitFlags): void {
+  const pm = flags.pm ?? detectPackageManager(cwd);
   const config = writeConfig(cwd, flags.configExt, flags.force);
   const tsconfig = patchTsconfig(cwd, flags.tsconfig);
-  const zod = checkZod(cwd);
+  const zod = checkZod(cwd, pm);
   printSummary([config, tsconfig, zod], Boolean(tsconfig.printSnippet));
 }
 
