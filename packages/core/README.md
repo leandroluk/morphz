@@ -61,9 +61,9 @@ export class User extends Struct(
 const user = User.parse({ name: "John Doe", email: "john@example.com" });
 
 user instanceof User; // true
-user.id;              // string — filled by the default
-user.isAdmin();       // false — a domain method on the instance
-user.createdAt;       // Date — the domain value, not a string
+user.id; // string — filled by the default
+user.isAdmin(); // false — a domain method on the instance
+user.createdAt; // Date — the domain value, not a string
 
 // safeParse for controllers / HTTP boundaries:
 const result = User.safeParse(req.body);
@@ -91,11 +91,11 @@ per-request `localeStorage` context.
 
 ## Subpath exports
 
-| Import | What |
-|---|---|
-| `morphz` | The library — `Struct`, `Define`, primitives, `Embed`, `Ref`, `FieldOf`, `Union`, config, i18n helpers |
-| `morphz/register` | Side-effect import for eager, deterministic config load |
-| `morphz/recipes` | Optional opinionated `Define` field types (`PrimaryKey`, `CreatedAt`, `UpdatedAt`, `DeletedAt`, …) |
+| Import             | What                                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `morphz`           | The library — `Struct`, `Define`, primitives, `Embed`, `Ref`, `FieldOf`, `Union`, config, i18n helpers                                                           |
+| `morphz/register`  | Side-effect import for eager, deterministic config load                                                                                                          |
+| `morphz/recipes`   | Optional opinionated `Define` field types (`PrimaryKey`, `CreatedAt`, `UpdatedAt`, `DeletedAt`, …)                                                               |
 | `morphz/ts-plugin` | The bundled TypeScript Language Service Plugin (used by the `morphz-vscode` extension; add to `tsconfig.json` `compilerOptions.plugins` for plain `tsc`/editors) |
 
 ## Editor support

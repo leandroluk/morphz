@@ -98,7 +98,7 @@ header"`. Create `cliff.toml` per design "cliff.toml shape":
   `style:`/`chore:` commits.
 - **Gate**: `grep -qE '^\#\#? \[?0\.1\.0' CHANGELOG.md && ! grep -qiE 'apply oxfmt|line wrap' CHANGELOG.md`
 
-## T-006: build-test — npm pack + vsix assertions  ✅
+## T-006: build-test — npm pack + vsix assertions ✅
 
 - **REQ**: REQ-008, REQ-010
 - **What**: In `release.yml` `build-test`, after `pnpm run build`: add a
@@ -117,7 +117,7 @@ header"`. Create `cliff.toml` per design "cliff.toml shape":
   a fresh `pnpm build` passes.
 - **Gate**: `pnpm run build && cd packages/core && npm pack --dry-run --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const f=JSON.parse(s)[0].files.map(x=>x.path);for(const n of ['README.md','LICENSE','dist/ts-plugin/index.cjs','dist/ts-plugin/index.d.ts'])if(!f.includes(n)){console.error('MISSING',n);process.exit(1)}console.log('ok')})"`
 
-## T-007: publish-npm — provenance  ✅
+## T-007: publish-npm — provenance ✅
 
 - **REQ**: REQ-007
 - **What**: In `release.yml` `publish-npm` job: add `permissions:
@@ -132,7 +132,7 @@ header"`. Create `cliff.toml` per design "cliff.toml shape":
   `actionlint` clean (or structural parse if unavailable).
 - **Gate**: `node -e "const y=require('yaml').parse(require('fs').readFileSync('.github/workflows/release.yml','utf8'));const j=y.jobs['publish-npm'];if(j.permissions['id-token']!=='write')process.exit(1);console.log('ok')"`
 
-## T-008: github-release job  ✅
+## T-008: github-release job ✅
 
 - **REQ**: REQ-009, REQ-006 (render half)
 - **What**: New job `github-release`, `needs: [publish-npm, publish-vsce,
@@ -149,7 +149,7 @@ publish-ovsx]`, `permissions: { contents: write }`. Steps: checkout
   `git-cliff --latest --strip all` renders non-empty locally.
 - **Gate**: `pnpm exec git-cliff --latest --strip all | head -5 && node -e "const y=require('yaml').parse(require('fs').readFileSync('.github/workflows/release.yml','utf8'));const j=y.jobs['github-release'];if(!j||j.permissions.contents!=='write')process.exit(1);console.log('ok')"`
 
-## T-009: changelog-commit job + workflows/README update  ✅
+## T-009: changelog-commit job + workflows/README update ✅
 
 - **REQ**: REQ-006 (write-back half)
 - **What**: New job `changelog-commit`, `needs: [github-release]`,

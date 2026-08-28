@@ -9,11 +9,11 @@ This repository is a pnpm + Turborepo monorepo.
 
 ## Packages
 
-| Package | Published as | What |
-|---|---|---|
-| [`packages/core`](packages/core) | [`morphz`](https://www.npmjs.com/package/morphz) on npm | The library itself |
-| [`packages/vscode`](packages/vscode) | `morphz-vscode` on the VSCode Marketplace + Open VSX | Editor extension — activates the TS Language Service Plugin for hover / autocomplete / diagnostics, no `tsconfig.json` editing |
-| [`packages/ts-plugin`](packages/ts-plugin) | _not published separately_ — bundled into `morphz/ts-plugin` | The TypeScript Language Service Plugin |
+| Package                                    | Published as                                                 | What                                                                                                                           |
+| ------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| [`packages/core`](packages/core)           | [`morphz`](https://www.npmjs.com/package/morphz) on npm      | The library itself                                                                                                             |
+| [`packages/vscode`](packages/vscode)       | `morphz-vscode` on the VSCode Marketplace + Open VSX         | Editor extension — activates the TS Language Service Plugin for hover / autocomplete / diagnostics, no `tsconfig.json` editing |
+| [`packages/ts-plugin`](packages/ts-plugin) | _not published separately_ — bundled into `morphz/ts-plugin` | The TypeScript Language Service Plugin                                                                                         |
 
 ## Monorepo layout
 

@@ -22,7 +22,7 @@ build-test ──┬─> publish-npm ──┐
   `*.map`. A packaging regression fails the release before anything is
   published.
 - **publish-npm** — `npm publish --provenance` (job has `id-token:
-  write`), so the release is published with a verifiable provenance
+write`), so the release is published with a verifiable provenance
   attestation linking it to this workflow + commit.
 - **github-release** — runs only after all three `publish-*` jobs
   succeed. Creates a GitHub Release for the tag, body = the git-cliff
@@ -30,7 +30,7 @@ build-test ──┬─> publish-npm ──┐
   a release asset.
 - **changelog-commit** — regenerates `CHANGELOG.md` with git-cliff for
   the tag and commits it back to `main` as `chore(release): update
-  CHANGELOG for <version> [skip ci]`. Because the workflow only triggers
+CHANGELOG for <version> [skip ci]`. Because the workflow only triggers
   on tags, this branch push cannot re-trigger it. **The tagged commit
   itself does not contain that version's changelog entry — it lands one
   commit later on `main`.**
