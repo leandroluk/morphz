@@ -58,6 +58,13 @@ package.json`'s `exports` only has `.`/`./register`/`./recipes`, no
   `README.md` — package table, monorepo layout, Releasing section).
   Gates: `diff` empty x2, no placeholders, tag-trigger + morphz-vscode +
   Releasing present. Next: Wave B (T-004/T-005 git-cliff).
+- [2026-08-28] `release-readiness` Wave B done — T-004 (`git-cliff@2.13.1`
+  root devDep, `pnpm changelog` / `changelog:latest` scripts,
+  `cliff.toml` — Conventional Commits, `chore(release)` + style/chore/ci/
+  build/test skipped, `tag_pattern = v[0-9]*`), T-005 (`CHANGELOG.md`
+  generated `git-cliff --tag v0.1.0`, one `## [0.1.0]` section, Features/
+  Bug Fixes/Documentation groups, no style/chore noise). Next: Wave C
+  (T-006..T-009 release.yml).
 
 - [2026-08-26] `release-pipeline` T-001..T-004 complete — **feature 100%
   done, all 4 tasks. Both new features from this batch (`vscode-
