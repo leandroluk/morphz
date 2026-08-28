@@ -1,0 +1,30 @@
+- **Introduction**
+  - [Home](README.md)
+  - [Why this exists](README.md#why-this-exists)
+  - [Features](README.md#features)
+  - [Requirements](README.md#requirements)
+
+- **Guides**
+  - [Get started](README.md#get-started)
+  - [Meta-types with Define](README.md#meta-types-with-define)
+  - [Structs and label propagation](README.md#structs-and-label-propagation)
+  - [Embedded value objects](README.md#embedded-value-objects)
+  - [References — Ref and FieldOf](README.md#references--ref-and-fieldof)
+  - [Lifecycle — parse, instantiate, serialize](README.md#lifecycle--parse-instantiate-serialize)
+  - [DTOs and class extension](README.md#dtos-and-class-extension)
+  - [i18n error messages](README.md#i18n-error-messages)
+  - [Dates by construction](README.md#dates-by-construction)
+  - [Config file](README.md#config-file)
+  - [Mocks and fixtures](guides/mocking.md)
+  - [Masking PII / LGPD](guides/masking-pii.md)
+  - [Property interceptors](guides/property-interceptors.md)
+  - [Editor tooling](guides/editor-tooling.md)
+  - [Debug namespaces](guides/debug-namespaces.md)
+
+- **Reference**
+  - [Primitives](README.md#primitives-reference)
+  - [Subpath exports](README.md#subpath-exports)
+  - [morphz/recipes](README.md#morphzrecipes)
+
+- **Examples**
+  - [User and Post walkthrough](examples/user-post.md)
